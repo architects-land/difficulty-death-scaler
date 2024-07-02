@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,6 +22,8 @@ public class DifficultyDeathScaler implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     private int numberOfDeath = 0;
+    // Each death count when difficulty steps up
+    private final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12};
 
     @Override
     public void onInitialize() {
@@ -57,14 +59,11 @@ public class DifficultyDeathScaler implements ModInitializer {
     }
 
     private void decreaseDeath(MinecraftServer server) {
-        if (numberOfDeath >= 7) {
-            numberOfDeath = 5;
-        } else if (numberOfDeath >= 5) {
-            numberOfDeath = 3;
-        } else if (numberOfDeath >= 3) {
-            numberOfDeath = 1;
-        } else if (numberOfDeath >= 1) {
-            numberOfDeath = 0;
+        for (int i = deathSteps.length - 1; i >= 0; i--) {
+            if (numberOfDeath >= deathSteps[i]) {
+                numberOfDeath = deathSteps[i];
+                break;
+            }
         }
         updateDeath(server, false);
     }
@@ -72,29 +71,25 @@ public class DifficultyDeathScaler implements ModInitializer {
     private void updateDeath(@NotNull MinecraftServer server, boolean playSound) {
         final var gamerules = server.getGameRules();
         final var sleeping = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
-        final var naturelRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION);
+        final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION);
 
         Difficulty difficulty = Difficulty.NORMAL;
-        if (numberOfDeath >= 7) {
-            naturelRegeneration.set(false, server);
-            sleeping.set(100, server);
-            difficulty = Difficulty.HARD;
-        } else if (numberOfDeath >= 5) {
-            naturelRegeneration.set(true, server);
-            sleeping.set(100, server);
-            difficulty = Difficulty.HARD;
-        } else if (numberOfDeath >= 3) {
-            naturelRegeneration.set(true, server);
+        naturalRegeneration.set(true, server);
+        sleeping.set(30, server);
+        if (numberOfDeath >= deathSteps[1]) {
             sleeping.set(70, server);
-            difficulty = Difficulty.HARD;
-        } else if (numberOfDeath >= 1) {
-            naturelRegeneration.set(true, server);
-            sleeping.set(70, server);
-        } else if (numberOfDeath == 0) {
-            naturelRegeneration.set(true, server);
-            sleeping.set(30, server);
         }
-        if (List.of(0,1,3,5,7).contains(numberOfDeath)) {
+        if (numberOfDeath >= deathSteps[2]) {
+            difficulty = Difficulty.HARD;
+        }
+        if (numberOfDeath >= deathSteps[3]) {
+            sleeping.set(100, server);
+        }
+        if (numberOfDeath >= deathSteps[4]) {
+            naturalRegeneration.set(false, server);
+        }
+
+        if (Arrays.stream(deathSteps).anyMatch(x -> x == numberOfDeath)) {
             server.setDifficulty(difficulty, true);
             server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty)), false);
             if (playSound) {

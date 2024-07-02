@@ -29,7 +29,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
     private int numberOfDeath = 0;
     // Each death count when difficulty steps up
-    private final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12, 15};
+    private final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12, 15, 17, 20};
 
     private static final Identifier HEALTH_MODIFIER_ID = Identifier.of("death_difficulty_health_modifier");
     private double playerHealthModifierValue = 0;
@@ -108,7 +108,13 @@ public class DifficultyDeathScaler implements ModInitializer {
             playerHealthModifierValue = -6;
         }
         if (numberOfDeath >= deathSteps[7]) {
-            // on va tous crever à ce stade lol
+            playerHealthModifierValue = -8;
+        }
+        if (numberOfDeath >= deathSteps[8]) {
+            playerHealthModifierValue = -10;
+        }
+        if (numberOfDeath >= deathSteps[9]) {
+            // on va tous crever à ce point lol
             naturalRegeneration.set(false, server);
         }
 
@@ -148,6 +154,8 @@ public class DifficultyDeathScaler implements ModInitializer {
         final var gamerules = server.getGameRules();
         final var percentage = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).get();
         final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION).get();
+        final var heartAmount = (20 + playerHealthModifierValue) / 2;
+
         final var sb = new StringBuilder();
         sb.append("§8=============== §rDifficulty update! §8===============§r\n");
         if (difficulty == Difficulty.NORMAL) {
@@ -165,11 +173,22 @@ public class DifficultyDeathScaler implements ModInitializer {
             sb.append("§c");
         }
         sb.append(percentage).append("%§r\n");
+
+        sb.append("Player max heart: ");
+        if (heartAmount == 10) {
+            sb.append("§2");
+        } else if (heartAmount >= 9) {
+            sb.append("§e");
+        } else {
+            sb.append("§c");
+        }
+        sb.append(heartAmount).append(" ❤§r\n");
+
         sb.append("Natural regeneration: ");
         if (naturalRegeneration) {
-            sb.append("§2yes");
+            sb.append("§2On");
         } else {
-            sb.append("§cno");
+            sb.append("§cOff");
         }
         sb.append("§r\n");
         sb.append("§8=============================================§r");

@@ -2,11 +2,15 @@ package world.anhgelus.architectsland.difficultydeathscaler;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +27,9 @@ public class DifficultyDeathScaler implements ModInitializer {
 
     private int numberOfDeath = 0;
     // Each death count when difficulty steps up
-    private final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12};
+    private final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12, 15};
+
+    private static final Identifier HEALTH_MODIFIER_ID = Identifier.of("death_difficulty_health_modifier");
 
     @Override
     public void onInitialize() {
@@ -73,6 +79,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         final var sleeping = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
         final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION);
 
+        double playerHealthModifierValue = 0;
         Difficulty difficulty = Difficulty.NORMAL;
         naturalRegeneration.set(true, server);
         sleeping.set(30, server);
@@ -86,17 +93,45 @@ public class DifficultyDeathScaler implements ModInitializer {
             sleeping.set(100, server);
         }
         if (numberOfDeath >= deathSteps[4]) {
+            playerHealthModifierValue = -2;
+        }
+        if (numberOfDeath >= deathSteps[5]) {
+            playerHealthModifierValue = -4;
+        }
+        if (numberOfDeath >= deathSteps[6]) {
+            playerHealthModifierValue = -6;
+        }
+        if (numberOfDeath >= deathSteps[7]) {
+            // on va tous crever à ce stade lol
             naturalRegeneration.set(false, server);
         }
 
         if (Arrays.stream(deathSteps).anyMatch(x -> x == numberOfDeath)) {
             server.setDifficulty(difficulty, true);
             server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty)), false);
-            if (playSound) {
-                server.getPlayerManager().getPlayerList().forEach(p -> {
-                    p.playSoundToPlayer(SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.AMBIENT, 1, 1.2f);
-                });
-            }
+
+            // The function requires a final value
+            double finalPlayerHealthModifierValue = playerHealthModifierValue;
+            server.getPlayerManager().getPlayerList().forEach(p -> {
+                EntityAttributeModifier playerHealthModifier = new EntityAttributeModifier(
+                        HEALTH_MODIFIER_ID,
+                        finalPlayerHealthModifierValue,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                );
+                EntityAttributeInstance healthAttributeInstance = p.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+                if (healthAttributeInstance != null) {
+                    healthAttributeInstance.removeModifier(HEALTH_MODIFIER_ID);
+                    healthAttributeInstance.addTemporaryModifier(playerHealthModifier);
+                }
+
+                if (playSound) {
+                    p.playSoundToPlayer(SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
+                            SoundCategory.AMBIENT,
+                            1,
+                            1.2f
+                    );
+                }
+            });
         }
     }
 

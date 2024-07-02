@@ -2,6 +2,8 @@ package world.anhgelus.architectsland.difficultydeathscaler;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -30,6 +32,7 @@ public class DifficultyDeathScaler implements ModInitializer {
     private final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12, 15};
 
     private static final Identifier HEALTH_MODIFIER_ID = Identifier.of("death_difficulty_health_modifier");
+    private double playerHealthModifierValue = 0;
 
     @Override
     public void onInitialize() {
@@ -41,6 +44,10 @@ public class DifficultyDeathScaler implements ModInitializer {
             increaseDeath(player);
             return true;
         });
+
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> applyHealthModifierToPlayer(handler.player));
+
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> applyHealthModifierToPlayer(newPlayer));
     }
 
     private void increaseDeath(ServerPlayerEntity player) {
@@ -79,7 +86,6 @@ public class DifficultyDeathScaler implements ModInitializer {
         final var sleeping = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
         final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION);
 
-        double playerHealthModifierValue = 0;
         Difficulty difficulty = Difficulty.NORMAL;
         naturalRegeneration.set(true, server);
         sleeping.set(30, server);
@@ -109,20 +115,8 @@ public class DifficultyDeathScaler implements ModInitializer {
         if (Arrays.stream(deathSteps).anyMatch(x -> x == numberOfDeath)) {
             server.setDifficulty(difficulty, true);
             server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty)), false);
-
-            // The function requires a final value
-            double finalPlayerHealthModifierValue = playerHealthModifierValue;
             server.getPlayerManager().getPlayerList().forEach(p -> {
-                EntityAttributeModifier playerHealthModifier = new EntityAttributeModifier(
-                        HEALTH_MODIFIER_ID,
-                        finalPlayerHealthModifierValue,
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                );
-                EntityAttributeInstance healthAttributeInstance = p.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
-                if (healthAttributeInstance != null) {
-                    healthAttributeInstance.removeModifier(HEALTH_MODIFIER_ID);
-                    healthAttributeInstance.addTemporaryModifier(playerHealthModifier);
-                }
+                applyHealthModifierToPlayer(p);
 
                 if (playSound) {
                     p.playSoundToPlayer(SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
@@ -132,6 +126,21 @@ public class DifficultyDeathScaler implements ModInitializer {
                     );
                 }
             });
+        }
+    }
+
+    private void applyHealthModifierToPlayer(ServerPlayerEntity player) {
+        EntityAttributeInstance healthAttributeInstance = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        if (healthAttributeInstance != null) {
+            healthAttributeInstance.removeModifier(HEALTH_MODIFIER_ID);
+            if (playerHealthModifierValue == 0) { return; }
+
+            EntityAttributeModifier playerHealthModifier = new EntityAttributeModifier(
+                    HEALTH_MODIFIER_ID,
+                    playerHealthModifierValue,
+                    EntityAttributeModifier.Operation.ADD_VALUE
+            );
+            healthAttributeInstance.addPersistentModifier(playerHealthModifier);
         }
     }
 

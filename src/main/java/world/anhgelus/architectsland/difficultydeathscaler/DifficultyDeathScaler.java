@@ -67,7 +67,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 if (numberOfDeath == 0) timer.cancel();
             }
         };
-        timer.schedule(reducer,30*1000L, 30*1000L);
+        timer.schedule(reducer,24*60*60*1000L, 24*60*60*1000L);
         updateDeath(server, true);
     }
 

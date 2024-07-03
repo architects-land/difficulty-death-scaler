@@ -92,6 +92,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         Difficulty difficulty = Difficulty.NORMAL;
         naturalRegeneration.set(true, server);
         sleeping.set(30, server);
+        playerHealthModifierValue = 0;
         if (numberOfDeath >= deathSteps[1]) {
             sleeping.set(70, server);
         }

@@ -67,7 +67,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 if (numberOfDeath == 0) timer.cancel();
             }
         };
-        timer.schedule(reducer,24*60*60*1000L, 24*60*60*1000L);
+        timer.schedule(reducer,30*1000L, 30*1000L);
         updateDeath(server, true);
     }
 
@@ -84,7 +84,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         updateDeath(server, false);
     }
 
-    private void updateDeath(@NotNull MinecraftServer server, boolean playSound) {
+    private void updateDeath(@NotNull MinecraftServer server, boolean difficultyIncrease) {
         final var gamerules = server.getGameRules();
         final var sleeping = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
         final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION);
@@ -128,11 +128,17 @@ public class DifficultyDeathScaler implements ModInitializer {
             server.getPlayerManager().getPlayerList().forEach(p -> {
                 applyHealthModifierToPlayer(p);
 
-                if (playSound) {
+                if (difficultyIncrease) {
                     p.playSoundToPlayer(SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
                             SoundCategory.AMBIENT,
                             1,
                             1.2f
+                    );
+                } else {
+                    p.playSoundToPlayer(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
+                            SoundCategory.AMBIENT,
+                            1,
+                            1
                     );
                 }
             });

@@ -73,8 +73,11 @@ public class DifficultyDeathScaler implements ModInitializer {
 
     private void decreaseDeath(MinecraftServer server) {
         for (int i = deathSteps.length - 1; i >= 0; i--) {
-            if (numberOfDeath >= deathSteps[i]) {
-                numberOfDeath = deathSteps[i];
+            // needed to prevent accessing deathSteps[-1]
+            if (i == 0) {
+                numberOfDeath = 0;
+            } else if (numberOfDeath >= deathSteps[i]) {
+                numberOfDeath = deathSteps[i-1];
                 break;
             }
         }

@@ -3,6 +3,7 @@ package world.anhgelus.architectsland.difficultydeathscaler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -26,10 +27,10 @@ import java.util.TimerTask;
 public class DifficultyDeathScaler implements ModInitializer {
     public static final String MOD_ID = "difficulty-death-scaler";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    // Each death count when difficulty steps up
+    public static final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12, 15, 17, 20};
 
     private int numberOfDeath = 0;
-    // Each death count when difficulty steps up
-    private final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12, 15, 17, 20};
 
     private static final Identifier HEALTH_MODIFIER_ID = Identifier.of("death_difficulty_health_modifier");
     private double playerHealthModifierValue = 0;
@@ -37,6 +38,10 @@ public class DifficultyDeathScaler implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
+
+        // set up difficulty of deathSteps[0]
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> updateDeath(server, false));
+
         ServerLivingEntityEvents.ALLOW_DEATH.register((entity, damageSource, damageAmount) -> {
             if (!(entity instanceof ServerPlayerEntity player)) {
                 return true;

@@ -27,10 +27,10 @@ import java.util.TimerTask;
 public class DifficultyDeathScaler implements ModInitializer {
     public static final String MOD_ID = "difficulty-death-scaler";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    // Each death count when difficulty steps up
+    public static final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12, 15, 17, 20};
 
     private int numberOfDeath = 0;
-    // Each death count when difficulty steps up
-    private final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12, 15, 17, 20};
 
     private static final Identifier HEALTH_MODIFIER_ID = Identifier.of("death_difficulty_health_modifier");
     private double playerHealthModifierValue = 0;

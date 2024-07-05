@@ -3,6 +3,7 @@ package world.anhgelus.architectsland.difficultydeathscaler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -37,6 +38,10 @@ public class DifficultyDeathScaler implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
+
+        // set up difficulty of deathSteps[0]
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> updateDeath(server, false));
+
         ServerLivingEntityEvents.ALLOW_DEATH.register((entity, damageSource, damageAmount) -> {
             if (!(entity instanceof ServerPlayerEntity player)) {
                 return true;

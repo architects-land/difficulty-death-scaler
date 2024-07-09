@@ -10,6 +10,7 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.boss.WitherEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.ElderGuardianEntity;
+import net.minecraft.entity.mob.WardenEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -48,7 +49,8 @@ public class DifficultyDeathScaler implements ModInitializer {
             }
             if (entity instanceof WitherEntity ||
                     entity instanceof EnderDragonEntity ||
-                    entity instanceof ElderGuardianEntity) {
+                    entity instanceof ElderGuardianEntity ||
+                    entity instanceof WardenEntity) {
                 decreaseDeath(entity.getServer());
             }
             return true;

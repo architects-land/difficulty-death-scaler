@@ -38,16 +38,15 @@ public class DifficultyDeathScaler implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
-
+      
         // set up difficulty of deathSteps[0]
         ServerLifecycleEvents.SERVER_STARTED.register(server -> updateDeath(server, false));
 
-        ServerLivingEntityEvents.ALLOW_DEATH.register((entity, damageSource, damageAmount) -> {
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (!(entity instanceof ServerPlayerEntity player)) {
-                return true;
+                return;
             }
             increaseDeath(player);
-            return true;
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> applyHealthModifierToPlayer(handler.player));

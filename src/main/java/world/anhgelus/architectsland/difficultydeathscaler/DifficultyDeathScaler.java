@@ -8,6 +8,11 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.boss.WitherEntity;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.entity.mob.ElderGuardianEntity;
+import net.minecraft.entity.mob.WardenEntity;
+import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -38,15 +43,20 @@ public class DifficultyDeathScaler implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
-      
         // set up difficulty of deathSteps[0]
         ServerLifecycleEvents.SERVER_STARTED.register(server -> updateDeath(server, false));
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
-            if (!(entity instanceof ServerPlayerEntity player)) {
+            if (entity instanceof ServerPlayerEntity player) {
+                increaseDeath(player);
                 return;
             }
-            increaseDeath(player);
+            if (entity instanceof WitherEntity ||
+                    entity instanceof EnderDragonEntity ||
+                    entity instanceof ElderGuardianEntity ||
+                    entity instanceof WardenEntity) {
+                decreaseDeath(entity.getServer());
+            }
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> applyHealthModifierToPlayer(handler.player));
@@ -71,7 +81,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 if (numberOfDeath == 0) timer.cancel();
             }
         };
-        timer.schedule(reducer,24*60*60*1000L, 24*60*60*1000L);
+        timer.schedule(reducer,12*60*60*1000L, 12*60*60*1000L);
         updateDeath(server, true);
     }
 

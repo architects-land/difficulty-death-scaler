@@ -7,6 +7,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.boss.WitherEntity;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.entity.mob.ElderGuardianEntity;
+import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -38,10 +42,15 @@ public class DifficultyDeathScaler implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
         ServerLivingEntityEvents.ALLOW_DEATH.register((entity, damageSource, damageAmount) -> {
-            if (!(entity instanceof ServerPlayerEntity player)) {
+            if (entity instanceof ServerPlayerEntity player) {
+                increaseDeath(player);
                 return true;
             }
-            increaseDeath(player);
+            if (entity instanceof WitherEntity ||
+                    entity instanceof EnderDragonEntity ||
+                    entity instanceof ElderGuardianEntity) {
+                decreaseDeath(entity.getServer());
+            }
             return true;
         });
 

@@ -1,6 +1,10 @@
 package world.anhgelus.architectsland.difficultydeathscaler;
 
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -12,8 +16,8 @@ import net.minecraft.entity.boss.WitherEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.ElderGuardianEntity;
 import net.minecraft.entity.mob.WardenEntity;
-import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -29,11 +33,16 @@ import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
+
 public class DifficultyDeathScaler implements ModInitializer {
     public static final String MOD_ID = "difficulty-death-scaler";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     // Each death count when difficulty steps up
-    public static final int[] deathSteps = {0, 1, 3, 5, 7, 10, 12, 15, 17, 20};
+    public static final int[] DEATH_STEPS = {0, 1, 3, 5, 7, 10, 12, 15, 17, 20};
+    // timer
+    public static final int SECONDS_BEFORE_DECREASE = 12*60*60;
 
     private int numberOfDeath = 0;
 
@@ -43,6 +52,32 @@ public class DifficultyDeathScaler implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
+
+        final LiteralArgumentBuilder<ServerCommandSource> command = literal("difficultydeathscaler");
+        command.then(literal("get").executes(context -> {
+            final var source = context.getSource();
+            final var server = source.getServer();
+            source.sendFeedback(() -> Text.literal(generateDifficultyUpdate(server, server.getOverworld().getDifficulty())), false);
+            return Command.SINGLE_SUCCESS;
+        }));
+        command.then(literal("set")
+                .requires(source -> source.hasPermissionLevel(1))
+                .then(argument("number of death", IntegerArgumentType.integer())
+                .executes(context -> {
+                    final var source = context.getSource();
+                    final var server = source.getServer();
+                    numberOfDeath = IntegerArgumentType.getInteger(context, "number of death");
+                    setupTimer(server);
+                    updateDeath(server, true);
+                    source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
+                    return Command.SINGLE_SUCCESS;
+                })
+                )
+        );
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(command));
+
+
         // set up difficulty of deathSteps[0]
         ServerLifecycleEvents.SERVER_STARTED.register(server -> updateDeath(server, false));
 
@@ -67,6 +102,11 @@ public class DifficultyDeathScaler implements ModInitializer {
     private void increaseDeath(ServerPlayerEntity player) {
         numberOfDeath++;
         final var server = player.getServerWorld().getServer();
+        setupTimer(server);
+        updateDeath(server, true);
+    }
+
+    private void setupTimer(MinecraftServer server) {
         final var timer = new Timer();
         final var reducer = new TimerTask() {
             private int lastNumberOfDeath = numberOfDeath;
@@ -81,17 +121,16 @@ public class DifficultyDeathScaler implements ModInitializer {
                 if (numberOfDeath == 0) timer.cancel();
             }
         };
-        timer.schedule(reducer,12*60*60*1000L, 12*60*60*1000L);
-        updateDeath(server, true);
+        timer.schedule(reducer,SECONDS_BEFORE_DECREASE*1000L, SECONDS_BEFORE_DECREASE*1000L);
     }
 
     private void decreaseDeath(MinecraftServer server) {
-        for (int i = deathSteps.length - 1; i >= 0; i--) {
+        for (int i = DEATH_STEPS.length - 1; i >= 0; i--) {
             // needed to prevent accessing deathSteps[-1]
             if (i == 0) {
                 numberOfDeath = 0;
-            } else if (numberOfDeath >= deathSteps[i]) {
-                numberOfDeath = deathSteps[i-1];
+            } else if (numberOfDeath >= DEATH_STEPS[i]) {
+                numberOfDeath = DEATH_STEPS[i-1];
                 break;
             }
         }
@@ -107,36 +146,36 @@ public class DifficultyDeathScaler implements ModInitializer {
         naturalRegeneration.set(true, server);
         sleeping.set(30, server);
         playerHealthModifierValue = 0;
-        if (numberOfDeath >= deathSteps[1]) {
+        if (numberOfDeath >= DEATH_STEPS[1]) {
             sleeping.set(70, server);
         }
-        if (numberOfDeath >= deathSteps[2]) {
+        if (numberOfDeath >= DEATH_STEPS[2]) {
             difficulty = Difficulty.HARD;
         }
-        if (numberOfDeath >= deathSteps[3]) {
+        if (numberOfDeath >= DEATH_STEPS[3]) {
             sleeping.set(100, server);
         }
-        if (numberOfDeath >= deathSteps[4]) {
+        if (numberOfDeath >= DEATH_STEPS[4]) {
             playerHealthModifierValue = -2;
         }
-        if (numberOfDeath >= deathSteps[5]) {
+        if (numberOfDeath >= DEATH_STEPS[5]) {
             playerHealthModifierValue = -4;
         }
-        if (numberOfDeath >= deathSteps[6]) {
+        if (numberOfDeath >= DEATH_STEPS[6]) {
             playerHealthModifierValue = -6;
         }
-        if (numberOfDeath >= deathSteps[7]) {
+        if (numberOfDeath >= DEATH_STEPS[7]) {
             playerHealthModifierValue = -8;
         }
-        if (numberOfDeath >= deathSteps[8]) {
+        if (numberOfDeath >= DEATH_STEPS[8]) {
             playerHealthModifierValue = -10;
         }
-        if (numberOfDeath >= deathSteps[9]) {
+        if (numberOfDeath >= DEATH_STEPS[9]) {
             // on va tous crever à ce point lol
             naturalRegeneration.set(false, server);
         }
 
-        if (Arrays.stream(deathSteps).anyMatch(x -> x == numberOfDeath)) {
+        if (Arrays.stream(DEATH_STEPS).anyMatch(x -> x == numberOfDeath)) {
             server.setDifficulty(difficulty, true);
             server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty)), false);
             server.getPlayerManager().getPlayerList().forEach(p -> {

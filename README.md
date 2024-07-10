@@ -22,6 +22,12 @@ Level of difficulty:
 | 17      | Hard       | 100                       | 5         | true                |
 | 20+     | Hard       | 100                       | 5         | false               |
 
+## Command
+
+The mod adds one command: `/difficultydeathscaler`
+- `/difficultydeathscaler get` gives the current difficulty
+- `/difficultydeathscaler set <number of death>` sets the number of death (player needs to be OP) 
+
 ## Technologies
 
 - Minecraft 1.21

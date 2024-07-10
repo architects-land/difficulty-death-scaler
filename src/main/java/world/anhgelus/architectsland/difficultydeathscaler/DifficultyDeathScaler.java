@@ -1,6 +1,11 @@
 package world.anhgelus.architectsland.difficultydeathscaler;
 
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -12,8 +17,9 @@ import net.minecraft.entity.boss.WitherEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.ElderGuardianEntity;
 import net.minecraft.entity.mob.WardenEntity;
-import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -29,6 +35,9 @@ import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
+
 public class DifficultyDeathScaler implements ModInitializer {
     public static final String MOD_ID = "difficulty-death-scaler";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
@@ -43,6 +52,32 @@ public class DifficultyDeathScaler implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
+
+        final LiteralArgumentBuilder<ServerCommandSource> command = literal("difficultydeathscaler");
+        command.then(literal("get").executes(context -> {
+            final var source = context.getSource();
+            final var server = source.getServer();
+            source.sendFeedback(() -> Text.literal(generateDifficultyUpdate(server, server.getOverworld().getDifficulty())), false);
+            return Command.SINGLE_SUCCESS;
+        }));
+        command.then(literal("set")
+                .requires(source -> source.hasPermissionLevel(1))
+                .then(argument("number of death", IntegerArgumentType.integer())
+                .executes(context -> {
+                    final var source = context.getSource();
+                    final var server = source.getServer();
+                    numberOfDeath = IntegerArgumentType.getInteger(context, "number of death");
+                    setupTimer(server);
+                    updateDeath(server, true);
+                    source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
+                    return Command.SINGLE_SUCCESS;
+                })
+                )
+        );
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(command));
+
+
         // set up difficulty of deathSteps[0]
         ServerLifecycleEvents.SERVER_STARTED.register(server -> updateDeath(server, false));
 
@@ -67,6 +102,11 @@ public class DifficultyDeathScaler implements ModInitializer {
     private void increaseDeath(ServerPlayerEntity player) {
         numberOfDeath++;
         final var server = player.getServerWorld().getServer();
+        setupTimer(server);
+        updateDeath(server, true);
+    }
+
+    private void setupTimer(MinecraftServer server) {
         final var timer = new Timer();
         final var reducer = new TimerTask() {
             private int lastNumberOfDeath = numberOfDeath;
@@ -82,7 +122,6 @@ public class DifficultyDeathScaler implements ModInitializer {
             }
         };
         timer.schedule(reducer,12*60*60*1000L, 12*60*60*1000L);
-        updateDeath(server, true);
     }
 
     private void decreaseDeath(MinecraftServer server) {

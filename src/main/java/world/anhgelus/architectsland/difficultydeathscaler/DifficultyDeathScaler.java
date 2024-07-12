@@ -140,8 +140,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
     private void updateDeath(@NotNull MinecraftServer server, DifficultyUpdateType updateType) {
         if (updateType == DifficultyUpdateType.GET) {
-            // Shouldn’t happen
-            return;
+            throw new IllegalArgumentException("Cannot update difficulty when only getting difficulty");
         }
 
         final var gamerules = server.getGameRules();

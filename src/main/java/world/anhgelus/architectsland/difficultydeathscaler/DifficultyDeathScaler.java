@@ -40,7 +40,7 @@ public class DifficultyDeathScaler implements ModInitializer {
     // Each death count when difficulty steps up
     public static final int[] DEATH_STEPS = {0, 1, 3, 5, 7, 10, 12, 15, 17, 20};
     // timer
-    public static final int SECONDS_BEFORE_DECREASE = 60*60;
+    public static final int SECONDS_BEFORE_DECREASE = 12*60*60;
 
     private int numberOfDeath = 0;
 

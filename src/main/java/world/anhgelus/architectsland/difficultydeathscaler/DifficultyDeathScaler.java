@@ -29,9 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -49,6 +47,8 @@ public class DifficultyDeathScaler implements ModInitializer {
     private static final Identifier HEALTH_MODIFIER_ID = Identifier.of("death_difficulty_health_modifier");
     private double playerHealthModifierValue = 0;
 
+    private long timerStart = (new Date()).getTime() / 1000;
+
     @Override
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
@@ -57,7 +57,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         command.then(literal("get").executes(context -> {
             final var source = context.getSource();
             final var server = source.getServer();
-            source.sendFeedback(() -> Text.literal(generateDifficultyUpdate(server, server.getOverworld().getDifficulty())), false);
+            source.sendFeedback(() -> Text.literal(generateDifficultyUpdate(server, server.getOverworld().getDifficulty(), DifficultyUpdateType.GET)), false);
             return Command.SINGLE_SUCCESS;
         }));
         command.then(literal("set")
@@ -67,8 +67,8 @@ public class DifficultyDeathScaler implements ModInitializer {
                     final var source = context.getSource();
                     final var server = source.getServer();
                     numberOfDeath = IntegerArgumentType.getInteger(context, "number of death");
+                    updateDeath(server, DifficultyUpdateType.INCREASE);
                     setupTimer(server);
-                    updateDeath(server, true);
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
@@ -79,7 +79,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
 
         // set up difficulty of deathSteps[0]
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> updateDeath(server, false));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> updateDeath(server, DifficultyUpdateType.INCREASE));
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (entity instanceof ServerPlayerEntity player) {
@@ -102,8 +102,8 @@ public class DifficultyDeathScaler implements ModInitializer {
     private void increaseDeath(ServerPlayerEntity player) {
         numberOfDeath++;
         final var server = player.getServerWorld().getServer();
+        updateDeath(server, DifficultyUpdateType.INCREASE);
         setupTimer(server);
-        updateDeath(server, true);
     }
 
     private void setupTimer(MinecraftServer server) {
@@ -122,6 +122,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             }
         };
         timer.schedule(reducer,SECONDS_BEFORE_DECREASE*1000L, SECONDS_BEFORE_DECREASE*1000L);
+        timerStart = (new Date()).getTime() / 1000;
     }
 
     private void decreaseDeath(MinecraftServer server) {
@@ -134,10 +135,14 @@ public class DifficultyDeathScaler implements ModInitializer {
                 break;
             }
         }
-        updateDeath(server, false);
+        updateDeath(server, DifficultyUpdateType.DECREASE);
     }
 
-    private void updateDeath(@NotNull MinecraftServer server, boolean difficultyIncrease) {
+    private void updateDeath(@NotNull MinecraftServer server, DifficultyUpdateType updateType) {
+        if (updateType == DifficultyUpdateType.GET) {
+            throw new IllegalArgumentException("Cannot update difficulty when only getting difficulty");
+        }
+
         final var gamerules = server.getGameRules();
         final var sleeping = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
         final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION);
@@ -177,11 +182,11 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         if (Arrays.stream(DEATH_STEPS).anyMatch(x -> x == numberOfDeath)) {
             server.setDifficulty(difficulty, true);
-            server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty)), false);
+            server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty, updateType)), false);
             server.getPlayerManager().getPlayerList().forEach(p -> {
                 applyHealthModifierToPlayer(p);
 
-                if (difficultyIncrease) {
+                if (updateType == DifficultyUpdateType.INCREASE) {
                     p.playSoundToPlayer(SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
                             SoundCategory.AMBIENT,
                             1,
@@ -213,14 +218,26 @@ public class DifficultyDeathScaler implements ModInitializer {
         }
     }
 
-    private @NotNull String generateDifficultyUpdate(@NotNull MinecraftServer server, Difficulty difficulty) {
+    private enum DifficultyUpdateType {
+        INCREASE,
+        DECREASE,
+        GET
+    }
+
+    private @NotNull String generateDifficultyUpdate(@NotNull MinecraftServer server, Difficulty difficulty, DifficultyUpdateType updateType) {
         final var gamerules = server.getGameRules();
         final var percentage = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).get();
         final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION).get();
         final var heartAmount = (20 + playerHealthModifierValue) / 2;
 
         final var sb = new StringBuilder();
-        sb.append("§8=============== §rDifficulty update! §8===============§r\n");
+        if (updateType == DifficultyUpdateType.INCREASE) {
+            sb.append("§8============== §rDifficulty increase! §8==============§r\n");
+        } else if (updateType == DifficultyUpdateType.DECREASE) {
+            sb.append("§8============== §rDifficulty decrease! §8==============§r\n");
+        } else {
+            sb.append("§8============== §rCurrent difficulty : §8==============§r\n");
+        }
         if (difficulty == Difficulty.NORMAL) {
             sb.append("Difficulty: §2Normal§r");
         } else {
@@ -253,8 +270,31 @@ public class DifficultyDeathScaler implements ModInitializer {
         } else {
             sb.append("§cOff");
         }
-        sb.append("§r\n");
-        sb.append("§8=============================================§r");
+        sb.append("§r\n\n");
+
+        if (updateType == DifficultyUpdateType.GET) {
+            sb.append("You only need to survive for §6")
+                    .append(printTime(SECONDS_BEFORE_DECREASE - new Date().getTime() / 1000 + timerStart))
+                    .append("§r to make the difficulty decrease.");
+        } else {
+            sb.append("If no one died for §6")
+                    .append(printTime(SECONDS_BEFORE_DECREASE - new Date().getTime() / 1000 + timerStart))
+                    .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+        }
+        sb.append("\n§8=============================================§r");
         return sb.toString();
+    }
+
+    private static String printTime(long time) {
+        long hours = 0;
+        if (time > 3600) {
+            hours = Math.floorDiv(time, 3600);
+        }
+        long minutes = 0;
+        if (hours != 0 || time > 60) {
+            minutes = Math.floorDiv(time - hours * 3600, 60);
+        }
+        long seconds = (long) Math.floor(time - hours * 3600 - minutes * 60);
+        return String.format("%d hours %d minutes %d seconds", hours, minutes, seconds);
     }
 }

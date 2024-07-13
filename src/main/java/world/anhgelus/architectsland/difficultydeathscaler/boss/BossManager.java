@@ -1,8 +1,8 @@
 package world.anhgelus.architectsland.difficultydeathscaler.boss;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LightningEntity;
+import net.minecraft.block.Blocks;
+import net.minecraft.entity.*;
+import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -14,9 +14,15 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyManager;
@@ -55,6 +61,8 @@ public class BossManager {
         lightingBolt.setPosition(entity.getPos());
 
         world.spawnEntity(lightingBolt);
+        var living = (LivingEntity) entity;
+        living.setHealth(living.getMaxHealth());
 
         return ActionResult.SUCCESS;
     }
@@ -72,6 +80,43 @@ public class BossManager {
             @Override
             public void buff() {
                 DifficultyDeathScaler.LOGGER.info("Elder Guardian buffed");
+
+                buffAttribute(
+                        entity,
+                        EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,
+                        "death_difficulty.elder_guardian.kb",
+                        0.8f,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                );
+                buffAttribute(
+                        entity,
+                        EntityAttributes.GENERIC_MAX_HEALTH,
+                        "death_difficulty.elder_guardian.health",
+                        2,
+                        EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
+                buffAttribute(
+                        entity,
+                        EntityAttributes.GENERIC_ATTACK_DAMAGE,
+                        "death_difficulty.elder_guardian.damage",
+                        6,
+                        EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
+                buffAttribute(
+                        entity,
+                        EntityAttributes.GENERIC_SCALE,
+                        "death_difficulty.elder_guardian.scale",
+                        -0.33f,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                );
+                buffAttribute(
+                        entity,
+                        EntityAttributes.GENERIC_MOVEMENT_SPEED,
+                        "death_difficulty.elder_guardian.speed",
+                        2f,
+                        EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
+                entity.setHealth(entity.getMaxHealth());
             }
         };
     }
@@ -91,25 +136,20 @@ public class BossManager {
             public void buff() {
                 DifficultyDeathScaler.LOGGER.info("Warden buffed");
 
-                final var speedAttribute = entity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
-                if (speedAttribute != null) {
-                    final var wardenSpeedModifier = new EntityAttributeModifier(
-                            Identifier.of("death_difficulty_warden_speed_modifier"),
-                            1.5,
-                            EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
-                    );
-                    speedAttribute.addTemporaryModifier(wardenSpeedModifier);
-                }
-
-                final var kbResistanceAttribute = entity.getAttributeInstance(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE);
-                if (kbResistanceAttribute != null) {
-                    final var wardenKbModifier = new EntityAttributeModifier(
-                            Identifier.of("death_difficulty_warden_kb_modifier"),
-                            0.8,
-                            EntityAttributeModifier.Operation.ADD_VALUE
-                    );
-                    kbResistanceAttribute.addTemporaryModifier(wardenKbModifier);
-                }
+                buffAttribute(
+                        entity,
+                        EntityAttributes.GENERIC_MOVEMENT_SPEED,
+                        "death_difficulty.warden.speed",
+                        1.5f,
+                        EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
+                buffAttribute(
+                        entity,
+                        EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,
+                        "death_difficulty.warden.kb",
+                        0.8f,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                );
             }
         };
     }
@@ -121,5 +161,13 @@ public class BossManager {
                 DifficultyDeathScaler.LOGGER.info("Wither buffed");
             }
         };
+    }
+
+    private static void buffAttribute(LivingEntity entity, RegistryEntry<EntityAttribute> attribute, String id, float value, EntityAttributeModifier.Operation operation) {
+        final var attr = entity.getAttributeInstance(attribute);
+        if (attr != null) {
+            final var wardenKbModifier = new EntityAttributeModifier(Identifier.of(id), value, operation);
+            attr.addTemporaryModifier(wardenKbModifier);
+        }
     }
 }

@@ -57,11 +57,13 @@ public class BossManager {
         boss.buff();
         buffedBosses.add(entity.getUuid());
 
+        var living = (LivingEntity) entity;
+        living.setHealth(living.getMaxHealth());
+
         final var lightingBolt = new LightningEntity(EntityType.LIGHTNING_BOLT, world);
         lightingBolt.setPosition(entity.getPos());
 
         world.spawnEntity(lightingBolt);
-        var living = (LivingEntity) entity;
         living.setHealth(living.getMaxHealth());
 
         return ActionResult.SUCCESS;
@@ -116,7 +118,6 @@ public class BossManager {
                         2f,
                         EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 );
-                entity.setHealth(entity.getMaxHealth());
             }
         };
     }
@@ -159,6 +160,21 @@ public class BossManager {
             @Override
             public void buff() {
                 DifficultyDeathScaler.LOGGER.info("Wither buffed");
+
+                World world = entity.getWorld();
+
+                BlockHitResult hitResult = world.raycast(new RaycastContext(
+                        entity.getPos(),
+                        entity.getPos().add(0, 4, 0),
+                        RaycastContext.ShapeType.COLLIDER,
+                        RaycastContext.FluidHandling.NONE,
+                        entity
+                ));
+
+                if (hitResult.getType() != HitResult.Type.BLOCK) return;
+                if (world.getBlockState(hitResult.getBlockPos()).getBlock() != Blocks.BEDROCK) return;
+
+                entity.setPosition(entity.getPos().add(0, -2, 0));
             }
         };
     }

@@ -70,7 +70,7 @@ public class BossManager {
     }
 
     public static void handleKill(Entity entity, DifficultyManager manager) {
-        if (!buffedBosses.contains(entity.getUuid())) {
+        if (!(entity instanceof EnderDragonEntity) && !buffedBosses.contains(entity.getUuid())) {
             return;
         }
         buffedBosses.remove(entity.getUuid());

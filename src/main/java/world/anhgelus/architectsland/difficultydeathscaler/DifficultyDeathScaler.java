@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.boss.WitherEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
@@ -16,8 +17,12 @@ import net.minecraft.entity.mob.WardenEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+
+import javax.swing.*;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -30,13 +35,13 @@ public class DifficultyDeathScaler implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
 
-        final var manager = new DifficultyManager();
+        final var difficultyManager = new DifficultyManager();
 
         final LiteralArgumentBuilder<ServerCommandSource> command = literal("difficultydeathscaler");
         command.then(literal("get").executes(context -> {
             final var source = context.getSource();
             final var server = source.getServer();
-            source.sendFeedback(() -> Text.literal(manager.getDifficultyUpdate(server, server.getOverworld().getDifficulty())), false);
+            source.sendFeedback(() -> Text.literal(difficultyManager.getDifficultyUpdate(server, server.getOverworld().getDifficulty())), false);
             return Command.SINGLE_SUCCESS;
         }));
         command.then(literal("set")
@@ -45,7 +50,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 .executes(context -> {
                     final var source = context.getSource();
                     final var server = source.getServer();
-                    manager.setNumberOfDeath(server, IntegerArgumentType.getInteger(context, "number of death"));
+                    difficultyManager.setNumberOfDeath(server, IntegerArgumentType.getInteger(context, "number of death"));
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
@@ -56,23 +61,20 @@ public class DifficultyDeathScaler implements ModInitializer {
 
 
         // set up difficulty of deathSteps[0]
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> manager.setNumberOfDeath(server, manager.getNumberOfDeath()));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> difficultyManager.setNumberOfDeath(server, difficultyManager.getNumberOfDeath()));
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (entity instanceof ServerPlayerEntity player) {
-                manager.increaseDeath(player.server);
+                difficultyManager.increaseDeath(player.server);
                 return;
             }
-            if (entity instanceof WitherEntity ||
-                    entity instanceof EnderDragonEntity ||
-                    entity instanceof ElderGuardianEntity ||
-                    entity instanceof WardenEntity) {
-                manager.decreaseDeath(entity.getServer());
-            }
+            BossManager.handleKill(entity, difficultyManager);
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> manager.applyHealthModifierToPlayer(handler.player));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> difficultyManager.applyHealthModifierToPlayer(handler.player));
 
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> manager.applyHealthModifierToPlayer(newPlayer));
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> difficultyManager.applyHealthModifierToPlayer(newPlayer));
+
+        UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> BossManager.handleBuff(player, hand, entity));
     }
 }

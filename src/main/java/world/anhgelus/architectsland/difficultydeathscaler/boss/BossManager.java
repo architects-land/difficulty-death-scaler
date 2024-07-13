@@ -1,6 +1,11 @@
 package world.anhgelus.architectsland.difficultydeathscaler.boss;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LightningEntity;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.boss.WitherEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.ElderGuardianEntity;
@@ -11,6 +16,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyManager;
 
 import java.util.ArrayList;
@@ -22,7 +30,7 @@ public class BossManager {
 
     private static final List<UUID> buffedBosses = new ArrayList<>();
 
-    public static ActionResult handleBuff(PlayerEntity player, Hand hand, Entity entity) {
+    public static ActionResult handleBuff(PlayerEntity player, World world, Hand hand, Entity entity) {
         if (!(entity instanceof WitherEntity ||
                 entity instanceof EnderDragonEntity ||
                 entity instanceof ElderGuardianEntity ||
@@ -31,7 +39,6 @@ public class BossManager {
         if (buffedBosses.contains(entity.getUuid())) return ActionResult.PASS;
 
         final ItemStack itemStack = player.getStackInHand(hand);
-        // TODO: check that boss is not buffed
         if (!itemStack.isOf(buffingItem)) return ActionResult.PASS;
         itemStack.decrementUnlessCreative(1, player);
 
@@ -43,6 +50,11 @@ public class BossManager {
         };
         boss.buff();
         buffedBosses.add(entity.getUuid());
+
+        final var lightingBolt = new LightningEntity(EntityType.LIGHTNING_BOLT, world);
+        lightingBolt.setPosition(entity.getPos());
+
+        world.spawnEntity(lightingBolt);
 
         return ActionResult.SUCCESS;
     }
@@ -59,7 +71,7 @@ public class BossManager {
         return new BuffableBoss<>(entity) {
             @Override
             public void buff() {
-
+                DifficultyDeathScaler.LOGGER.info("Elder Guardian buffed");
             }
         };
     }
@@ -68,7 +80,7 @@ public class BossManager {
         return new BuffableBoss<>(entity) {
             @Override
             public void buff() {
-
+                DifficultyDeathScaler.LOGGER.info("Ender Dragon buffed");
             }
         };
     }
@@ -77,7 +89,27 @@ public class BossManager {
         return new BuffableBoss<>(entity) {
             @Override
             public void buff() {
+                DifficultyDeathScaler.LOGGER.info("Warden buffed");
 
+                final var speedAttribute = entity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+                if (speedAttribute != null) {
+                    final var wardenSpeedModifier = new EntityAttributeModifier(
+                            Identifier.of("death_difficulty_warden_speed_modifier"),
+                            1.5,
+                            EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    );
+                    speedAttribute.addTemporaryModifier(wardenSpeedModifier);
+                }
+
+                final var kbResistanceAttribute = entity.getAttributeInstance(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE);
+                if (kbResistanceAttribute != null) {
+                    final var wardenKbModifier = new EntityAttributeModifier(
+                            Identifier.of("death_difficulty_warden_kb_modifier"),
+                            0.8,
+                            EntityAttributeModifier.Operation.ADD_VALUE
+                    );
+                    kbResistanceAttribute.addTemporaryModifier(wardenKbModifier);
+                }
             }
         };
     }
@@ -86,7 +118,7 @@ public class BossManager {
         return new BuffableBoss<>(entity) {
             @Override
             public void buff() {
-
+                DifficultyDeathScaler.LOGGER.info("Wither buffed");
             }
         };
     }

@@ -232,10 +232,10 @@ public class DifficultyManager {
         }
         sb.append("§r\n\n");
 
-        if (updateType == UpdateType.GET) {
+        if (updateType == UpdateType.GET || updateType == UpdateType.DECREASE) {
             sb.append("You only need to survive for §6")
                     .append(printTime(secondsBeforeDecrease - new Date().getTime() / 1000 + timerStart))
-                    .append("§r to make the difficulty decrease.");
+                    .append(" §rto make the difficulty decrease.");
         } else {
             sb.append("If no one died for §6")
                     .append(printTime(secondsBeforeDecrease - new Date().getTime() / 1000 + timerStart))

@@ -54,7 +54,7 @@ public class DifficultyManager {
     public void setNumberOfDeath(MinecraftServer server, int n) {
         numberOfDeath = n;
         updateDeath(server, UpdateType.SET);
-        if (n > 0) updateTimerTask(server);
+        updateTimerTask(server);
     }
 
     public int getNumberOfDeath() {
@@ -69,6 +69,7 @@ public class DifficultyManager {
 
     public void updateTimerTask(MinecraftServer server) {
         if (reducerTask != null) reducerTask.cancel();
+        if (numberOfDeath == 0) return;
         reducerTask = new TimerTask() {
             @Override
             public void run() {
@@ -90,9 +91,7 @@ public class DifficultyManager {
                 break;
             }
         }
-        if (numberOfDeath > 0) {
-            updateDeath(server, UpdateType.DECREASE);
-        }
+        updateDeath(server, UpdateType.DECREASE);
     }
 
     private void updateDeath(@NotNull MinecraftServer server, UpdateType updateType) {

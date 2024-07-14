@@ -74,7 +74,9 @@ public class BossManager {
             return;
         }
         buffedBosses.remove(entity.getUuid());
-        manager.decreaseDeath(entity.getServer());
+        if (manager.getNumberOfDeath() >= DifficultyManager.DEATH_STEPS[1]) {
+            manager.decreaseDeath(entity.getServer());
+        }
     }
 
     private static BuffableBoss<ElderGuardianEntity> getBoss(ElderGuardianEntity entity) {

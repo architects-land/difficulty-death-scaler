@@ -1,26 +1,19 @@
 package world.anhgelus.architectsland.difficultydeathscaler;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,7 +28,10 @@ public class DifficultyManager {
     private static final Identifier HEALTH_MODIFIER_ID = Identifier.of("death_difficulty_health_modifier");
     private double playerHealthModifierValue = 0;
 
-    private long timerStart = (new Date()).getTime() / 1000;
+    private long timerStart = System.currentTimeMillis() / 1000;
+
+    private TimerTask reducerTask;
+    private final Timer difficultyTimer = new Timer();
 
     private enum UpdateType {
         INCREASE,
@@ -49,15 +45,16 @@ public class DifficultyManager {
         secondsBeforeDecrease = 12*60*60;
     }
 
-    public DifficultyManager(int numberOfDeath, int secondsBeforeDecrease) {
+    public DifficultyManager(int numberOfDeath, int secondsBeforeDecrease, MinecraftServer server) {
         this.numberOfDeath = numberOfDeath;
         this.secondsBeforeDecrease = secondsBeforeDecrease;
+        this.updateTimerTask(server);
     }
 
     public void setNumberOfDeath(MinecraftServer server, int n) {
         numberOfDeath = n;
         updateDeath(server, UpdateType.SET);
-        setupTimer(server);
+        updateTimerTask(server);
     }
 
     public int getNumberOfDeath() {
@@ -67,26 +64,21 @@ public class DifficultyManager {
     public void increaseDeath(MinecraftServer server) {
         numberOfDeath++;
         updateDeath(server, UpdateType.INCREASE);
-        setupTimer(server);
+        updateTimerTask(server);
     }
 
-    public void setupTimer(MinecraftServer server) {
-        final var timer = new Timer();
-        final var reducer = new TimerTask() {
-            private int lastNumberOfDeath = numberOfDeath;
+    public void updateTimerTask(MinecraftServer server) {
+        if (reducerTask != null) reducerTask.cancel();
+        if (numberOfDeath == 0) return;
+        reducerTask = new TimerTask() {
             @Override
             public void run() {
-                if (numberOfDeath != lastNumberOfDeath) {
-                    timer.cancel();
-                    return;
-                }
                 decreaseDeath(server);
-                lastNumberOfDeath = numberOfDeath;
-                if (numberOfDeath == 0) timer.cancel();
+                if (numberOfDeath == 0) reducerTask.cancel();
             }
         };
-        timer.schedule(reducer,secondsBeforeDecrease*1000L, secondsBeforeDecrease*1000L);
-        timerStart = (new Date()).getTime() / 1000;
+        difficultyTimer.schedule(reducerTask,secondsBeforeDecrease*1000L, secondsBeforeDecrease*1000L);
+        timerStart = System.currentTimeMillis() / 1000;
     }
 
     public void decreaseDeath(MinecraftServer server) {
@@ -111,7 +103,7 @@ public class DifficultyManager {
         final var sleeping = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
         final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION);
 
-        Difficulty difficulty = Difficulty.NORMAL;
+        var difficulty = Difficulty.NORMAL;
         naturalRegeneration.set(true, server);
         sleeping.set(30, server);
         playerHealthModifierValue = 0;
@@ -144,7 +136,7 @@ public class DifficultyManager {
             naturalRegeneration.set(false, server);
         }
 
-        if (Arrays.stream(DEATH_STEPS).anyMatch(x -> x == numberOfDeath)) {
+        if (Arrays.stream(DEATH_STEPS).anyMatch(x -> x == numberOfDeath) || updateType == UpdateType.SET) {
             server.setDifficulty(difficulty, true);
             server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty, updateType)), false);
             server.getPlayerManager().getPlayerList().forEach(p -> {
@@ -234,11 +226,11 @@ public class DifficultyManager {
 
         if (updateType == UpdateType.GET || updateType == UpdateType.DECREASE) {
             sb.append("You only need to survive for §6")
-                    .append(printTime(secondsBeforeDecrease - new Date().getTime() / 1000 + timerStart))
+                    .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
                     .append(" §rto make the difficulty decrease.");
         } else {
             sb.append("If no one died for §6")
-                    .append(printTime(secondsBeforeDecrease - new Date().getTime() / 1000 + timerStart))
+                    .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
                     .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
         }
         sb.append("\n§8=============================================§r");

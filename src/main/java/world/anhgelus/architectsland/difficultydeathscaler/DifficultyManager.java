@@ -1,22 +1,16 @@
 package world.anhgelus.architectsland.difficultydeathscaler;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -36,6 +30,8 @@ public class DifficultyManager {
     private double playerHealthModifierValue = 0;
 
     private long timerStart = (new Date()).getTime() / 1000;
+
+    private TimerTask reducerTask;
 
     private enum UpdateType {
         INCREASE,
@@ -72,20 +68,15 @@ public class DifficultyManager {
 
     public void setupTimer(MinecraftServer server) {
         final var timer = new Timer();
-        final var reducer = new TimerTask() {
-            private int lastNumberOfDeath = numberOfDeath;
+        if (reducerTask != null) reducerTask.cancel();
+        reducerTask = new TimerTask() {
             @Override
             public void run() {
-                if (numberOfDeath != lastNumberOfDeath) {
-                    timer.cancel();
-                    return;
-                }
                 decreaseDeath(server);
-                lastNumberOfDeath = numberOfDeath;
                 if (numberOfDeath == 0) timer.cancel();
             }
         };
-        timer.schedule(reducer,secondsBeforeDecrease*1000L, secondsBeforeDecrease*1000L);
+        timer.schedule(reducerTask,secondsBeforeDecrease*1000L, secondsBeforeDecrease*1000L);
         timerStart = (new Date()).getTime() / 1000;
     }
 

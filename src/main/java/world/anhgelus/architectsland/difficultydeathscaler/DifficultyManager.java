@@ -136,7 +136,7 @@ public class DifficultyManager {
             naturalRegeneration.set(false, server);
         }
 
-        if (Arrays.stream(DEATH_STEPS).anyMatch(x -> x == numberOfDeath)) {
+        if (Arrays.stream(DEATH_STEPS).anyMatch(x -> x == numberOfDeath) || updateType == UpdateType.SET) {
             server.setDifficulty(difficulty, true);
             server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty, updateType)), false);
             server.getPlayerManager().getPlayerList().forEach(p -> {

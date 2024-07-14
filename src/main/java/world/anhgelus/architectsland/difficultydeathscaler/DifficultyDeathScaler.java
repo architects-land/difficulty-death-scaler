@@ -56,9 +56,12 @@ public class DifficultyDeathScaler implements ModInitializer {
         // set up difficulty of deathSteps[0]
         ServerLifecycleEvents.SERVER_STARTED.register(server -> difficultyManager.setNumberOfDeath(server, difficultyManager.getNumberOfDeath()));
 
+        var playerDeathManager = new PlayerDeathManager();
+
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (entity instanceof ServerPlayerEntity player) {
                 difficultyManager.increaseDeath(player.server);
+                playerDeathManager.handleDeath(player);
                 return;
             }
             BossManager.handleKill(entity, difficultyManager);

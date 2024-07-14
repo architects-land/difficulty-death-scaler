@@ -56,8 +56,8 @@ public class DifficultyManager {
 
     public void setNumberOfDeath(MinecraftServer server, int n) {
         numberOfDeath = n;
-        updateDeath(server, UpdateType.SET);
         setupTimer(server);
+        updateDeath(server, UpdateType.SET);
     }
 
     public int getNumberOfDeath() {
@@ -66,27 +66,25 @@ public class DifficultyManager {
 
     public void increaseDeath(MinecraftServer server) {
         numberOfDeath++;
-        updateDeath(server, UpdateType.INCREASE);
         setupTimer(server);
+        updateDeath(server, UpdateType.INCREASE);
     }
 
     public void setupTimer(MinecraftServer server) {
-        final var timer = new Timer();
+        timerStart = (new Date()).getTime() / 1000;
+
+        var timer = new Timer();
         final var reducer = new TimerTask() {
             private int lastNumberOfDeath = numberOfDeath;
             @Override
             public void run() {
-                if (numberOfDeath != lastNumberOfDeath) {
-                    timer.cancel();
-                    return;
+                timer.cancel();
+                if (numberOfDeath == lastNumberOfDeath) {
+                    decreaseDeath(server);
                 }
-                decreaseDeath(server);
-                lastNumberOfDeath = numberOfDeath;
-                if (numberOfDeath == 0) timer.cancel();
             }
         };
         timer.schedule(reducer,secondsBeforeDecrease*1000L, secondsBeforeDecrease*1000L);
-        timerStart = (new Date()).getTime() / 1000;
     }
 
     public void decreaseDeath(MinecraftServer server) {
@@ -98,6 +96,9 @@ public class DifficultyManager {
                 numberOfDeath = DEATH_STEPS[i-1];
                 break;
             }
+        }
+        if (numberOfDeath > 0) {
+            setupTimer(server);
         }
         updateDeath(server, UpdateType.DECREASE);
     }
@@ -232,15 +233,25 @@ public class DifficultyManager {
         }
         sb.append("§r\n\n");
 
-        if (updateType == UpdateType.GET || updateType == UpdateType.DECREASE) {
-            sb.append("You only need to survive for §6")
-                    .append(printTime(secondsBeforeDecrease - new Date().getTime() / 1000 + timerStart))
-                    .append(" §rto make the difficulty decrease.");
+        if (numberOfDeath >= DEATH_STEPS[1]) {
+            if (updateType != UpdateType.INCREASE) {
+                sb.append("You only need to survive for §6")
+                        .append(printTime(secondsBeforeDecrease - new Date().getTime() / 1000 + timerStart))
+                        .append("§r to make the difficulty decrease");
+                if (updateType == UpdateType.DECREASE) {
+                    sb.append(" again");
+                }
+                sb.append(".");
+            } else {
+                sb.append("If no one died for §6")
+                        .append(printTime(secondsBeforeDecrease - new Date().getTime() / 1000 + timerStart))
+                        .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+            }
         } else {
-            sb.append("If no one died for §6")
-                    .append(printTime(secondsBeforeDecrease - new Date().getTime() / 1000 + timerStart))
-                    .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+            sb.append("The difficulty cannot get lower. Congratulations!");
         }
+
+
         sb.append("\n§8=============================================§r");
         return sb.toString();
     }
@@ -259,6 +270,16 @@ public class DifficultyManager {
             minutes = Math.floorDiv(time - hours * 3600, 60);
         }
         long seconds = (long) Math.floor(time - hours * 3600 - minutes * 60);
-        return String.format("%d hours %d minutes %d seconds", hours, minutes, seconds);
+
+        StringBuilder sb = new StringBuilder();
+        if (hours != 0) {
+            sb.append(hours).append(" hours");
+        }
+        if (minutes != 0) {
+            sb.append(minutes).append(" minutes");
+        }
+        sb.append(seconds).append(" seconds");
+
+        return sb.toString();
     }
 }

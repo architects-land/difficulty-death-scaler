@@ -90,7 +90,9 @@ public class DifficultyManager {
                 break;
             }
         }
-        updateDeath(server, UpdateType.DECREASE);
+        if (numberOfDeath > 0) {
+            updateDeath(server, UpdateType.DECREASE);
+        }
     }
 
     private void updateDeath(@NotNull MinecraftServer server, UpdateType updateType) {

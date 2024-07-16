@@ -1,6 +1,7 @@
 package world.anhgelus.architectsland.difficultydeathscaler;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
@@ -10,6 +11,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -43,7 +45,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 .executes(context -> {
                     final var source = context.getSource();
                     final var server = source.getServer();
-                    difficultyManager.setNumberOfDeath(server, IntegerArgumentType.getInteger(context, "number of death"));
+                    difficultyManager.setNumberOfDeath(server, IntegerArgumentType.getInteger(context, "number of death"), false);
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
@@ -54,7 +56,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
 
         // set up difficulty of deathSteps[0]
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> difficultyManager.setNumberOfDeath(server, difficultyManager.getNumberOfDeath()));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> difficultyManager.setNumberOfDeath(server, difficultyManager.getNumberOfDeath(), true));
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (entity instanceof ServerPlayerEntity player) {

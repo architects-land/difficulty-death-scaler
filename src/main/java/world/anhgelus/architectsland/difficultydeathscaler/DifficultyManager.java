@@ -74,7 +74,7 @@ public class DifficultyManager {
         reducerTask = new TimerTask() {
             @Override
             public void run() {
-                decreaseDeath(server);
+                decreaseDeath(server, true);
                 if (numberOfDeath == 0) reducerTask.cancel();
             }
         };
@@ -98,6 +98,14 @@ public class DifficultyManager {
         }
 
         updateDeath(server, UpdateType.DECREASE);
+    }
+
+    public void decreaseDeath(MinecraftServer server, boolean updateTimer) {
+        if (updateTimer) {
+            timerStart = System.currentTimeMillis() / 1000;
+        }
+
+        decreaseDeath(server);
     }
 
     private void updateDeath(@NotNull MinecraftServer server, UpdateType updateType) {

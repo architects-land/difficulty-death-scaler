@@ -43,7 +43,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 .executes(context -> {
                     final var source = context.getSource();
                     final var server = source.getServer();
-                    difficultyManager.setNumberOfDeath(server, IntegerArgumentType.getInteger(context, "number of death"));
+                    difficultyManager.setNumberOfDeath(server, IntegerArgumentType.getInteger(context, "number of death"), false);
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
@@ -54,7 +54,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
 
         // set up difficulty of deathSteps[0]
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> difficultyManager.setNumberOfDeath(server, difficultyManager.getNumberOfDeath()));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> difficultyManager.setNumberOfDeath(server, difficultyManager.getNumberOfDeath(), true));
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (entity instanceof ServerPlayerEntity player) {

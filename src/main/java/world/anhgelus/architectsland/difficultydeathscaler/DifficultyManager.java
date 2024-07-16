@@ -37,7 +37,8 @@ public class DifficultyManager {
         INCREASE,
         DECREASE,
         GET,
-        SET
+        SET,
+        SILENT
     }
 
     public DifficultyManager() {
@@ -51,10 +52,14 @@ public class DifficultyManager {
         this.updateTimerTask(server);
     }
 
-    public void setNumberOfDeath(MinecraftServer server, int n) {
+    public void setNumberOfDeath(MinecraftServer server, int n, boolean silent) {
         numberOfDeath = n;
-        updateDeath(server, UpdateType.SET);
         updateTimerTask(server);
+        if (silent) {
+            updateDeath(server, UpdateType.SILENT);
+        } else {
+            updateDeath(server, UpdateType.SET);
+        }
     }
 
     public int getNumberOfDeath() {
@@ -73,7 +78,7 @@ public class DifficultyManager {
         reducerTask = new TimerTask() {
             @Override
             public void run() {
-                decreaseDeath(server);
+                decreaseDeath(server, true);
                 if (numberOfDeath == 0) reducerTask.cancel();
             }
         };
@@ -82,16 +87,29 @@ public class DifficultyManager {
     }
 
     public void decreaseDeath(MinecraftServer server) {
-        for (int i = DEATH_STEPS.length - 1; i >= 0; i--) {
-            // needed to prevent accessing deathSteps[-1]
-            if (i == 0) {
-                numberOfDeath = 0;
-            } else if (numberOfDeath >= DEATH_STEPS[i]) {
+        // Avoids updating the difficulty when it can’t go lower.
+        // Prevents for example the difficulty decrease message when killing a boss if the difficulty doesn't decrease.
+        if (numberOfDeath < DEATH_STEPS[1]) {
+            numberOfDeath = 0;
+            return;
+        }
+
+        for (int i = DEATH_STEPS.length - 1; i > 0; i--) {
+            if (numberOfDeath >= DEATH_STEPS[i]) {
                 numberOfDeath = DEATH_STEPS[i-1];
                 break;
             }
         }
+
         updateDeath(server, UpdateType.DECREASE);
+    }
+
+    public void decreaseDeath(MinecraftServer server, boolean updateTimer) {
+        if (updateTimer) {
+            timerStart = System.currentTimeMillis() / 1000;
+        }
+
+        decreaseDeath(server);
     }
 
     private void updateDeath(@NotNull MinecraftServer server, UpdateType updateType) {
@@ -138,7 +156,11 @@ public class DifficultyManager {
 
         if (Arrays.stream(DEATH_STEPS).anyMatch(x -> x == numberOfDeath) || updateType == UpdateType.SET) {
             server.setDifficulty(difficulty, true);
-            server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty, updateType)), false);
+
+            if (updateType != UpdateType.SILENT) {
+                server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty, updateType)), false);
+            }
+
             server.getPlayerManager().getPlayerList().forEach(p -> {
                 applyHealthModifierToPlayer(p);
 
@@ -148,7 +170,7 @@ public class DifficultyManager {
                             1,
                             1.2f
                     );
-                } else {
+                } else if (updateType == UpdateType.DECREASE) {
                     p.playSoundToPlayer(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
                             SoundCategory.AMBIENT,
                             1,
@@ -224,15 +246,24 @@ public class DifficultyManager {
         }
         sb.append("§r\n\n");
 
-        if (updateType == UpdateType.GET || updateType == UpdateType.DECREASE) {
-            sb.append("You only need to survive for §6")
-                    .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
-                    .append(" §rto make the difficulty decrease.");
+        if (numberOfDeath >= DEATH_STEPS[1]) {
+            if (updateType != UpdateType.INCREASE) {
+                sb.append("You only need to survive for §6")
+                        .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
+                        .append("§r to make the difficulty decrease");
+                if (updateType == UpdateType.DECREASE) {
+                    sb.append(" again");
+                }
+                sb.append(".");
+            } else {
+                sb.append("If no one died for §6")
+                        .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
+                        .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+            }
         } else {
-            sb.append("If no one died for §6")
-                    .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
-                    .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+            sb.append("The difficulty cannot get lower. Congratulations!");
         }
+
         sb.append("\n§8=============================================§r");
         return sb.toString();
     }
@@ -251,6 +282,16 @@ public class DifficultyManager {
             minutes = Math.floorDiv(time - hours * 3600, 60);
         }
         long seconds = (long) Math.floor(time - hours * 3600 - minutes * 60);
-        return String.format("%d hours %d minutes %d seconds", hours, minutes, seconds);
+
+        StringBuilder sb = new StringBuilder();
+        if (hours != 0) {
+            sb.append(hours).append(" hours ");
+        }
+        if (minutes != 0 || hours != 0) {
+            sb.append(minutes).append(" minutes ");
+        }
+        sb.append(seconds).append(" seconds");
+
+        return sb.toString();
     }
 }

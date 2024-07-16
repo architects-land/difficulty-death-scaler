@@ -82,15 +82,20 @@ public class DifficultyManager {
     }
 
     public void decreaseDeath(MinecraftServer server) {
-        for (int i = DEATH_STEPS.length - 1; i >= 0; i--) {
-            // needed to prevent accessing deathSteps[-1]
-            if (i == 0) {
-                numberOfDeath = 0;
-            } else if (numberOfDeath >= DEATH_STEPS[i]) {
+        // Avoids updating the difficulty when it can’t go lower.
+        // Prevents for example the difficulty decrease message when killing a boss if the difficulty doesn't decrease.
+        if (numberOfDeath < DEATH_STEPS[1]) {
+            numberOfDeath = 0;
+            return;
+        };
+
+        for (int i = DEATH_STEPS.length - 1; i > 0; i--) {
+            if (numberOfDeath >= DEATH_STEPS[i]) {
                 numberOfDeath = DEATH_STEPS[i-1];
                 break;
             }
         }
+
         updateDeath(server, UpdateType.DECREASE);
     }
 

@@ -37,7 +37,8 @@ public class DifficultyManager {
         INCREASE,
         DECREASE,
         GET,
-        SET
+        SET,
+        SILENT
     }
 
     public DifficultyManager() {
@@ -63,7 +64,7 @@ public class DifficultyManager {
 
     public void increaseDeath(MinecraftServer server) {
         numberOfDeath++;
-        updateDeath(server, UpdateType.INCREASE);
+        updateDeath(server, UpdateType.SILENT);
         updateTimerTask(server);
     }
 
@@ -87,7 +88,7 @@ public class DifficultyManager {
         if (numberOfDeath < DEATH_STEPS[1]) {
             numberOfDeath = 0;
             return;
-        };
+        }
 
         for (int i = DEATH_STEPS.length - 1; i > 0; i--) {
             if (numberOfDeath >= DEATH_STEPS[i]) {
@@ -143,7 +144,11 @@ public class DifficultyManager {
 
         if (Arrays.stream(DEATH_STEPS).anyMatch(x -> x == numberOfDeath) || updateType == UpdateType.SET) {
             server.setDifficulty(difficulty, true);
-            server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty, updateType)), false);
+
+            if (updateType != UpdateType.SILENT) {
+                server.getPlayerManager().broadcast(Text.of(generateDifficultyUpdate(server, difficulty, updateType)), false);
+            }
+
             server.getPlayerManager().getPlayerList().forEach(p -> {
                 applyHealthModifierToPlayer(p);
 
@@ -153,7 +158,7 @@ public class DifficultyManager {
                             1,
                             1.2f
                     );
-                } else {
+                } else if (updateType == UpdateType.DECREASE) {
                     p.playSoundToPlayer(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
                             SoundCategory.AMBIENT,
                             1,

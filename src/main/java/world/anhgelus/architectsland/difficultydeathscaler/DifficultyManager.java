@@ -54,12 +54,12 @@ public class DifficultyManager {
 
     public void setNumberOfDeath(MinecraftServer server, int n, boolean silent) {
         numberOfDeath = n;
+        updateTimerTask(server);
         if (silent) {
             updateDeath(server, UpdateType.SILENT);
         } else {
             updateDeath(server, UpdateType.SET);
         }
-        updateTimerTask(server);
     }
 
     public int getNumberOfDeath() {
@@ -68,8 +68,8 @@ public class DifficultyManager {
 
     public void increaseDeath(MinecraftServer server) {
         numberOfDeath++;
-        updateDeath(server, UpdateType.INCREASE);
         updateTimerTask(server);
+        updateDeath(server, UpdateType.INCREASE);
     }
 
     public void updateTimerTask(MinecraftServer server) {

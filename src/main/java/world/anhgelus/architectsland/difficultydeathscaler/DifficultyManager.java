@@ -246,15 +246,24 @@ public class DifficultyManager {
         }
         sb.append("§r\n\n");
 
-        if (updateType == UpdateType.GET || updateType == UpdateType.DECREASE) {
-            sb.append("You only need to survive for §6")
-                    .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
-                    .append(" §rto make the difficulty decrease.");
+        if (numberOfDeath >= DEATH_STEPS[1]) {
+            if (updateType != UpdateType.INCREASE) {
+                sb.append("You only need to survive for §6")
+                        .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
+                        .append("§r to make the difficulty decrease");
+                if (updateType == UpdateType.DECREASE) {
+                    sb.append(" again");
+                }
+                sb.append(".");
+            } else {
+                sb.append("If no one died for §6")
+                        .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
+                        .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+            }
         } else {
-            sb.append("If no one died for §6")
-                    .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
-                    .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+            sb.append("The difficulty cannot get lower. Congratulations!");
         }
+
         sb.append("\n§8=============================================§r");
         return sb.toString();
     }
@@ -273,6 +282,16 @@ public class DifficultyManager {
             minutes = Math.floorDiv(time - hours * 3600, 60);
         }
         long seconds = (long) Math.floor(time - hours * 3600 - minutes * 60);
-        return String.format("%d hours %d minutes %d seconds", hours, minutes, seconds);
+
+        StringBuilder sb = new StringBuilder();
+        if (hours != 0) {
+            sb.append(hours).append(" hours ");
+        }
+        if (minutes != 0 || hours != 0) {
+            sb.append(minutes).append(" minutes ");
+        }
+        sb.append(seconds).append(" seconds");
+
+        return sb.toString();
     }
 }

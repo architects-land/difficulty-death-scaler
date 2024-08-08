@@ -247,14 +247,18 @@ public class DifficultyManager {
         sb.append("§r\n\n");
 
         if (numberOfDeath >= DEATH_STEPS[1]) {
-            if (updateType != UpdateType.INCREASE) {
+            if (updateType == UpdateType.DECREASE) {
+                sb.append("You only need to survive for §6")
+                        .append(printTime(secondsBeforeDecrease))
+                        .append("§r to make the difficulty decrease again.");
+            } else if (updateType != UpdateType.INCREASE) {
                 sb.append("You only need to survive for §6")
                         .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))
-                        .append("§r to make the difficulty decrease");
-                if (updateType == UpdateType.DECREASE) {
-                    sb.append(" again");
-                }
-                sb.append(".");
+                        .append("§r to make the difficulty decrease.");
+            } else if (numberOfDeath < DEATH_STEPS[2]) {
+                sb.append("You were on the lowest difficulty for §6")
+                        .append(printTime(System.currentTimeMillis() / 1000 - timerStart))
+                        .append("§r, but you had to die and ruin everything, didn't you ?")
             } else {
                 sb.append("If no one died for §6")
                         .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))

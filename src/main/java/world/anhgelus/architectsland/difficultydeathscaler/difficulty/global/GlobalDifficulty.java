@@ -1,11 +1,7 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
 
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,35 +10,23 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 public class GlobalDifficulty extends Difficulty {
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60; // 12 hours
 
-    public static final Step[] STEPS = new Step[]{};
+    public static final Step[] STEPS = new Step[]{
+            new GlobalSteps.Default(),
+            new GlobalSteps.First(),
+            new GlobalSteps.Second(),
+            new GlobalSteps.Third(),
+            new GlobalSteps.Fourth(),
+            new GlobalSteps.Fifth(),
+            new GlobalSteps.Sixth(),
+            new GlobalSteps.Seventh(),
+            new GlobalSteps.Eighth(),
+            new GlobalSteps.Ninth(),
+    };
 
     protected int playerHealthModifierValue = 0;
 
     protected GlobalDifficulty(MinecraftServer server) {
         super(server);
-    }
-
-    public static class PlayerHealthModifier extends Difficulty.Modifier<Integer> {
-        public static Identifier MODIFIER_ID = Identifier.of("death_difficulty_health_modifier");;
-
-        @Override
-        public void update(Integer newValue) {
-            if (newValue < value) value = newValue;
-        }
-
-        @Override
-        public void apply(ServerPlayerEntity player) {
-            final var healthAttribute = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
-            if (healthAttribute == null) return;
-
-            healthAttribute.removeModifier(MODIFIER_ID);
-            if (value == 0) return;
-
-            EntityAttributeModifier playerHealthModifier = new EntityAttributeModifier(
-                    MODIFIER_ID, value, EntityAttributeModifier.Operation.ADD_VALUE
-            );
-            healthAttribute.addPersistentModifier(playerHealthModifier);
-        }
     }
 
     @Override

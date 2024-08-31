@@ -104,10 +104,9 @@ public abstract class Difficulty {
         /**
          * Method called when step is reached
          * @param updater Object to use when an option is edited multiple times
-         * @param gameRules GameRules of the server
+         * @param gamerules GameRules of the server
          */
-        public abstract void reached(MinecraftServer server, GameRules gameRules, Updater updater);
-        public abstract void notReached(MinecraftServer server, GameRules gameRules);
+        public abstract void reached(MinecraftServer server, GameRules gamerules, Updater updater);
     }
 
     public static abstract class Modifier<T> {
@@ -130,6 +129,8 @@ public abstract class Difficulty {
         }
     }
 
+    public static abstract class IntegerModifier extends Modifier<Integer> {}
+
     /**
      * Set the number of death
      * @param n number of death
@@ -145,13 +146,13 @@ public abstract class Difficulty {
         return numberOfDeath;
     }
 
-    public void increaseDeath(MinecraftServer server) {
+    public void increaseDeath() {
         numberOfDeath++;
         updateDeath(UpdateType.INCREASE);
-        updateTimerTask(server);
+        updateTimerTask();
     }
 
-    public void updateTimerTask(MinecraftServer server) {
+    public void updateTimerTask() {
         if (reducerTask != null) reducerTask.cancel();
         if (numberOfDeath == 0) return;
         reducerTask = new TimerTask() {
@@ -190,7 +191,7 @@ public abstract class Difficulty {
 
         for (final Step step : steps) {
             if (step.level >= numberOfDeath) step.reached(server, rules, updater);
-            else step.notReached(server, rules);
+            else break;
         }
 
         if (Arrays.stream(steps).noneMatch(x -> x.level == numberOfDeath) && updateType != UpdateType.SET) return;

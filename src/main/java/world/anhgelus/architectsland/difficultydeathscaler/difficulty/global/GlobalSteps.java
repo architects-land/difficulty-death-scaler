@@ -18,6 +18,8 @@ public class GlobalSteps {
             gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(30, server);
             gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
             updater.updateDifficulty(2);
+            final DifficultyManager.IntegerModifier modifier = (DifficultyManager.IntegerModifier) updater.getModifier(PlayerHealthModifier.class);
+            modifier.update(0);
         }
     }
 
@@ -39,7 +41,7 @@ public class GlobalSteps {
 
         @Override
         public void reached(MinecraftServer server, GameRules gamerules, DifficultyManager.Updater updater) {
-            updater.updateDifficulty(DifficultyManager.Updater.DIFFICULTY_LEVEL.get(net.minecraft.world.Difficulty.HARD));
+            updater.updateDifficulty(3);
         }
     }
 

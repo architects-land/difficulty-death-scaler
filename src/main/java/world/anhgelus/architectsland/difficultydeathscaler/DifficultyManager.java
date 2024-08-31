@@ -258,7 +258,7 @@ public class DifficultyManager {
             } else if (numberOfDeath < DEATH_STEPS[2]) {
                 sb.append("You were on the lowest difficulty for §6")
                         .append(printTime(System.currentTimeMillis() / 1000 - timerStart))
-                        .append("§r, but you had to die and ruin everything, didn't you ?")
+                        .append("§r, but you had to die and ruin everything, didn't you ?");
             } else {
                 sb.append("If no one died for §6")
                         .append(printTime(secondsBeforeDecrease - System.currentTimeMillis() / 1000 + timerStart))

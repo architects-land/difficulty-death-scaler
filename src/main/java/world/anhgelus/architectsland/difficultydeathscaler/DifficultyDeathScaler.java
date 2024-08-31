@@ -16,6 +16,7 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -23,18 +24,17 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class DifficultyDeathScaler implements ModInitializer {
     public static final String MOD_ID = "difficulty-death-scaler";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    private GlobalDifficultyManager difficultyManager = null;
 
     @Override
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
 
-        final var difficultyManager = new DifficultyManager();
-
         final LiteralArgumentBuilder<ServerCommandSource> command = literal("difficultydeathscaler");
         command.then(literal("get").executes(context -> {
             final var source = context.getSource();
             final var server = source.getServer();
-            source.sendFeedback(() -> Text.literal(difficultyManager.getDifficultyUpdate(server, server.getOverworld().getDifficulty())), false);
+            source.sendFeedback(() -> Text.literal(difficultyManager.getDifficultyUpdate(server.getOverworld().getDifficulty())), false);
             return Command.SINGLE_SUCCESS;
         }));
         command.then(literal("set")
@@ -42,8 +42,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 .then(argument("number of death", IntegerArgumentType.integer())
                 .executes(context -> {
                     final var source = context.getSource();
-                    final var server = source.getServer();
-                    difficultyManager.setNumberOfDeath(server, IntegerArgumentType.getInteger(context, "number of death"), false);
+                    difficultyManager.setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
@@ -54,19 +53,22 @@ public class DifficultyDeathScaler implements ModInitializer {
 
 
         // set up difficulty of deathSteps[0]
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> difficultyManager.setNumberOfDeath(server, difficultyManager.getNumberOfDeath(), true));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            difficultyManager = new GlobalDifficultyManager(server);
+            difficultyManager.setNumberOfDeath(difficultyManager.getNumberOfDeath(), true);
+        });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
-            if (entity instanceof ServerPlayerEntity player) {
-                difficultyManager.increaseDeath(player.server);
+            if (entity instanceof ServerPlayerEntity) {
+                difficultyManager.increaseDeath();
                 return;
             }
             BossManager.handleKill(entity, difficultyManager);
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> difficultyManager.applyHealthModifierToPlayer(handler.player));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> difficultyManager.applyModifiers(handler.player));
 
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> difficultyManager.applyHealthModifierToPlayer(newPlayer));
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> difficultyManager.applyModifiers(newPlayer));
 
         UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> BossManager.handleBuff(player, world, hand, entity));
     }

@@ -1,13 +1,14 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 
-public class GlobalDifficulty extends Difficulty {
+public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60; // 12 hours
 
     public static final Step[] STEPS = new Step[]{
@@ -25,7 +26,7 @@ public class GlobalDifficulty extends Difficulty {
 
     protected int playerHealthModifierValue = 0;
 
-    protected GlobalDifficulty(MinecraftServer server) {
+    public GlobalDifficultyManager(MinecraftServer server) {
         super(server);
     }
 
@@ -130,5 +131,10 @@ public class GlobalDifficulty extends Difficulty {
     @Override
     protected Step[] getSteps() {
         return STEPS;
+    }
+
+    @Override
+    public void applyModifiers(ServerPlayerEntity player) {
+        PlayerHealthModifier.apply(player, playerHealthModifierValue);
     }
 }

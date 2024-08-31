@@ -1,7 +1,10 @@
 package world.anhgelus.architectsland.difficultydeathscaler.boss;
 
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.*;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LightningEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -22,7 +25,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
-import world.anhgelus.architectsland.difficultydeathscaler.DifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +74,7 @@ public class BossManager {
             return;
         }
         buffedBosses.remove(entity.getUuid());
-        manager.decreaseDeath(entity.getServer());
+        manager.decreaseDeath();
     }
 
     private static BuffableBoss<ElderGuardianEntity> getBoss(ElderGuardianEntity entity) {

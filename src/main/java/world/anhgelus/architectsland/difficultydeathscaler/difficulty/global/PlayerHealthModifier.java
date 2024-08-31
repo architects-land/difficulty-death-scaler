@@ -4,9 +4,9 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 
-public class PlayerHealthModifier extends Difficulty.IntegerModifier {
+public class PlayerHealthModifier extends DifficultyManager.IntegerModifier {
     public static Identifier MODIFIER_ID = Identifier.of("death_difficulty_health_modifier");;
 
     @Override
@@ -16,6 +16,10 @@ public class PlayerHealthModifier extends Difficulty.IntegerModifier {
 
     @Override
     public void apply(ServerPlayerEntity player) {
+        apply(player, value);
+    }
+
+    public static void apply(ServerPlayerEntity player, int value) {
         final var healthAttribute = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         if (healthAttribute == null) return;
 

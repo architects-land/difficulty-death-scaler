@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-public abstract class Difficulty {
+public abstract class DifficultyManager {
     protected final Timer timer = new Timer();
     protected long timerStart = System.currentTimeMillis() / 1000;
     private TimerTask reducerTask;
@@ -20,7 +20,7 @@ public abstract class Difficulty {
     protected int numberOfDeath;
     protected final MinecraftServer server;
 
-    protected Difficulty(MinecraftServer server) {
+    public DifficultyManager(MinecraftServer server) {
         this.server = server;
         numberOfDeath = 0;
     }
@@ -201,6 +201,10 @@ public abstract class Difficulty {
         onUpdate(updateType, updater);
     }
 
+    public String getDifficultyUpdate(net.minecraft.world.Difficulty difficulty) {
+        return generateDifficultyUpdate(null, difficulty);
+    }
+
     protected abstract void onUpdate(UpdateType updateType, Updater updater);
 
     protected abstract @NotNull String generateDifficultyUpdate(UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
@@ -208,6 +212,8 @@ public abstract class Difficulty {
     protected abstract int getSecondsBeforeDecreased();
 
     protected abstract Step[] getSteps();
+
+    public abstract void applyModifiers(ServerPlayerEntity player);
 
     protected static String printTime(long time) {
         long hours = 0;

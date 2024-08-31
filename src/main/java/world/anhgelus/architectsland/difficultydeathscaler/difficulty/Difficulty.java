@@ -4,8 +4,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,9 +12,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public abstract class Difficulty {
-    public static int SECONDS_BEFORE_DECREASED;
-
     protected final Timer timer = new Timer();
+    protected long timerStart = System.currentTimeMillis() / 1000;
+    private TimerTask reducerTask;
     protected Step[] steps;
 
     protected int numberOfDeath;
@@ -113,8 +111,6 @@ public abstract class Difficulty {
     }
 
     public static abstract class Modifier<T> {
-        public static Identifier MODIFIER_ID;
-
         protected T value = null;
 
         /**
@@ -128,6 +124,10 @@ public abstract class Difficulty {
          * @param player Player to apply the modifier
          */
         public abstract void apply(ServerPlayerEntity player);
+
+        public T getValue() {
+            return value;
+        }
     }
 
     /**
@@ -145,6 +145,45 @@ public abstract class Difficulty {
         return numberOfDeath;
     }
 
+    public void increaseDeath(MinecraftServer server) {
+        numberOfDeath++;
+        updateDeath(UpdateType.INCREASE);
+        updateTimerTask(server);
+    }
+
+    public void updateTimerTask(MinecraftServer server) {
+        if (reducerTask != null) reducerTask.cancel();
+        if (numberOfDeath == 0) return;
+        reducerTask = new TimerTask() {
+            @Override
+            public void run() {
+                decreaseDeath();
+                if (numberOfDeath == 0) reducerTask.cancel();
+            }
+        };
+        timer.schedule(reducerTask, getSecondsBeforeDecreased()*1000L, getSecondsBeforeDecreased()*1000L);
+        timerStart = System.currentTimeMillis() / 1000;
+    }
+
+    public void decreaseDeath() {
+        // Avoids updating the difficulty when it can’t go lower.
+        // Prevents for example the difficulty decrease message when killing a boss if the difficulty doesn't decrease.
+        final var steps = getSteps();
+        if (numberOfDeath < steps[1].level) {
+            numberOfDeath = 0;
+            return;
+        }
+
+        for (int i = steps.length - 1; i > 0; i--) {
+            if (numberOfDeath >= steps[i].level) {
+                numberOfDeath = steps[i-1].level;
+                break;
+            }
+        }
+
+        updateDeath(UpdateType.DECREASE);
+    }
+
     protected void updateDeath(UpdateType updateType) {
         final var updater = new Updater();
         final var rules = server.getGameRules();
@@ -158,12 +197,39 @@ public abstract class Difficulty {
         final var difficulty = updater.getDifficulty();
         server.setDifficulty(difficulty, true);
 
-        onUpdate(updater);
+        onUpdate(updateType, updater);
     }
 
-    protected abstract void onUpdate(Updater updater);
+    protected abstract void onUpdate(UpdateType updateType, Updater updater);
 
     protected abstract @NotNull String generateDifficultyUpdate(UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
+
+    protected abstract int getSecondsBeforeDecreased();
+
+    protected abstract Step[] getSteps();
+
+    protected static String printTime(long time) {
+        long hours = 0;
+        if (time > 3600) {
+            hours = Math.floorDiv(time, 3600);
+        }
+        long minutes = 0;
+        if (hours != 0 || time > 60) {
+            minutes = Math.floorDiv(time - hours * 3600, 60);
+        }
+        long seconds = (long) Math.floor(time - hours * 3600 - minutes * 60);
+
+        StringBuilder sb = new StringBuilder();
+        if (hours != 0) {
+            sb.append(hours).append(" hours ");
+        }
+        if (minutes != 0 || hours != 0) {
+            sb.append(minutes).append(" minutes ");
+        }
+        sb.append(seconds).append(" seconds");
+
+        return sb.toString();
+    }
 
     protected static void playSoundUpdate(UpdateType updateType, ServerPlayerEntity player) {
         if (updateType == UpdateType.INCREASE || updateType == UpdateType.SET) {

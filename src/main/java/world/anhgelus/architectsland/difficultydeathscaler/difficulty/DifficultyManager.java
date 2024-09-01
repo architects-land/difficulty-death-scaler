@@ -20,13 +20,16 @@ public abstract class DifficultyManager {
     protected long timerStart = System.currentTimeMillis() / 1000;
     private TimerTask reducerTask;
     protected Step[] steps;
+    protected final int secondsBeforeDecreased;
 
     protected int numberOfDeath;
     protected final MinecraftServer server;
 
-    public DifficultyManager(MinecraftServer server) {
+    public DifficultyManager(MinecraftServer server, Step[] steps, int secondsBeforeDecreased) {
         this.server = server;
+        this.steps = steps;
         numberOfDeath = 0;
+        this.secondsBeforeDecreased = secondsBeforeDecreased;
     }
 
     /**
@@ -194,14 +197,13 @@ public abstract class DifficultyManager {
                 if (numberOfDeath == 0) reducerTask.cancel();
             }
         };
-        timer.schedule(reducerTask, getSecondsBeforeDecreased()*1000L, getSecondsBeforeDecreased()*1000L);
+        timer.schedule(reducerTask, secondsBeforeDecreased*1000L, secondsBeforeDecreased*1000L);
         timerStart = System.currentTimeMillis() / 1000;
     }
 
     public void decreaseDeath() {
         // Avoids updating the difficulty when it can’t go lower.
         // Prevents for example the difficulty decrease message when killing a boss if the difficulty doesn't decrease.
-        final var steps = getSteps();
         if (numberOfDeath < steps[1].level) {
             numberOfDeath = 0;
             return;
@@ -240,10 +242,6 @@ public abstract class DifficultyManager {
     protected abstract void onUpdate(UpdateType updateType, Updater updater);
 
     protected abstract @NotNull String generateDifficultyUpdate(UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
-
-    protected abstract int getSecondsBeforeDecreased();
-
-    protected abstract Step[] getSteps();
 
     public abstract void applyModifiers(ServerPlayerEntity player);
 

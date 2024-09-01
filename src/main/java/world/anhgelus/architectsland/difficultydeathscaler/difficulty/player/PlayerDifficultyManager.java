@@ -15,7 +15,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     public static final Step[] STEPS = new Step[]{};
 
     public PlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
-        super(server);
+        super(server, STEPS, SECONDS_BEFORE_DECREASED);
         this.player = player;
         // load saved data
     }
@@ -28,16 +28,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
     @Override
     protected @NotNull String generateDifficultyUpdate(UpdateType updateType, @Nullable Difficulty difficulty) {
         return "";
-    }
-
-    @Override
-    protected int getSecondsBeforeDecreased() {
-        return SECONDS_BEFORE_DECREASED;
-    }
-
-    @Override
-    protected Step[] getSteps() {
-        return STEPS;
     }
 
     @Override

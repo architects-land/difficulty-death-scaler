@@ -13,7 +13,7 @@ public class PlayerHealthModifier extends DifficultyManager.Modifier {
     public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.GENERIC_MAX_HEALTH;
     public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
 
-    protected PlayerHealthModifier() {
+    public PlayerHealthModifier() {
         super(ID, ATTRIBUTE, OPERATION);
     }
 

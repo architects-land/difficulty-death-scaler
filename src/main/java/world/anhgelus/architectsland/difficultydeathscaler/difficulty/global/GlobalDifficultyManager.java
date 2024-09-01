@@ -27,7 +27,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     protected int playerHealthModifierValue = 0;
 
     public GlobalDifficultyManager(MinecraftServer server) {
-        super(server);
+        super(server, STEPS, SECONDS_BEFORE_DECREASED);
     }
 
     @Override
@@ -121,16 +121,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
         sb.append("\n§8=============================================§r");
         return sb.toString();
-    }
-
-    @Override
-    protected int getSecondsBeforeDecreased() {
-        return SECONDS_BEFORE_DECREASED;
-    }
-
-    @Override
-    protected Step[] getSteps() {
-        return STEPS;
     }
 
     @Override

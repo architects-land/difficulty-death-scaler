@@ -5,7 +5,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.Difficulty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 
 public class PlayerDifficultyManager extends DifficultyManager {
     public final ServerPlayerEntity player;
@@ -26,7 +28,11 @@ public class PlayerDifficultyManager extends DifficultyManager {
     public PlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
         this.player = player;
-        // load saved data
+
+        DifficultyDeathScaler.LOGGER.info("Loading player {} difficulty data", player.getUuid());
+        final var state = StateSaver.getPlayerState(player);
+        numberOfDeath = state.deaths;
+        delayFirstTask(state.timeBeforeReduce);
     }
 
     @Override
@@ -50,7 +56,10 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     @Override
     public void save() {
-        //
+        DifficultyDeathScaler.LOGGER.info("Saving player {} difficulty data", player.getUuid());
+        final var state = StateSaver.getServerState(server);
+        state.deaths = numberOfDeath;
+        state.timeBeforeReduce = System.currentTimeMillis() / 1000 - timerStart;
     }
 
     public void applyModifiers() {

@@ -11,6 +11,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -224,8 +225,10 @@ public abstract class DifficultyManager {
         final var rules = server.getGameRules();
 
         for (final Step step : steps) {
-            if (step.level >= numberOfDeath) step.reached(server, rules, updater);
-            else break;
+            if (step.level <= numberOfDeath) {
+                DifficultyDeathScaler.LOGGER.info("reached: {}; deaths: {}", step.level, numberOfDeath);
+                step.reached(server, rules, updater);
+            } else break;
         }
 
         if (Arrays.stream(steps).noneMatch(x -> x.level == numberOfDeath) && updateType != UpdateType.SET) return;

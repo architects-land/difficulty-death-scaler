@@ -46,18 +46,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
         final var gamerules = server.getGameRules();
         final var percentage = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).get();
         final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION).get();
-//        final var heartAmount = (20 + playerHealthModifierValue) / 2;
 
         final var sb = new StringBuilder();
-        if (updateType == UpdateType.INCREASE) {
-            sb.append("§8============== §rDifficulty increase! §8==============§r\n");
-        } else if (updateType == UpdateType.DECREASE) {
-            sb.append("§8============== §rDifficulty decrease! §8==============§r\n");
-        } else if (updateType == UpdateType.SET) {
-            sb.append("§8=============== §rDifficulty change! §8===============§r\n");
-        } else {
-            sb.append("§8============== §rCurrent difficulty : §8==============§r\n");
-        }
+        sb.append(generateHeaderUpdate(updateType));
         if (difficulty == net.minecraft.world.Difficulty.NORMAL) {
             sb.append("Difficulty: §2Normal§r");
         } else {
@@ -74,16 +65,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
         }
         sb.append(percentage).append("%§r\n");
 
-//        sb.append("Player max heart: ");
-//        if (heartAmount == 10) {
-//            sb.append("§2");
-//        } else if (heartAmount >= 9) {
-//            sb.append("§e");
-//        } else {
-//            sb.append("§c");
-//        }
-//        sb.append(heartAmount).append(" ❤§r\n");
-
         sb.append("Natural regeneration: ");
         if (naturalRegeneration) {
             sb.append("§2On");
@@ -92,29 +73,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
         }
         sb.append("§r\n\n");
 
-        if (numberOfDeath >= STEPS[1].level) {
-            if (updateType == UpdateType.DECREASE) {
-                sb.append("You only need to survive for §6")
-                        .append(printTime(SECONDS_BEFORE_DECREASED))
-                        .append("§r to make the difficulty decrease again.");
-            } else if (updateType != UpdateType.INCREASE) {
-                sb.append("You only need to survive for §6")
-                        .append(printTime(SECONDS_BEFORE_DECREASED - System.currentTimeMillis() / 1000 + timerStart))
-                        .append("§r to make the difficulty decrease.");
-            } else if (numberOfDeath < STEPS[2].level) {
-                sb.append("You were on the lowest difficulty for §6")
-                        .append(printTime(System.currentTimeMillis() / 1000 - timerStart))
-                        .append("§r, but you had to die and ruin everything, didn't you ?");
-            } else {
-                sb.append("If no one died for §6")
-                        .append(printTime(SECONDS_BEFORE_DECREASED - System.currentTimeMillis() / 1000 + timerStart))
-                        .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
-            }
-        } else {
-            sb.append("The difficulty cannot get lower. Congratulations!");
-        }
+        sb.append(generateFooterUpdate(STEPS, updateType));
 
-        sb.append("\n§8=============================================§r");
         return sb.toString();
     }
 

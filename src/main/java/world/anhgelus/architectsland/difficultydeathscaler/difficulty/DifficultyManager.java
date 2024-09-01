@@ -271,6 +271,43 @@ public abstract class DifficultyManager {
 
     public abstract void save();
 
+    protected String generateHeaderUpdate(@Nullable UpdateType updateType) {
+        if (updateType == null) return "§8============== §rCurrent difficulty : §8==============§r\n";
+        return switch (updateType) {
+            case INCREASE -> "§8============== §rDifficulty increase! §8==============§r\n";
+            case DECREASE -> "§8============== §rDifficulty decrease! §8==============§r\n";
+            case SET -> "§8=============== §rDifficulty change! §8===============§r\n";
+            default -> "§8============== §rCurrent difficulty : §8==============§r\n";
+        };
+    }
+
+    protected String generateFooterUpdate(Step[] steps, UpdateType updateType) {
+        if (numberOfDeath < steps[1].level) {
+            return "The difficulty cannot get lower. Congratulations!\n§8=============================================§r";
+        }
+        final var sb = new StringBuilder();
+
+        if (updateType == UpdateType.DECREASE) {
+            sb.append("You only need to survive for §6")
+                .append(printTime(secondsBeforeDecreased))
+                .append("§r to make the difficulty decrease again.");
+        } else if (updateType != UpdateType.INCREASE) {
+            sb.append("You only need to survive for §6")
+                .append(printTime(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
+                .append("§r to make the difficulty decrease.");
+        } else if (numberOfDeath < steps[2].level) {
+            sb.append("You were on the lowest difficulty for §6")
+                .append(printTime(System.currentTimeMillis() / 1000 - timerStart))
+                .append("§r, but you had to die and ruin everything, didn't you ?");
+        } else {
+            sb.append("If no one died for §6")
+                .append(printTime(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
+                .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+        }
+        sb.append("\n§8=============================================§r");
+        return sb.toString();
+    }
+
     protected static String printTime(long time) {
         long hours = 0;
         if (time > 3600) {

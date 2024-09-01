@@ -2,6 +2,7 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.world.Difficulty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,12 +42,30 @@ public class PlayerDifficultyManager extends DifficultyManager {
             if (m instanceof final PlayerHealthModifier phm) playerHealthModifierValue = (int) phm.getValue();
             m.apply(player);
         });
+
+        player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
+
         playSoundUpdate(updateType, player);
     }
 
     @Override
     protected @NotNull String generateDifficultyUpdate(UpdateType updateType, @Nullable Difficulty difficulty) {
-        return "";
+        final var heartAmount = (20 + playerHealthModifierValue) / 2;
+
+        final var sb = new StringBuilder();
+        sb.append("Player max heart: ");
+        if (heartAmount == 10) {
+            sb.append("§2");
+        } else if (heartAmount >= 8) {
+            sb.append("§e");
+        } else {
+            sb.append("§c");
+        }
+        sb.append(heartAmount).append(" ❤§r\n");
+
+        sb.append(generateFooterUpdate(STEPS, updateType));
+
+        return sb.toString();
     }
 
     @Override

@@ -176,6 +176,7 @@ public abstract class DifficultyManager {
         numberOfDeath = n;
         if (silent) updateDeath(UpdateType.SILENT);
         else updateDeath(UpdateType.SET);
+        updateTimerTask();
     }
 
     public int getNumberOfDeath() {

@@ -1,9 +1,13 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty;
 
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public abstract class DifficultyManager {
-    protected final Timer timer = new Timer();
+    protected Timer timer = new Timer();
     protected long timerStart = System.currentTimeMillis() / 1000;
     private TimerTask reducerTask;
     protected Step[] steps;
@@ -50,7 +54,7 @@ public abstract class DifficultyManager {
     public static final class Updater {
         private int difficultyLevel = 1;
 
-        private final Map<Class<? extends Modifier<?>>, Modifier<?>> map = new HashMap<>();
+        private final Map<Class<? extends Modifier>, Modifier> map = new HashMap<>();
 
         public static final Map<net.minecraft.world.Difficulty, Integer> DIFFICULTY_LEVEL = Map.of(
                 net.minecraft.world.Difficulty.PEACEFUL, 0,
@@ -63,8 +67,8 @@ public abstract class DifficultyManager {
             if (level > difficultyLevel) difficultyLevel = level;
         }
 
-        public Modifier<?> getModifier(Class<? extends Modifier<?>> clazz) {
-            Modifier<?> val = map.get(clazz);
+        public Modifier getModifier(Class<? extends Modifier> clazz) {
+            Modifier val = map.get(clazz);
             if (val != null) return val;
             try {
                 val = clazz.getConstructor().newInstance();
@@ -76,7 +80,7 @@ public abstract class DifficultyManager {
             return val;
         }
 
-        public List<Modifier<?>> getModifiers() {
+        public List<Modifier> getModifiers() {
             return new ArrayList<>(map.values());
         }
 
@@ -109,27 +113,55 @@ public abstract class DifficultyManager {
         public abstract void reached(MinecraftServer server, GameRules gamerules, Updater updater);
     }
 
-    public static abstract class Modifier<T> {
-        protected T value = null;
+    public static abstract class Modifier {
+        protected double value = 0;
+        protected final Identifier id;
+        protected final RegistryEntry<EntityAttribute> attribute;
+        protected final EntityAttributeModifier.Operation operation;
+
+        protected Modifier(Identifier id, RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier.Operation operation) {
+            this.id = id;
+            this.attribute = attribute;
+            this.operation = operation;
+        }
 
         /**
          * Update the value if needed
          * @param newValue newValue
          */
-        public abstract void update(T newValue);
+        public abstract void update(double newValue);
 
         /**
          * Apply modifier to player
          * @param player Player to apply the modifier
          */
-        public abstract void apply(ServerPlayerEntity player);
+        public void apply(ServerPlayerEntity player) {
+            apply(id, attribute, operation, player, value);
+        }
 
-        public T getValue() {
+        protected static void apply(
+                Identifier id,
+                RegistryEntry<EntityAttribute> attribute,
+                EntityAttributeModifier.Operation operation,
+                ServerPlayerEntity player,
+                double value
+        ) {
+            final var healthAttribute = player.getAttributeInstance(attribute);
+            if (healthAttribute == null) return;
+
+            healthAttribute.removeModifier(id);
+            if (value == 0) return;
+
+            EntityAttributeModifier playerHealthModifier = new EntityAttributeModifier(
+                    id, value, operation
+            );
+            healthAttribute.addPersistentModifier(playerHealthModifier);
+        }
+
+        public double getValue() {
             return value;
         }
     }
-
-    public static abstract class IntegerModifier extends Modifier<Integer> {}
 
     /**
      * Set the number of death

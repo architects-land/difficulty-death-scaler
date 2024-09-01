@@ -39,7 +39,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
         pm.getPlayerList().forEach(p -> {
             updater.getModifiers().forEach(m -> {
-                if (m instanceof final PlayerHealthModifier phm) playerHealthModifierValue = phm.getValue();
+                if (m instanceof final PlayerHealthModifier phm) playerHealthModifierValue = (int) phm.getValue();
                 m.apply(p);
             });
             playSoundUpdate(updateType, p);

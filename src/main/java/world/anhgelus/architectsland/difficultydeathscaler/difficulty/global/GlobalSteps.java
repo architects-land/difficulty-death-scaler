@@ -18,7 +18,7 @@ public class GlobalSteps {
             gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(30, server);
             gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
             updater.updateDifficulty(2);
-            final DifficultyManager.IntegerModifier modifier = (DifficultyManager.IntegerModifier) updater.getModifier(PlayerHealthModifier.class);
+            final DifficultyManager.Modifier modifier = updater.getModifier(PlayerHealthModifier.class);
             modifier.update(0);
         }
     }
@@ -63,7 +63,7 @@ public class GlobalSteps {
 
         @Override
         public void reached(MinecraftServer server, GameRules gamerules, DifficultyManager.Updater updater) {
-            final DifficultyManager.IntegerModifier modifier = (DifficultyManager.IntegerModifier) updater.getModifier(PlayerHealthModifier.class);
+            final DifficultyManager.Modifier modifier = updater.getModifier(PlayerHealthModifier.class);
             modifier.update(-2);
         }
     }
@@ -75,7 +75,7 @@ public class GlobalSteps {
 
         @Override
         public void reached(MinecraftServer server, GameRules gamerules, DifficultyManager.Updater updater) {
-            final DifficultyManager.IntegerModifier modifier = (DifficultyManager.IntegerModifier) updater.getModifier(PlayerHealthModifier.class);
+            final DifficultyManager.Modifier modifier = updater.getModifier(PlayerHealthModifier.class);
             modifier.update(-4);
         }
     }
@@ -87,7 +87,7 @@ public class GlobalSteps {
 
         @Override
         public void reached(MinecraftServer server, GameRules gamerules, DifficultyManager.Updater updater) {
-            final DifficultyManager.IntegerModifier modifier = (DifficultyManager.IntegerModifier) updater.getModifier(PlayerHealthModifier.class);
+            final DifficultyManager.Modifier modifier = updater.getModifier(PlayerHealthModifier.class);
             modifier.update(-6);
         }
     }
@@ -99,7 +99,7 @@ public class GlobalSteps {
 
         @Override
         public void reached(MinecraftServer server, GameRules gamerules, DifficultyManager.Updater updater) {
-            final DifficultyManager.IntegerModifier modifier = (DifficultyManager.IntegerModifier) updater.getModifier(PlayerHealthModifier.class);
+            final DifficultyManager.Modifier modifier = updater.getModifier(PlayerHealthModifier.class);
             modifier.update(-8);
         }
     }
@@ -111,7 +111,7 @@ public class GlobalSteps {
 
         @Override
         public void reached(MinecraftServer server, GameRules gamerules, DifficultyManager.Updater updater) {
-            final DifficultyManager.IntegerModifier modifier = (DifficultyManager.IntegerModifier) updater.getModifier(PlayerHealthModifier.class);
+            final DifficultyManager.Modifier modifier = updater.getModifier(PlayerHealthModifier.class);
             modifier.update(-10);
         }
     }

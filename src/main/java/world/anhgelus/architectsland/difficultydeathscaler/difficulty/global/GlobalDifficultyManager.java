@@ -6,7 +6,9 @@ import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 
 public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60; // 12 hours
@@ -21,6 +23,11 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
+
+        DifficultyDeathScaler.LOGGER.info("Loading global difficulty data");
+        final var state = StateSaver.getServerState(server);
+        numberOfDeath = state.deaths;
+        delayFirstTask(state.timeBeforeReduce);
     }
 
     @Override
@@ -114,5 +121,13 @@ public class GlobalDifficultyManager extends DifficultyManager {
     @Override
     public void applyModifiers(ServerPlayerEntity player) {
         //
+    }
+
+    @Override
+    public void save() {
+        DifficultyDeathScaler.LOGGER.info("Saving global difficulty data");
+        final var state = StateSaver.getServerState(server);
+        state.deaths = numberOfDeath;
+        state.timeBeforeReduce = System.currentTimeMillis() / 1000 - timerStart;
     }
 }

@@ -48,6 +48,11 @@ public class PlayerDifficultyManager extends DifficultyManager {
         applyModifiers();
     }
 
+    @Override
+    public void save() {
+        //
+    }
+
     public void applyModifiers() {
         PlayerHealthModifier.apply(player, playerHealthModifierValue);
     }

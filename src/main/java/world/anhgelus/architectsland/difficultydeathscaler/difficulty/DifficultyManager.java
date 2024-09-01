@@ -17,16 +17,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public abstract class DifficultyManager {
-    protected Timer timer = new Timer();
+    protected final Timer timer = new Timer();
     protected long timerStart = System.currentTimeMillis() / 1000;
     private TimerTask reducerTask;
-    protected Step[] steps;
-    protected final int secondsBeforeDecreased;
 
-    protected int numberOfDeath;
+    protected final long secondsBeforeDecreased;
+    protected long initialDelay = 0;
+
+    protected final Step[] steps;
     protected final MinecraftServer server;
 
-    public DifficultyManager(MinecraftServer server, Step[] steps, int secondsBeforeDecreased) {
+    protected int numberOfDeath;
+
+    public DifficultyManager(MinecraftServer server, Step[] steps, long secondsBeforeDecreased) {
         this.server = server;
         this.steps = steps;
         numberOfDeath = 0;
@@ -192,15 +195,28 @@ public abstract class DifficultyManager {
     public void updateTimerTask() {
         if (reducerTask != null) reducerTask.cancel();
         if (numberOfDeath == 0) return;
-        reducerTask = new TimerTask() {
+        final var task = new TimerTask() {
             @Override
             public void run() {
                 decreaseDeath();
                 if (numberOfDeath == 0) reducerTask.cancel();
             }
         };
-        timer.schedule(reducerTask, secondsBeforeDecreased*1000L, secondsBeforeDecreased*1000L);
         timerStart = System.currentTimeMillis() / 1000;
+        if (reducerTask == null && initialDelay != 0) {
+            try {
+                timer.schedule(task, (secondsBeforeDecreased - initialDelay) * 1000L, secondsBeforeDecreased * 1000L);
+                timerStart -= initialDelay;
+            } catch (IllegalArgumentException e) {
+                DifficultyDeathScaler.LOGGER.error("An exception occurred while launching first task", e);
+                DifficultyDeathScaler.LOGGER.warn("Resetting delay to 0");
+                initialDelay = 0;
+                timer.schedule(task, secondsBeforeDecreased * 1000L, secondsBeforeDecreased * 1000L);
+            }
+        } else {
+            timer.schedule(task, secondsBeforeDecreased * 1000L, secondsBeforeDecreased * 1000L);
+        }
+        reducerTask = task;
     }
 
     public void decreaseDeath() {
@@ -226,10 +242,8 @@ public abstract class DifficultyManager {
         final var rules = server.getGameRules();
 
         for (final Step step : steps) {
-            if (step.level <= numberOfDeath) {
-                DifficultyDeathScaler.LOGGER.info("reached: {}; deaths: {}", step.level, numberOfDeath);
-                step.reached(server, rules, updater);
-            } else break;
+            if (step.level <= numberOfDeath) step.reached(server, rules, updater);
+            else break;
         }
 
         if (Arrays.stream(steps).noneMatch(x -> x.level == numberOfDeath) && updateType != UpdateType.SET) return;
@@ -245,9 +259,17 @@ public abstract class DifficultyManager {
 
     protected abstract void onUpdate(UpdateType updateType, Updater updater);
 
-    protected abstract @NotNull String generateDifficultyUpdate(UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
+    /**
+     * Generate difficulty update
+     * @param updateType Type of update (if null, it's a get and not an update)
+     * @param difficulty Difficulty of the game
+     * @return Message to print
+     */
+    protected abstract @NotNull String generateDifficultyUpdate(@Nullable UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
 
     public abstract void applyModifiers(ServerPlayerEntity player);
+
+    public abstract void save();
 
     protected static String printTime(long time) {
         long hours = 0;
@@ -286,5 +308,9 @@ public abstract class DifficultyManager {
                     1
             );
         }
+    }
+
+    protected void delayFirstTask(long delay) {
+        initialDelay = delay;
     }
 }

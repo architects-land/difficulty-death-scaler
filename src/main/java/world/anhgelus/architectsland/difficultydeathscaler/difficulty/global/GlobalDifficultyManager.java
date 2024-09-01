@@ -33,9 +33,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
         final var pm = server.getPlayerManager();
-        if (updateType != UpdateType.SILENT) {
-            pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
-        }
 
         pm.getPlayerList().forEach(p -> {
             updater.getModifiers().forEach(m -> {
@@ -44,6 +41,10 @@ public class GlobalDifficultyManager extends DifficultyManager {
             });
             playSoundUpdate(updateType, p);
         });
+
+        if (updateType != UpdateType.SILENT) {
+            pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
+        }
     }
 
     @Override

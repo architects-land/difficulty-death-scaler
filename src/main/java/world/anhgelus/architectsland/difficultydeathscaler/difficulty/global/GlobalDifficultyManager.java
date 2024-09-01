@@ -17,14 +17,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
             new GlobalSteps.Second(),
             new GlobalSteps.Third(),
             new GlobalSteps.Fourth(),
-            new GlobalSteps.Fifth(),
-            new GlobalSteps.Sixth(),
-            new GlobalSteps.Seventh(),
-            new GlobalSteps.Eighth(),
-            new GlobalSteps.Ninth(),
     };
-
-    protected int playerHealthModifierValue = 0;
 
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -34,13 +27,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     protected void onUpdate(UpdateType updateType, Updater updater) {
         final var pm = server.getPlayerManager();
 
-        pm.getPlayerList().forEach(p -> {
-            updater.getModifiers().forEach(m -> {
-                if (m instanceof final PlayerHealthModifier phm) playerHealthModifierValue = (int) phm.getValue();
-                m.apply(p);
-            });
-            playSoundUpdate(updateType, p);
-        });
+        pm.getPlayerList().forEach(p -> playSoundUpdate(updateType, p));
 
         if (updateType != UpdateType.SILENT) {
             pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
@@ -52,7 +39,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         final var gamerules = server.getGameRules();
         final var percentage = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).get();
         final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION).get();
-        final var heartAmount = (20 + playerHealthModifierValue) / 2;
+//        final var heartAmount = (20 + playerHealthModifierValue) / 2;
 
         final var sb = new StringBuilder();
         if (updateType == UpdateType.INCREASE) {
@@ -80,15 +67,15 @@ public class GlobalDifficultyManager extends DifficultyManager {
         }
         sb.append(percentage).append("%§r\n");
 
-        sb.append("Player max heart: ");
-        if (heartAmount == 10) {
-            sb.append("§2");
-        } else if (heartAmount >= 9) {
-            sb.append("§e");
-        } else {
-            sb.append("§c");
-        }
-        sb.append(heartAmount).append(" ❤§r\n");
+//        sb.append("Player max heart: ");
+//        if (heartAmount == 10) {
+//            sb.append("§2");
+//        } else if (heartAmount >= 9) {
+//            sb.append("§e");
+//        } else {
+//            sb.append("§c");
+//        }
+//        sb.append(heartAmount).append(" ❤§r\n");
 
         sb.append("Natural regeneration: ");
         if (naturalRegeneration) {
@@ -126,6 +113,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     @Override
     public void applyModifiers(ServerPlayerEntity player) {
-        PlayerHealthModifier.apply(player, playerHealthModifierValue);
+        //
     }
 }

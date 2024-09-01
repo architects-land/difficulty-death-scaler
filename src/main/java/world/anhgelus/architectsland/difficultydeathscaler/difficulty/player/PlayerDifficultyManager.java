@@ -12,7 +12,16 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60;
 
-    public static final Step[] STEPS = new Step[]{};
+    public static final Step[] STEPS = new Step[]{
+            new PLayerSteps.Default(),
+            new PLayerSteps.First(),
+            new PLayerSteps.Second(),
+            new PLayerSteps.Third(),
+            new PLayerSteps.Fourth(),
+            new PLayerSteps.Fifth(),
+    };
+
+    protected int playerHealthModifierValue = 0;
 
     public PlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -22,7 +31,11 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
-
+        updater.getModifiers().forEach(m -> {
+            if (m instanceof final PlayerHealthModifier phm) playerHealthModifierValue = (int) phm.getValue();
+            m.apply(player);
+        });
+        playSoundUpdate(updateType, player);
     }
 
     @Override
@@ -36,6 +49,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     public void applyModifiers() {
-
+        PlayerHealthModifier.apply(player, playerHealthModifierValue);
     }
 }

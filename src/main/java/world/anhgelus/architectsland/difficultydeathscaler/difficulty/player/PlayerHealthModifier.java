@@ -1,4 +1,4 @@
-package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
+package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;

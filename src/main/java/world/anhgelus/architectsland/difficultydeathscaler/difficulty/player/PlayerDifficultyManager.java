@@ -10,7 +10,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 
 public class PlayerDifficultyManager extends DifficultyManager {
-    public final ServerPlayerEntity player;
+    public ServerPlayerEntity player;
 
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60;
 

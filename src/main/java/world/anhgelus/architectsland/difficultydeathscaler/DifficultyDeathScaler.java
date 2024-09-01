@@ -17,7 +17,6 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 
@@ -87,7 +86,10 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             difficultyManager.applyModifiers(newPlayer);
-            getPlayerDifficultyManager(newPlayer.server, newPlayer).applyModifiers();
+            final var playerDifficulty = getPlayerDifficultyManager(newPlayer.server, newPlayer);
+            playerDifficulty.player = newPlayer;
+            playerDifficulty.increaseDeath();
+            playerDifficulty.applyModifiers();
         });
 
         UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> BossManager.handleBuff(player, world, hand, entity));

@@ -153,16 +153,16 @@ public abstract class DifficultyManager {
                 ServerPlayerEntity player,
                 double value
         ) {
-            final var healthAttribute = player.getAttributeInstance(attribute);
-            if (healthAttribute == null) return;
+            final var attr = player.getAttributeInstance(attribute);
+            if (attr == null) return;
 
-            healthAttribute.removeModifier(id);
+            attr.removeModifier(id);
             if (value == 0) return;
 
-            EntityAttributeModifier playerHealthModifier = new EntityAttributeModifier(
+            final var playerHealthModifier = new EntityAttributeModifier(
                     id, value, operation
             );
-            healthAttribute.addPersistentModifier(playerHealthModifier);
+            attr.addPersistentModifier(playerHealthModifier);
         }
 
         public double getValue() {

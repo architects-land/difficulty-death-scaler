@@ -57,8 +57,8 @@ Phantoms are back...
 
 All blocks do not drop after a TNT explosion.
 
-> By default, all blocks drop after a TNT explosion in a normal survival
-> {style=note}
+> This is **NOT** the default behaviour of Minecraft
+> {style="warning"}
 
 ## Step 8
 

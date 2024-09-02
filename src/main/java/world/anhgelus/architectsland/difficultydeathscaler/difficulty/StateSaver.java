@@ -19,6 +19,7 @@ public class StateSaver extends PersistentState {
 
     public int deaths = 0;
     public long timeBeforeReduce = 0;
+    public long timeBeforeIncrease = 0;
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
@@ -34,6 +35,7 @@ public class StateSaver extends PersistentState {
         nbt.put("players", playersNbt);
         nbt.putInt("deaths", deaths);
         nbt.putLong("timeBeforeReduce", timeBeforeReduce);
+        nbt.putLong("timeBeforeIncrease", timeBeforeReduce);
 
         return nbt;
     }

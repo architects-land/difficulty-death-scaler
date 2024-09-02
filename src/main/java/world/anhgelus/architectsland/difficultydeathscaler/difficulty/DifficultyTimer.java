@@ -35,4 +35,8 @@ public class DifficultyTimer {
         }
         timer.schedule(task, delay * 1000L, repeatEach * 1000L);
     }
+
+    public long delay() {
+        return System.currentTimeMillis() / 1000 - timerStart;
+    }
 }

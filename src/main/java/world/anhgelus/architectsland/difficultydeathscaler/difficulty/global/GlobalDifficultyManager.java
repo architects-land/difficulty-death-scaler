@@ -82,7 +82,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         final var state = StateSaver.getServerState(server);
         numberOfDeath = state.deaths;
         delayFirstTask(state.timeBeforeReduce);
-        increaser = new DifficultyIncrease(timer, 0);
+        increaser = new DifficultyIncrease(timer, state.timeBeforeIncrease);
     }
 
     @Override
@@ -140,6 +140,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         DifficultyDeathScaler.LOGGER.info("Saving global difficulty data");
         final var state = StateSaver.getServerState(server);
         state.deaths = numberOfDeath;
-        state.timeBeforeReduce = System.currentTimeMillis() / 1000 - timerStart;
+        state.timeBeforeReduce = delay();
+        state.timeBeforeIncrease = increaser.delay();
     }
 }

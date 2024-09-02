@@ -92,7 +92,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         DifficultyDeathScaler.LOGGER.info("Saving player {} difficulty data", player.getUuid());
         final var state = StateSaver.getServerState(server);
         state.deaths = numberOfDeath;
-        state.timeBeforeReduce = System.currentTimeMillis() / 1000 - timerStart;
+        state.timeBeforeReduce = delay();
     }
 
     public void applyModifiers() {

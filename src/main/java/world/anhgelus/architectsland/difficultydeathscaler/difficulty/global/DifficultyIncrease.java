@@ -22,6 +22,7 @@ public class DifficultyIncrease extends DifficultyTimer {
             @Override
             public void run() {
                 manager.increaseDeath(true);
+                manager.stopAutomaticDecrease();
             }
         };
         executeTask(task, increaseTask, SECONDS_BEFORE_INCREASE, SECONDS_EACH_INCREASE);

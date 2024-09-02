@@ -251,6 +251,10 @@ public abstract class DifficultyManager extends DifficultyTimer {
         onUpdate(updateType, updater);
     }
 
+    public void stopAutomaticDecrease() {
+        if (reducerTask != null) reducerTask.cancel();
+    }
+
     public String getDifficultyUpdate(net.minecraft.world.Difficulty difficulty) {
         return generateDifficultyUpdate(null, difficulty);
     }

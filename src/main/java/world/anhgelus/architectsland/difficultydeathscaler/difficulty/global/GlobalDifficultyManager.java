@@ -3,6 +3,7 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,33 +91,28 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     @Override
     protected @NotNull String generateDifficultyUpdate(UpdateType updateType, net.minecraft.world.@Nullable Difficulty difficulty) {
-        final var gamerules = server.getGameRules();
-        final var percentage = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).get();
-        final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION).get();
-
         final var sb = new StringBuilder();
         sb.append(generateHeaderUpdate(updateType));
-        if (difficulty == net.minecraft.world.Difficulty.NORMAL) {
-            sb.append("Difficulty: §2Normal§r");
+        if (difficulty == Difficulty.EASY) {
+            sb.append("World Difficulty: §2Easy§r");
+        } else if (difficulty == Difficulty.NORMAL) {
+            sb.append("Difficulty: §eNormal§r");
         } else {
             sb.append("Difficulty: §cHard§r");
         }
-        sb.append("\n");
-        sb.append("Players sleeping percentage to skip the night: ");
-        if (percentage == 30) {
-            sb.append("§2");
-        } else if (percentage == 70) {
-            sb.append("§e");
-        } else {
-            sb.append("§c");
+        if (numberOfDeath >= 1) {
+            sb.append("\n\n");
         }
-        sb.append(percentage).append("%§r\n");
-
-        sb.append("Natural regeneration: ");
-        if (naturalRegeneration) {
-            sb.append("§2On");
-        } else {
-            sb.append("§cOff");
+        if (numberOfDeath >= STEPS[13].level()) {
+            sb.append("§cWell... Good luck... you dont have regen anymore§r");
+        } else if (numberOfDeath >= STEPS[10].level()) {
+            sb.append("§cNether is gonna be very dangerous...§r");
+        } else if (numberOfDeath >= STEPS[7].level()) {
+            sb.append("§eOh fck, no more F3§r");
+        } else if (numberOfDeath >= STEPS[5].level()) {
+            sb.append("§eNormal difficulty is back!§r");
+        } else if (numberOfDeath >= STEPS[1].level()) {
+            sb.append("§2Oh no, the difficulty is becoming harder.§r");
         }
         sb.append("§r\n\n");
 

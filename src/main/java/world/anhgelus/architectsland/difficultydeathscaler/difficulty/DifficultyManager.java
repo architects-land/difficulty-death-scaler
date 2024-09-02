@@ -274,13 +274,19 @@ public abstract class DifficultyManager {
     public abstract void save();
 
     protected String generateHeaderUpdate(@Nullable UpdateType updateType) {
-        if (updateType == null) return "§8============== §rCurrent difficulty : §8==============§r\n";
-        return switch (updateType) {
-            case INCREASE -> "§8============== §rDifficulty increase! §8==============§r\n";
-            case DECREASE -> "§8============== §rDifficulty decrease! §8==============§r\n";
-            case SET -> "§8=============== §rDifficulty change! §8===============§r\n";
-            default -> "§8============== §rCurrent difficulty : §8==============§r\n";
-        };
+        final var sb = new StringBuilder();
+        if (updateType == null) sb.append( "§8============== §rCurrent difficulty: §8==============§r");
+        else {
+            switch (updateType) {
+                case INCREASE -> sb.append("§8============== §rDifficulty increase! §8==============§r");
+                case DECREASE -> sb.append("§8============== §rDifficulty decrease! §8==============§r");
+                case SET -> sb.append("§8=============== §rDifficulty change! §8===============§r");
+                default -> sb.append("§8============== §rCurrent difficulty: §8==============§r");
+            }
+        }
+        sb.append("\n");
+        sb.append("Number of death: §d").append(numberOfDeath).append("§r\n");
+        return sb.toString();
     }
 
     protected String generateFooterUpdate(StepPair[] steps, UpdateType updateType) {

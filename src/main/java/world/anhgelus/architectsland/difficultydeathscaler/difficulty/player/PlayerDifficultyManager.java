@@ -68,7 +68,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         final var sb = new StringBuilder();
         sb.append(generateHeaderUpdate(updateType));
 
-        sb.append("Player max heart: ");
+        sb.append("Max hearts: ");
         if (heartAmount == 10) {
             sb.append("§2");
         } else if (heartAmount >= 8) {

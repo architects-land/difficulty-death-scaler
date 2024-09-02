@@ -11,4 +11,5 @@
         <toc-element topic="Global-Difficulty.md"/>
         <toc-element topic="Player-Difficulty.md"/>
     </toc-element>
+    <toc-element topic="Command.md"/>
 </instance-profile>

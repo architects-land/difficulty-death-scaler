@@ -13,12 +13,22 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60; // 12 hours
 
-    public static final Step[] STEPS = new Step[]{
-            new GlobalSteps.Default(),
-            new GlobalSteps.First(),
-            new GlobalSteps.Second(),
-            new GlobalSteps.Third(),
-            new GlobalSteps.Fourth(),
+    public static final StepPair[] STEPS = new StepPair[]{
+            new StepPair(0, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(30, server);
+                gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
+                updater.updateDifficulty(2);
+            }),
+            new StepPair(5, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(70, server);
+            }),
+            new StepPair(10, (server, gamerules, updater) -> updater.updateDifficulty(3)),
+            new StepPair(15, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
+            }),
+            new StepPair(20, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.NATURAL_REGENERATION).set(false, server);
+            }),
     };
 
     public GlobalDifficultyManager(MinecraftServer server) {

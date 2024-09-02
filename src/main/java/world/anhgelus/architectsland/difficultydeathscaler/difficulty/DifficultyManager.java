@@ -8,6 +8,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,12 +25,12 @@ public abstract class DifficultyManager {
     protected final long secondsBeforeDecreased;
     protected long initialDelay = 0;
 
-    protected final Step[] steps;
+    protected final StepPair[] steps;
     protected final MinecraftServer server;
 
     protected int numberOfDeath;
 
-    public DifficultyManager(MinecraftServer server, Step[] steps, long secondsBeforeDecreased) {
+    protected DifficultyManager(MinecraftServer server, StepPair[] steps, long secondsBeforeDecreased) {
         this.server = server;
         this.steps = steps;
         numberOfDeath = 0;
@@ -56,6 +57,20 @@ public abstract class DifficultyManager {
          * Silent update
          */
         SILENT
+    }
+
+    public static final class StepPair extends Pair<Integer, Step> {
+        public StepPair(Integer level, Step reached) {
+            super(level, reached);
+        }
+
+        public int level() {
+            return getLeft();
+        }
+
+        public void reached(MinecraftServer server, GameRules rules, Updater updater) {
+            getRight().reached(server, rules, updater);
+        }
     }
 
     public static final class Updater {
@@ -102,22 +117,9 @@ public abstract class DifficultyManager {
         }
     }
 
-    public static abstract class Step {
-        public final int level;
-
-        /**
-         * @param level Level to reach the step (number of death)
-         */
-        protected Step(int level) {
-            this.level = level;
-        }
-
-        /**
-         * Method called when step is reached
-         * @param updater Object to use when an option is edited multiple times
-         * @param gamerules GameRules of the server
-         */
-        public abstract void reached(MinecraftServer server, GameRules gamerules, Updater updater);
+    @FunctionalInterface
+    public interface Step {
+        void reached(MinecraftServer server, GameRules gamerules, Updater updater);
     }
 
     public static abstract class Modifier {
@@ -222,14 +224,14 @@ public abstract class DifficultyManager {
     public void decreaseDeath() {
         // Avoids updating the difficulty when it can’t go lower.
         // Prevents for example the difficulty decrease message when killing a boss if the difficulty doesn't decrease.
-        if (numberOfDeath < steps[1].level) {
+        if (numberOfDeath < steps[1].level()) {
             numberOfDeath = 0;
             return;
         }
 
         for (int i = steps.length - 1; i > 0; i--) {
-            if (numberOfDeath >= steps[i].level) {
-                numberOfDeath = steps[i-1].level;
+            if (numberOfDeath >= steps[i].level()) {
+                numberOfDeath = steps[i-1].level();
                 break;
             }
         }
@@ -241,12 +243,12 @@ public abstract class DifficultyManager {
         final var updater = new Updater();
         final var rules = server.getGameRules();
 
-        for (final Step step : steps) {
-            if (step.level <= numberOfDeath) step.reached(server, rules, updater);
+        for (final StepPair step : steps) {
+            if (step.level() <= numberOfDeath) step.reached(server, rules, updater);
             else break;
         }
 
-        if (Arrays.stream(steps).noneMatch(x -> x.level == numberOfDeath) && updateType != UpdateType.SET) return;
+        if (Arrays.stream(steps).noneMatch(x -> x.level() == numberOfDeath) && updateType != UpdateType.SET) return;
         final var difficulty = updater.getDifficulty();
         server.setDifficulty(difficulty, true);
 
@@ -281,8 +283,8 @@ public abstract class DifficultyManager {
         };
     }
 
-    protected String generateFooterUpdate(Step[] steps, UpdateType updateType) {
-        if (numberOfDeath < steps[1].level) {
+    protected String generateFooterUpdate(StepPair[] steps, UpdateType updateType) {
+        if (numberOfDeath < steps[1].level()) {
             return "The difficulty cannot get lower. Congratulations!\n§8=============================================§r";
         }
         final var sb = new StringBuilder();
@@ -295,7 +297,7 @@ public abstract class DifficultyManager {
             sb.append("You only need to survive for §6")
                 .append(printTime(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
                 .append("§r to make the difficulty decrease.");
-        } else if (numberOfDeath < steps[2].level) {
+        } else if (numberOfDeath < steps[2].level()) {
             sb.append("You were on the lowest difficulty for §6")
                 .append(printTime(System.currentTimeMillis() / 1000 - timerStart))
                 .append("§r, but you had to die and ruin everything, didn't you ?");

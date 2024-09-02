@@ -4,6 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
@@ -15,13 +16,25 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60;
 
-    public static final Step[] STEPS = new Step[]{
-            new PLayerSteps.Default(),
-            new PLayerSteps.First(),
-            new PLayerSteps.Second(),
-            new PLayerSteps.Third(),
-            new PLayerSteps.Fourth(),
-            new PLayerSteps.Fifth(),
+    public static final StepPair[] STEPS = new StepPair[]{
+            new StepPair(0, (server, gamerules, updater) -> {
+                updater.getModifier(PlayerHealthModifier.class).update(0);
+            }),
+            new StepPair(3, (server, gamerules, updater) -> {
+                updater.getModifier(PlayerHealthModifier.class).update(-2);
+            }),
+            new StepPair(5, (server, gamerules, updater) -> {
+                updater.getModifier(PlayerHealthModifier.class).update(-4);
+            }),
+            new StepPair(7, (server, gamerules, updater) -> {
+                updater.getModifier(PlayerHealthModifier.class).update(-6);
+            }),
+            new StepPair(10, (server, gamerules, updater) -> {
+                updater.getModifier(PlayerHealthModifier.class).update(-8);
+            }),
+            new StepPair(15, (server, gamerules, updater) -> {
+                updater.getModifier(PlayerHealthModifier.class).update(-10);
+            }),
     };
 
     protected int playerHealthModifierValue = 0;
@@ -53,6 +66,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
         final var heartAmount = (20 + playerHealthModifierValue) / 2;
 
         final var sb = new StringBuilder();
+        sb.append(generateHeaderUpdate(updateType));
+
         sb.append("Player max heart: ");
         if (heartAmount == 10) {
             sb.append("§2");
@@ -61,7 +76,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         } else {
             sb.append("§c");
         }
-        sb.append(heartAmount).append(" ❤§r\n");
+        sb.append(heartAmount).append(" ❤§r\n\n");
 
         sb.append(generateFooterUpdate(STEPS, updateType));
 

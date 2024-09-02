@@ -15,18 +15,55 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     public static final StepPair[] STEPS = new StepPair[]{
             new StepPair(0, (server, gamerules, updater) -> {
+                // mobs
+                gamerules.get(GameRules.DO_INSOMNIA).set(false, server);
+                gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(true, server);
+                gamerules.get(GameRules.UNIVERSAL_ANGER).set(false, server);
+                // explosion decay
+                gamerules.get(GameRules.BLOCK_EXPLOSION_DROP_DECAY).set(false, server);
+                gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(false, server);
+                gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(false, server);
+                // annoying
+                gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(false, server);
+                gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(false, server);
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(30, server);
+                // hardcore
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
-                updater.updateDifficulty(2);
+                updater.updateDifficulty(1);
+            }),
+            new StepPair(3, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.BLOCK_EXPLOSION_DROP_DECAY).set(true, server);
             }),
             new StepPair(5, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(70, server);
             }),
-            new StepPair(10, (server, gamerules, updater) -> updater.updateDifficulty(3)),
+            new StepPair(7, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(true, server);
+            }),
+            new StepPair(10, (server, gamerules, updater) -> updater.updateDifficulty(2)),
+            new StepPair(13, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.DO_INSOMNIA).set(true, server);
+            }),
             new StepPair(15, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(true, server);
+            }),
+            new StepPair(17, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(true, server);
+            }),
+            new StepPair(20, (server, gamerules, updater) -> updater.updateDifficulty(3)),
+            new StepPair(22, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(true, server);
+            }),
+            new StepPair(25, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.UNIVERSAL_ANGER).set(true, server);
+            }),
+            new StepPair(26, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
             }),
-            new StepPair(20, (server, gamerules, updater) -> {
+            new StepPair(28, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(true, server);
+            }),
+            new StepPair(30, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(false, server);
             }),
     };

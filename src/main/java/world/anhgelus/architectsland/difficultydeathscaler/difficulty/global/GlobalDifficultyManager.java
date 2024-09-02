@@ -3,6 +3,7 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,18 +16,59 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     public static final StepPair[] STEPS = new StepPair[]{
             new StepPair(0, (server, gamerules, updater) -> {
+                // mobs
+                gamerules.get(GameRules.DO_INSOMNIA).set(false, server);
+                gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(true, server);
+                gamerules.get(GameRules.UNIVERSAL_ANGER).set(false, server);
+                // explosion decay
+                gamerules.get(GameRules.BLOCK_EXPLOSION_DROP_DECAY).set(false, server);
+                gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(false, server);
+                gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(false, server);
+                // annoying
+                gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(false, server);
+                gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(false, server);
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(30, server);
+                gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(true, server);
+                // hardcore
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
-                updater.updateDifficulty(2);
+                updater.updateDifficulty(1);
+            }),
+            new StepPair(3, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.BLOCK_EXPLOSION_DROP_DECAY).set(true, server);
             }),
             new StepPair(5, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(70, server);
             }),
-            new StepPair(10, (server, gamerules, updater) -> updater.updateDifficulty(3)),
+            new StepPair(7, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(true, server);
+            }),
+            new StepPair(10, (server, gamerules, updater) -> updater.updateDifficulty(2)),
+            new StepPair(13, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.DO_INSOMNIA).set(true, server);
+            }),
             new StepPair(15, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(true, server);
+            }),
+            new StepPair(17, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(true, server);
+            }),
+            new StepPair(19, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(false, server);
+            }),
+            new StepPair(20, (server, gamerules, updater) -> updater.updateDifficulty(3)),
+            new StepPair(22, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(true, server);
+            }),
+            new StepPair(25, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.UNIVERSAL_ANGER).set(true, server);
+            }),
+            new StepPair(26, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
             }),
-            new StepPair(20, (server, gamerules, updater) -> {
+            new StepPair(28, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(false, server);
+            }),
+            new StepPair(30, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(false, server);
             }),
     };
@@ -53,33 +95,28 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     @Override
     protected @NotNull String generateDifficultyUpdate(UpdateType updateType, net.minecraft.world.@Nullable Difficulty difficulty) {
-        final var gamerules = server.getGameRules();
-        final var percentage = gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).get();
-        final var naturalRegeneration = gamerules.get(GameRules.NATURAL_REGENERATION).get();
-
         final var sb = new StringBuilder();
         sb.append(generateHeaderUpdate(updateType));
-        if (difficulty == net.minecraft.world.Difficulty.NORMAL) {
-            sb.append("Difficulty: §2Normal§r");
+        if (difficulty == Difficulty.EASY) {
+            sb.append("World Difficulty: §2Easy§r");
+        } else if (difficulty == Difficulty.NORMAL) {
+            sb.append("Difficulty: §eNormal§r");
         } else {
             sb.append("Difficulty: §cHard§r");
         }
-        sb.append("\n");
-        sb.append("Players sleeping percentage to skip the night: ");
-        if (percentage == 30) {
-            sb.append("§2");
-        } else if (percentage == 70) {
-            sb.append("§e");
-        } else {
-            sb.append("§c");
+        if (numberOfDeath >= 1) {
+            sb.append("\n\n");
         }
-        sb.append(percentage).append("%§r\n");
-
-        sb.append("Natural regeneration: ");
-        if (naturalRegeneration) {
-            sb.append("§2On");
-        } else {
-            sb.append("§cOff");
+        if (numberOfDeath >= STEPS[14].level()) {
+            sb.append("§cWell... Good luck... you dont have regen anymore§r");
+        } else if (numberOfDeath >= STEPS[11].level()) {
+            sb.append("§cNether is gonna be very dangerous...§r");
+        } else if (numberOfDeath >= STEPS[7].level()) {
+            sb.append("§eOh fck, no more F3§r");
+        } else if (numberOfDeath >= STEPS[5].level()) {
+            sb.append("§eNormal difficulty is back!§r");
+        } else if (numberOfDeath >= STEPS[1].level()) {
+            sb.append("§2Oh no, the difficulty is becoming harder.§r");
         }
         sb.append("§r\n\n");
 

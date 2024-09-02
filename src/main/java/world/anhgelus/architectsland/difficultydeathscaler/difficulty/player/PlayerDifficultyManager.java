@@ -4,7 +4,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
@@ -68,7 +67,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         final var sb = new StringBuilder();
         sb.append(generateHeaderUpdate(updateType));
 
-        sb.append("Player max heart: ");
+        sb.append("Max hearts: ");
         if (heartAmount == 10) {
             sb.append("§2");
         } else if (heartAmount >= 8) {

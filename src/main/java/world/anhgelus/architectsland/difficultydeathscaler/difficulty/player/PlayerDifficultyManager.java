@@ -66,6 +66,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
         final var heartAmount = (20 + playerHealthModifierValue) / 2;
 
         final var sb = new StringBuilder();
+        sb.append(generateHeaderUpdate(updateType));
+
         sb.append("Player max heart: ");
         if (heartAmount == 10) {
             sb.append("§2");
@@ -74,7 +76,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         } else {
             sb.append("§c");
         }
-        sb.append(heartAmount).append(" ❤§r\n");
+        sb.append(heartAmount).append(" ❤§r\n\n");
 
         sb.append(generateFooterUpdate(STEPS, updateType));
 

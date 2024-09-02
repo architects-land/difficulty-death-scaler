@@ -14,6 +14,8 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60; // 12 hours
 
+    private final DifficultyIncrease increaser; // 12 hours
+
     public static final StepPair[] STEPS = new StepPair[]{
             new StepPair(0, (server, gamerules, updater) -> {
                 // mobs
@@ -80,6 +82,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         final var state = StateSaver.getServerState(server);
         numberOfDeath = state.deaths;
         delayFirstTask(state.timeBeforeReduce);
+        increaser = new DifficultyIncrease(timer, 0);
     }
 
     @Override
@@ -91,6 +94,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
         if (updateType != UpdateType.SILENT) {
             pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
         }
+
+        if (updateType != UpdateType.OTHER) increaser.restart(this);
     }
 
     @Override

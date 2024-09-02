@@ -12,18 +12,15 @@ import net.minecraft.util.Pair;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-public abstract class DifficultyManager {
+public abstract class DifficultyManager extends DifficultyTimer {
     protected final Timer timer = new Timer();
-    protected long timerStart = System.currentTimeMillis() / 1000;
     private TimerTask reducerTask;
 
     protected final long secondsBeforeDecreased;
-    protected long initialDelay = 0;
 
     protected final StepPair[] steps;
     protected final MinecraftServer server;
@@ -56,7 +53,13 @@ public abstract class DifficultyManager {
         /**
          * Silent update
          */
-        SILENT
+        SILENT,
+        /**
+         * Other kind of update
+         * <p>
+         * Weird stuff can happen if you use this
+         */
+        OTHER
     }
 
     public static final class StepPair extends Pair<Integer, Step> {
@@ -189,8 +192,13 @@ public abstract class DifficultyManager {
     }
 
     public void increaseDeath() {
+        increaseDeath(false);
+    }
+
+    public void increaseDeath(boolean other) {
         numberOfDeath++;
-        updateDeath(UpdateType.INCREASE);
+        if (other) updateDeath(UpdateType.OTHER);
+        else updateDeath(UpdateType.INCREASE);
         updateTimerTask();
     }
 
@@ -205,19 +213,7 @@ public abstract class DifficultyManager {
             }
         };
         timerStart = System.currentTimeMillis() / 1000;
-        if (reducerTask == null && initialDelay != 0) {
-            try {
-                timer.schedule(task, (secondsBeforeDecreased - initialDelay) * 1000L, secondsBeforeDecreased * 1000L);
-                timerStart -= initialDelay;
-            } catch (IllegalArgumentException e) {
-                DifficultyDeathScaler.LOGGER.error("An exception occurred while launching first task", e);
-                DifficultyDeathScaler.LOGGER.warn("Resetting delay to 0");
-                initialDelay = 0;
-                timer.schedule(task, secondsBeforeDecreased * 1000L, secondsBeforeDecreased * 1000L);
-            }
-        } else {
-            timer.schedule(task, secondsBeforeDecreased * 1000L, secondsBeforeDecreased * 1000L);
-        }
+        executeTask(task, reducerTask, secondsBeforeDecreased);
         reducerTask = task;
     }
 
@@ -353,9 +349,5 @@ public abstract class DifficultyManager {
                     1
             );
         }
-    }
-
-    protected void delayFirstTask(long delay) {
-        initialDelay = delay;
     }
 }

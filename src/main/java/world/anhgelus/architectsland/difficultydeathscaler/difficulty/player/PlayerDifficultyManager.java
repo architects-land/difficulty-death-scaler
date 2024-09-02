@@ -4,7 +4,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;

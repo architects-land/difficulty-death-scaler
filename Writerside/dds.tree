@@ -4,6 +4,11 @@
 
 <instance-profile id="dds"
                  name="Difficulty Death Scaler"
->
+                  start-page="Introduction.md">
 
+    <toc-element topic="Introduction.md"/>
+    <toc-element topic="Difficulty.md">
+        <toc-element topic="Global-Difficulty.md"/>
+        <toc-element topic="Player-Difficulty.md"/>
+    </toc-element>
 </instance-profile>

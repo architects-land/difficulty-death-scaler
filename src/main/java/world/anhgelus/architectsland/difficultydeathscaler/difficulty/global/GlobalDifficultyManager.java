@@ -66,7 +66,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
             }),
             new StepPair(28, (server, gamerules, updater) -> {
-                gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(true, server);
+                gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(false, server);
             }),
             new StepPair(30, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(false, server);

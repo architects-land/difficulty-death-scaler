@@ -6,8 +6,4 @@
         <accepts>page.html</accepts>
     </rule>
     -->
-    <rule id="708e92cf">
-        <description>Created after removal of "About Difficulty Death Scaler" from Difficulty Death Scaler</description>
-        <accepts>starter-topic.html</accepts>
-    </rule>
 </rules>

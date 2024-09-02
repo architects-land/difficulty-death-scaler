@@ -28,6 +28,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(false, server);
                 gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(false, server);
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(30, server);
+                gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(true, server);
                 // hardcore
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
                 updater.updateDifficulty(1);
@@ -50,6 +51,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
             new StepPair(17, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(true, server);
+            }),
+            new StepPair(19, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(false, server);
             }),
             new StepPair(20, (server, gamerules, updater) -> updater.updateDifficulty(3)),
             new StepPair(22, (server, gamerules, updater) -> {
@@ -103,9 +107,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
         if (numberOfDeath >= 1) {
             sb.append("\n\n");
         }
-        if (numberOfDeath >= STEPS[13].level()) {
+        if (numberOfDeath >= STEPS[14].level()) {
             sb.append("§cWell... Good luck... you dont have regen anymore§r");
-        } else if (numberOfDeath >= STEPS[10].level()) {
+        } else if (numberOfDeath >= STEPS[11].level()) {
             sb.append("§cNether is gonna be very dangerous...§r");
         } else if (numberOfDeath >= STEPS[7].level()) {
             sb.append("§eOh fck, no more F3§r");

@@ -55,11 +55,9 @@ public abstract class DifficultyManager extends DifficultyTimer {
          */
         SILENT,
         /**
-         * Other kind of update
-         * <p>
-         * Weird stuff can happen if you use this
+         * Increase not linked with death
          */
-        OTHER
+        AUTOMATIC_INCREASE
     }
 
     public static final class StepPair extends Pair<Integer, Step> {
@@ -195,9 +193,9 @@ public abstract class DifficultyManager extends DifficultyTimer {
         increaseDeath(false);
     }
 
-    public void increaseDeath(boolean other) {
+    public void increaseDeath(boolean automaticIncrease) {
         numberOfDeath++;
-        if (other) updateDeath(UpdateType.OTHER);
+        if (automaticIncrease) updateDeath(UpdateType.AUTOMATIC_INCREASE);
         else updateDeath(UpdateType.INCREASE);
         updateTimerTask();
     }

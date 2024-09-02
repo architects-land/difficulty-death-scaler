@@ -91,11 +91,11 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
         pm.getPlayerList().forEach(p -> playSoundUpdate(updateType, p));
 
-        if (updateType != UpdateType.SILENT) {
+        if (updateType != UpdateType.SILENT)
             pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
-        }
 
-        if (updateType != UpdateType.OTHER) increaser.restart(this);
+
+        if (updateType != UpdateType.AUTOMATIC_INCREASE) increaser.restart(this);
     }
 
     @Override

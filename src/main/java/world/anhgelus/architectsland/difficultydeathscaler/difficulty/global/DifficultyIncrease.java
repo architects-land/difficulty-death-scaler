@@ -7,7 +7,7 @@ import java.util.TimerTask;
 
 public class DifficultyIncrease extends DifficultyTimer {
     public static final int SECONDS_BEFORE_INCREASE = 3*24*60*60; // 3 days
-    public static final int SECONDS_EACH_INCREASE = 24*60*60; // 24 hours
+    public static final int SECONDS_EACH_INCREASE = 12*60*60; // 12 hours
 
     private TimerTask increaseTask;
 

@@ -124,6 +124,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     public static abstract class Modifier {
+        public static final String PREFIX = "dds_";
+
         protected double value = 0;
         protected final Identifier id;
         protected final RegistryEntry<EntityAttribute> attribute;

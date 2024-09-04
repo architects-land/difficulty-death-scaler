@@ -1,6 +1,5 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty;
 
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
@@ -19,6 +18,8 @@ public class StateSaver extends PersistentState {
 
     public int deaths = 0;
     public long timeBeforeReduce = 0;
+    public long timeBeforeIncrease = 0;
+    public boolean increaseEnabled = false;
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
@@ -34,6 +35,8 @@ public class StateSaver extends PersistentState {
         nbt.put("players", playersNbt);
         nbt.putInt("deaths", deaths);
         nbt.putLong("timeBeforeReduce", timeBeforeReduce);
+        nbt.putLong("timeBeforeIncrease", timeBeforeIncrease);
+        nbt.putBoolean("increaseEnabled", increaseEnabled);
 
         return nbt;
     }
@@ -43,17 +46,17 @@ public class StateSaver extends PersistentState {
 
         final var playersNbt = tag.getCompound("players");
         playersNbt.getKeys().forEach(key -> {
-            PlayerData playerData = new PlayerData();
+            final var playerData = new PlayerData();
 
             playerData.deaths = playersNbt.getCompound(key).getInt("deaths");
             playerData.timeBeforeReduce = playersNbt.getCompound(key).getLong("timeBeforeReduce");
 
-            UUID uuid = UUID.fromString(key);
-            state.players.put(uuid, playerData);
+            state.players.put(UUID.fromString(key), playerData);
         });
-
         state.deaths = tag.getInt("deaths");
         state.timeBeforeReduce = tag.getLong("timeBeforeReduce");
+        state.timeBeforeIncrease = tag.getLong("timeBeforeIncrease");
+        state.increaseEnabled = tag.getBoolean("increaseEnabled");
 
         return state;
     }

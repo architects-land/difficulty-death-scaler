@@ -14,6 +14,8 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60; // 12 hours
 
+    private final DifficultyIncrease increaser; // 12 hours
+
     public static final StepPair[] STEPS = new StepPair[]{
             new StepPair(0, (server, gamerules, updater) -> {
                 // mobs
@@ -80,6 +82,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         final var state = StateSaver.getServerState(server);
         numberOfDeath = state.deaths;
         delayFirstTask(state.timeBeforeReduce);
+        increaser = new DifficultyIncrease(this, timer, state.timeBeforeIncrease, state.increaseEnabled);
     }
 
     @Override
@@ -88,9 +91,12 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
         pm.getPlayerList().forEach(p -> playSoundUpdate(updateType, p));
 
-        if (updateType != UpdateType.SILENT) {
+        if (updateType != UpdateType.SILENT)
             pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
-        }
+
+
+        if (updateType != UpdateType.AUTOMATIC_INCREASE && updateType != UpdateType.DECREASE)
+            increaser.restart();
     }
 
     @Override
@@ -104,7 +110,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         } else {
             sb.append("Difficulty: §cHard§r");
         }
-        if (numberOfDeath >= 1) {
+        if (numberOfDeath >= STEPS[1].level()) {
             sb.append("\n\n");
         }
         if (numberOfDeath >= STEPS[14].level()) {
@@ -135,6 +141,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
         DifficultyDeathScaler.LOGGER.info("Saving global difficulty data");
         final var state = StateSaver.getServerState(server);
         state.deaths = numberOfDeath;
-        state.timeBeforeReduce = System.currentTimeMillis() / 1000 - timerStart;
+        state.timeBeforeReduce = delay();
+        state.timeBeforeIncrease = increaser.delay();
+        state.increaseEnabled = increaser.enabled();
     }
 }

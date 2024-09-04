@@ -12,18 +12,14 @@ import net.minecraft.util.Pair;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-public abstract class DifficultyManager {
-    protected final Timer timer = new Timer();
-    protected long timerStart = System.currentTimeMillis() / 1000;
+public abstract class DifficultyManager extends DifficultyTimer {
     private TimerTask reducerTask;
 
     protected final long secondsBeforeDecreased;
-    protected long initialDelay = 0;
 
     protected final StepPair[] steps;
     protected final MinecraftServer server;
@@ -31,6 +27,7 @@ public abstract class DifficultyManager {
     protected int numberOfDeath;
 
     protected DifficultyManager(MinecraftServer server, StepPair[] steps, long secondsBeforeDecreased) {
+        timer = new Timer();
         this.server = server;
         this.steps = steps;
         numberOfDeath = 0;
@@ -56,7 +53,11 @@ public abstract class DifficultyManager {
         /**
          * Silent update
          */
-        SILENT
+        SILENT,
+        /**
+         * Increase not linked with death
+         */
+        AUTOMATIC_INCREASE
     }
 
     public static final class StepPair extends Pair<Integer, Step> {
@@ -189,8 +190,13 @@ public abstract class DifficultyManager {
     }
 
     public void increaseDeath() {
+        increaseDeath(false);
+    }
+
+    public void increaseDeath(boolean automaticIncrease) {
         numberOfDeath++;
-        updateDeath(UpdateType.INCREASE);
+        if (automaticIncrease) updateDeath(UpdateType.AUTOMATIC_INCREASE);
+        else updateDeath(UpdateType.INCREASE);
         updateTimerTask();
     }
 
@@ -205,19 +211,7 @@ public abstract class DifficultyManager {
             }
         };
         timerStart = System.currentTimeMillis() / 1000;
-        if (reducerTask == null && initialDelay != 0) {
-            try {
-                timer.schedule(task, (secondsBeforeDecreased - initialDelay) * 1000L, secondsBeforeDecreased * 1000L);
-                timerStart -= initialDelay;
-            } catch (IllegalArgumentException e) {
-                DifficultyDeathScaler.LOGGER.error("An exception occurred while launching first task", e);
-                DifficultyDeathScaler.LOGGER.warn("Resetting delay to 0");
-                initialDelay = 0;
-                timer.schedule(task, secondsBeforeDecreased * 1000L, secondsBeforeDecreased * 1000L);
-            }
-        } else {
-            timer.schedule(task, secondsBeforeDecreased * 1000L, secondsBeforeDecreased * 1000L);
-        }
+        executeTask(task, reducerTask, secondsBeforeDecreased);
         reducerTask = task;
     }
 
@@ -253,6 +247,10 @@ public abstract class DifficultyManager {
         server.setDifficulty(difficulty, true);
 
         onUpdate(updateType, updater);
+    }
+
+    public void stopAutomaticDecrease() {
+        if (reducerTask != null) reducerTask.cancel();
     }
 
     public String getDifficultyUpdate(net.minecraft.world.Difficulty difficulty) {
@@ -299,6 +297,8 @@ public abstract class DifficultyManager {
             sb.append("You only need to survive for §6")
                 .append(printTime(secondsBeforeDecreased))
                 .append("§r to make the difficulty decrease again.");
+        } else if (updateType == UpdateType.AUTOMATIC_INCREASE) {
+            sb.append("The difficulty is increasing automatically!");
         } else if (updateType != UpdateType.INCREASE) {
             sb.append("You only need to survive for §6")
                 .append(printTime(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
@@ -353,9 +353,5 @@ public abstract class DifficultyManager {
                     1
             );
         }
-    }
-
-    protected void delayFirstTask(long delay) {
-        initialDelay = delay;
     }
 }

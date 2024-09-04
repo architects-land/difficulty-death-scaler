@@ -13,10 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.FollowRangeModifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.SpawnReinforcementsModifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.StepHeightModifier;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
 
 import java.util.List;
 
@@ -57,6 +54,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(HealthModifier.class).update(0);
                 updater.getModifier(StepHeightModifier.class).update(0);
                 updater.getModifier(SpawnReinforcementsModifier.class).update(0);
+                updater.getModifier(FallDamageMultiplierModifier.class).update(0);
                 updater.updateDifficulty(1);
             }),
             new StepPair(3, (server, gamerules, updater) -> {
@@ -81,6 +79,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
             new StepPair(16, (server, gamerules, updater) -> {
                 updater.getModifier(StepHeightModifier.class).update(0.5);
             }),
+            new StepPair(18, (server, gamerules, updater) -> {
+                updater.getModifier(FallDamageMultiplierModifier.class).update(0.25);
+            }),
             new StepPair(20, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(true, server);
             }),
@@ -89,6 +90,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
             new StepPair(22, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(true, server);
+            }),
+            new StepPair(23, (server, gamerules, updater) -> {
+                updater.getModifier(FallDamageMultiplierModifier.class).update(0.5);
             }),
             new StepPair(24, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(false, server);
@@ -114,6 +118,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
             new StepPair(35, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
+            }),
+            new StepPair(37, (server, gamerules, updater) -> {
+                updater.getModifier(FallDamageMultiplierModifier.class).update(1);
             }),
             new StepPair(38, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(false, server);

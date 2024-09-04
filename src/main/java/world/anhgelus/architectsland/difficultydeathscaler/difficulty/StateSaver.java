@@ -36,7 +36,7 @@ public class StateSaver extends PersistentState {
         nbt.put("players", playersNbt);
         nbt.putInt("deaths", deaths);
         nbt.putLong("timeBeforeReduce", timeBeforeReduce);
-        nbt.putLong("timeBeforeIncrease", timeBeforeReduce);
+        nbt.putLong("timeBeforeIncrease", timeBeforeIncrease);
         nbt.putBoolean("increaseEnabled", increaseEnabled);
 
         return nbt;

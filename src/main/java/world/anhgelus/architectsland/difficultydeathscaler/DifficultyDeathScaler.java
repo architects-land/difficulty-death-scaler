@@ -135,7 +135,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (!(entity instanceof HostileEntity)) return;
-            difficultyManager.onEntitySpawn((LivingEntity) entity);
+            difficultyManager.onEntitySpawn((HostileEntity) entity);
         });
     }
 

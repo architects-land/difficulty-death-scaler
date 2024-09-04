@@ -15,6 +15,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.FollowRangeModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.StepHeightModifier;
 
 import java.util.List;
 
@@ -53,6 +54,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 // hardcore
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
                 updater.getModifier(HealthModifier.class).update(0);
+                updater.getModifier(StepHeightModifier.class).update(0);
                 updater.updateDifficulty(1);
             }),
             new StepPair(3, (server, gamerules, updater) -> {
@@ -74,6 +76,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
             new StepPair(15, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-2);
             }),
+            new StepPair(16, (server, gamerules, updater) -> {
+                updater.getModifier(FollowRangeModifier.class).update(0.5);
+            }),
             new StepPair(20, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(true, server);
             }),
@@ -84,6 +89,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(false, server);
             }),
             new StepPair(25, (server, gamerules, updater) -> updater.updateDifficulty(3)),
+            new StepPair(26, (server, gamerules, updater) -> {
+                updater.getModifier(FollowRangeModifier.class).update(1);
+            }),
             new StepPair(27, (server, gamerules, updater) -> {
                 updater.getModifier(FollowRangeModifier.class).update(0.35);
             }),
@@ -109,6 +117,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     protected int healthModifierValue = 0;
     protected double followRangeModifierValue = 0;
+    protected double stepHeightModifier = 0;
 
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -128,11 +137,13 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
         pm.getPlayerList().forEach(p -> {
             updater.getModifiers().forEach(m -> {
-                if (m instanceof final HealthModifier hm) {
-                    healthModifierValue = (int) hm.getValue();
-                    hm.apply(p);
-                } else if (m instanceof final FollowRangeModifier frm) {
-                    followRangeModifierValue = frm.getValue();
+                if (m instanceof final HealthModifier mod) {
+                    healthModifierValue = (int) mod.getValue();
+                    mod.apply(p);
+                } else if (m instanceof final FollowRangeModifier mod) {
+                    followRangeModifierValue = mod.getValue();
+                } else if (m instanceof final StepHeightModifier mod) {
+                    stepHeightModifier = mod.getValue();
                 }
             });
             playSoundUpdate(updateType, p);
@@ -191,10 +202,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
         HealthModifier.apply(player, healthModifierValue);
     }
 
-    public void onEntitySpawn(LivingEntity entity) {
-        if (entity instanceof final HostileEntity hostile) {
-            FollowRangeModifier.apply(hostile, followRangeModifierValue);
-        }
+    public void onEntitySpawn(HostileEntity hostile) {
+        FollowRangeModifier.apply(hostile, followRangeModifierValue);
+        FollowRangeModifier.apply(hostile, stepHeightModifier);
     }
 
     @Override

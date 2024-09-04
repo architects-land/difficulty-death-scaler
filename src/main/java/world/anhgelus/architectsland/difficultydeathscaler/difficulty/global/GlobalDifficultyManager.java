@@ -95,7 +95,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
             pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
 
-        if (updateType != UpdateType.AUTOMATIC_INCREASE) increaser.restart(this);
+        if (updateType != UpdateType.AUTOMATIC_INCREASE && updateType != UpdateType.DECREASE)
+            increaser.restart(this);
     }
 
     @Override

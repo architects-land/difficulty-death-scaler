@@ -1,6 +1,5 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
 
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -130,9 +129,11 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
     };
 
-    protected int healthModifierValue = 0;
-    protected double followRangeModifierValue = 0;
+    protected int healthModifier = 0;
+    protected double followRangeModifier = 0;
     protected double stepHeightModifier = 0;
+    protected double spawnReinforcementModifier = 0;
+    protected double fallDamageMultiplierModifier = 0;
 
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -153,12 +154,17 @@ public class GlobalDifficultyManager extends DifficultyManager {
         pm.getPlayerList().forEach(p -> {
             updater.getModifiers().forEach(m -> {
                 if (m instanceof final HealthModifier mod) {
-                    healthModifierValue = (int) mod.getValue();
+                    healthModifier = (int) mod.getValue();
                     mod.apply(p);
                 } else if (m instanceof final FollowRangeModifier mod) {
-                    followRangeModifierValue = mod.getValue();
+                    followRangeModifier = mod.getValue();
                 } else if (m instanceof final StepHeightModifier mod) {
                     stepHeightModifier = mod.getValue();
+                } else if (m instanceof final SpawnReinforcementsModifier mod) {
+                    spawnReinforcementModifier = mod.getValue();
+                } else if (m instanceof final FallDamageMultiplierModifier mod) {
+                    fallDamageMultiplierModifier = mod.getValue();
+                    mod.apply(p);
                 }
             });
             playSoundUpdate(updateType, p);
@@ -175,7 +181,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     @Override
     protected void updateModifiersValue(List<Modifier<?>> modifiers) {
         modifiers.forEach(m -> {
-            if (m instanceof final HealthModifier hm) healthModifierValue = (int) hm.getValue();
+            if (m instanceof final HealthModifier hm) healthModifier = (int) hm.getValue();
         });
     }
 
@@ -214,12 +220,14 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     @Override
     public void applyModifiers(ServerPlayerEntity player) {
-        HealthModifier.apply(player, healthModifierValue);
+        HealthModifier.apply(player, healthModifier);
+        FallDamageMultiplierModifier.apply(player, fallDamageMultiplierModifier);
     }
 
     public void onEntitySpawn(HostileEntity hostile) {
-        FollowRangeModifier.apply(hostile, followRangeModifierValue);
-        FollowRangeModifier.apply(hostile, stepHeightModifier);
+        FollowRangeModifier.apply(hostile, followRangeModifier);
+        StepHeightModifier.apply(hostile, stepHeightModifier);
+        SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
     }
 
     @Override

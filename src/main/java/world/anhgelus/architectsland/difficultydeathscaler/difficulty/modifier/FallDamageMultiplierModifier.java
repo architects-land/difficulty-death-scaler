@@ -23,7 +23,7 @@ public class FallDamageMultiplierModifier extends DifficultyManager.Modifier<Ser
         if (newValue > value) value = newValue;
     }
 
-    public static void apply(HostileEntity player, double value) {
+    public static void apply(ServerPlayerEntity player, double value) {
         apply(ID, ATTRIBUTE, OPERATION, player, value);
     }
 }

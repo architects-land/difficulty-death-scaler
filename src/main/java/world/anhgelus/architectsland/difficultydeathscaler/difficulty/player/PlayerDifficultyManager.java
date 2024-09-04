@@ -71,7 +71,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
             }),
     };
 
-    protected int healthModifierValue = 0;
+    protected int healthModifier = 0;
+    protected double luckModifier = 0;
+    protected double blockBreakSpeedModifier = 0;
 
     public PlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -97,16 +99,22 @@ public class PlayerDifficultyManager extends DifficultyManager {
     @Override
     protected void updateModifiersValue(List<Modifier<?>> modifiers) {
         modifiers.forEach(m -> {
-            if (m instanceof final HealthModifier hm) {
-                healthModifierValue = (int) hm.getValue();
-                hm.apply(player);
+            if (m instanceof final HealthModifier mod) {
+                healthModifier = (int) mod.getValue();
+                mod.apply(player);
+            } else if (m instanceof final LuckModifier mod) {
+                luckModifier = mod.getValue();
+                mod.apply(player);
+            } else if (m instanceof final BlockBreakSpeedModifier mod) {
+                blockBreakSpeedModifier = mod.getValue();
+                mod.apply(player);
             }
         });
     }
 
     @Override
     protected @NotNull String generateDifficultyUpdate(UpdateType updateType, @Nullable Difficulty difficulty) {
-        final var heartAmount = (20 + healthModifierValue) / 2;
+        final var heartAmount = (20 + healthModifier) / 2;
 
         final var sb = new StringBuilder();
         sb.append(generateHeaderUpdate(updateType));
@@ -140,6 +148,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     public void applyModifiers() {
-        HealthModifier.apply(player, healthModifierValue);
+        HealthModifier.apply(player, healthModifier);
+        LuckModifier.apply(player, luckModifier);
+        BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);
     }
 }

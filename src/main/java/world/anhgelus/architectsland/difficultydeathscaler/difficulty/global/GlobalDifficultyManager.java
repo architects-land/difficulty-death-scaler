@@ -126,6 +126,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         }
         sb.append("§r\n\n");
 
+        if (updateType == null && increaser.enabled()) updateType = UpdateType.AUTOMATIC_INCREASE;
         sb.append(generateFooterUpdate(STEPS, updateType));
 
         return sb.toString();

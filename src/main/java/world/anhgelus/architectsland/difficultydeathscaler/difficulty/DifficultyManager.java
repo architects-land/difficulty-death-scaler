@@ -271,6 +271,15 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     public abstract void save();
 
+    protected List<Modifier> modifiers(int level) {
+        final var updater = new Updater();
+        for (final StepPair step : steps) {
+            if (step.level() <= level) step.reached(server, server.getGameRules(), updater);
+            else break;
+        }
+        return updater.getModifiers();
+    }
+
     protected String generateHeaderUpdate(@Nullable UpdateType updateType) {
         final var sb = new StringBuilder();
         if (updateType == null) sb.append( "§8============== §rCurrent difficulty: §8==============§r");

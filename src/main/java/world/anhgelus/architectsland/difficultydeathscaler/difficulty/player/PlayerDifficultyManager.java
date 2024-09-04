@@ -10,6 +10,8 @@ import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 
+import java.util.List;
+
 public class PlayerDifficultyManager extends DifficultyManager {
     public ServerPlayerEntity player;
 
@@ -46,18 +48,28 @@ public class PlayerDifficultyManager extends DifficultyManager {
         final var state = StateSaver.getPlayerState(player);
         numberOfDeath = state.deaths;
         delayFirstTask(state.timeBeforeReduce);
+
+        updateModifiersValue(modifiers(numberOfDeath));
     }
 
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
-        updater.getModifiers().forEach(m -> {
-            if (m instanceof final PlayerHealthModifier phm) playerHealthModifierValue = (int) phm.getValue();
-            m.apply(player);
-        });
+        updateModifiersValue(updater);
 
         player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
         playSoundUpdate(updateType, player);
+    }
+
+    private void updateModifiersValue(Updater updater) {
+        updateModifiersValue(updater.getModifiers());
+    }
+
+    private void updateModifiersValue(List<Modifier> modifiers) {
+        modifiers.forEach(m -> {
+            if (m instanceof final PlayerHealthModifier phm) playerHealthModifierValue = (int) phm.getValue();
+            m.apply(player);
+        });
     }
 
     @Override

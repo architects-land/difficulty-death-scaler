@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.BlockBreakSpeedModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.LuckModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
 
@@ -36,12 +37,16 @@ public class PlayerDifficultyManager extends DifficultyManager {
             new StepPair(0, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(0);
                 updater.getModifier(LuckModifier.class).update(0.1);
+                updater.getModifier(BlockBreakSpeedModifier.class).update(0.1);
             }),
             new StepPair(2, (server, gamerules, updater) -> {
                 updater.getModifier(LuckModifier.class).update(0);
             }),
             new StepPair(3, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-2);
+            }),
+            new StepPair(4, (server, gamerules, updater) -> {
+                updater.getModifier(BlockBreakSpeedModifier.class).update(0);
             }),
             new StepPair(5, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-4);
@@ -54,6 +59,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
             }),
             new StepPair(10, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-8);
+            }),
+            new StepPair(12, (server, gamerules, updater) -> {
+                updater.getModifier(BlockBreakSpeedModifier.class).update(-0.1);
             }),
             new StepPair(13, (server, gamerules, updater) -> {
                 updater.getModifier(LuckModifier.class).update(-0.2);

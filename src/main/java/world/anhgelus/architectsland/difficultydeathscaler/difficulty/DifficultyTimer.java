@@ -26,7 +26,8 @@ public class DifficultyTimer {
                 timer.schedule(task, (delay - initialDelay) * 1000L, repeatEach * 1000L);
                 timerStart -= initialDelay;
             } catch (IllegalArgumentException e) {
-                DifficultyDeathScaler.LOGGER.error("An exception occurred while launching first task", e);
+                DifficultyDeathScaler.LOGGER.error("An exception occurred while launching the first task", e);
+//                DifficultyDeathScaler.LOGGER.info("Delay: {}; initialDelay: {}", delay, initialDelay);
                 DifficultyDeathScaler.LOGGER.warn("Resetting delay to 0");
                 initialDelay = 0;
                 timer.schedule(task, delay * 1000L, repeatEach * 1000L);

@@ -17,7 +17,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public abstract class DifficultyManager extends DifficultyTimer {
-    protected final Timer timer = new Timer();
     private TimerTask reducerTask;
 
     protected final long secondsBeforeDecreased;
@@ -28,6 +27,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     protected int numberOfDeath;
 
     protected DifficultyManager(MinecraftServer server, StepPair[] steps, long secondsBeforeDecreased) {
+        timer = new Timer();
         this.server = server;
         this.steps = steps;
         numberOfDeath = 0;

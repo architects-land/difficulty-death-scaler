@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -38,23 +39,58 @@ public class DifficultyDeathScaler implements ModInitializer {
         LOGGER.info("Difficulty Death Scaler started");
 
         final LiteralArgumentBuilder<ServerCommandSource> command = literal("difficultydeathscaler");
-        command.then(literal("get").executes(context -> {
+
+        final LiteralArgumentBuilder<ServerCommandSource> globalCommand = literal("global");
+        globalCommand.then(literal("get").executes(context -> {
             final var source = context.getSource();
             final var server = source.getServer();
-            source.sendFeedback(() -> Text.literal(difficultyManager.getDifficultyUpdate(server.getOverworld().getDifficulty())), false);
+            source.sendFeedback(() -> {
+                return Text.literal(difficultyManager.getDifficultyUpdate(server.getOverworld().getDifficulty()));
+            }, false);
             return Command.SINGLE_SUCCESS;
         }));
-        command.then(literal("set")
-                .requires(source -> source.hasPermissionLevel(1))
-                .then(argument("number of death", IntegerArgumentType.integer())
+        globalCommand.then(literal("set")
+            .requires(source -> source.hasPermissionLevel(1))
+            .then(argument("number of death", IntegerArgumentType.integer())
                 .executes(context -> {
                     final var source = context.getSource();
                     difficultyManager.setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
-                )
+            )
         );
+
+        final LiteralArgumentBuilder<ServerCommandSource> playerCommand = literal("player").then(argument("player", EntityArgumentType.player()));
+        playerCommand.then(argument("player", EntityArgumentType.player()).then(literal("get").executes(context -> {
+            final var source = context.getSource();
+            final var server = source.getServer();
+            final var target = EntityArgumentType.getPlayer(context, "player");
+            source.sendFeedback(() -> {
+                return Text.literal(
+                        getPlayerDifficultyManager(server, target).getDifficultyUpdate(server.getOverworld().getDifficulty())
+                );
+            }, false);
+            return Command.SINGLE_SUCCESS;
+        })));
+        playerCommand.then(argument("player", EntityArgumentType.player()).then(literal("set")
+            .requires(source -> source.hasPermissionLevel(1))
+            .then(argument("number of death", IntegerArgumentType.integer())
+                .executes(context -> {
+                    final var source = context.getSource();
+                    final var server = source.getServer();
+                    final var target = EntityArgumentType.getPlayer(context, "player");
+                    getPlayerDifficultyManager(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
+                    source.sendFeedback(() -> {
+                        return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
+                    }, true);
+                    return Command.SINGLE_SUCCESS;
+                })
+            )
+        ));
+
+        command.then(globalCommand);
+        command.then(playerCommand);
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(command));
 

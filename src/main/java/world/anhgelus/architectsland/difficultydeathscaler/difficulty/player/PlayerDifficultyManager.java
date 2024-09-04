@@ -19,6 +19,18 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60;
 
+    public static class HealthModifier extends PlayerHealthModifier {
+        public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
+
+        static {
+            IDENTIFIER = ID;
+        }
+
+        public HealthModifier() {
+            super(ID);
+        }
+    }
+
     public static final StepPair[] STEPS = new StepPair[]{
             new StepPair(0, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(0);
@@ -54,18 +66,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
         updateModifiersValue(modifiers(numberOfDeath));
     }
 
-    public static class HealthModifier extends PlayerHealthModifier {
-        public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
-
-        static {
-            IDENTIFIER = ID;
-        }
-
-        public HealthModifier() {
-            super(ID);
-        }
-    }
-
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
         updateModifiersValue(updater);
@@ -75,13 +75,10 @@ public class PlayerDifficultyManager extends DifficultyManager {
         playSoundUpdate(updateType, player);
     }
 
-    private void updateModifiersValue(Updater updater) {
-        updateModifiersValue(updater.getModifiers());
-    }
-
-    private void updateModifiersValue(List<Modifier> modifiers) {
+    @Override
+    protected void updateModifiersValue(List<Modifier> modifiers) {
         modifiers.forEach(m -> {
-            if (m instanceof final HealthModifier phm) healthModifierValue = (int) phm.getValue();
+            if (m instanceof final HealthModifier hm) healthModifierValue = (int) hm.getValue();
             m.apply(player);
         });
     }

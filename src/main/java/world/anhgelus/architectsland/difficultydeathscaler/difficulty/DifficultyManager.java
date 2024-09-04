@@ -282,6 +282,12 @@ public abstract class DifficultyManager extends DifficultyTimer {
         return updater.getModifiers();
     }
 
+    protected void updateModifiersValue(Updater updater) {
+        updateModifiersValue(updater.getModifiers());
+    }
+
+    protected abstract void updateModifiersValue(List<Modifier> modifiers);
+
     protected String generateHeaderUpdate(@Nullable UpdateType updateType) {
         final var sb = new StringBuilder();
         if (updateType == null) sb.append( "§8============== §rCurrent difficulty: §8==============§r");

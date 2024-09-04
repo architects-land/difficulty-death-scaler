@@ -1,6 +1,5 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty;
 
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
@@ -47,15 +46,13 @@ public class StateSaver extends PersistentState {
 
         final var playersNbt = tag.getCompound("players");
         playersNbt.getKeys().forEach(key -> {
-            PlayerData playerData = new PlayerData();
+            final var playerData = new PlayerData();
 
             playerData.deaths = playersNbt.getCompound(key).getInt("deaths");
             playerData.timeBeforeReduce = playersNbt.getCompound(key).getLong("timeBeforeReduce");
 
-            UUID uuid = UUID.fromString(key);
-            state.players.put(uuid, playerData);
+            state.players.put(UUID.fromString(key), playerData);
         });
-
         state.deaths = tag.getInt("deaths");
         state.timeBeforeReduce = tag.getLong("timeBeforeReduce");
         state.timeBeforeIncrease = tag.getLong("timeBeforeIncrease");

@@ -1,5 +1,6 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty;
 
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -123,7 +124,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
         void reached(MinecraftServer server, GameRules gamerules, Updater updater);
     }
 
-    public static abstract class Modifier {
+    public static abstract class Modifier<T extends LivingEntity> {
         public static final String PREFIX = "dds_";
 
         protected double value = 0;
@@ -145,20 +146,20 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
         /**
          * Apply modifier to player
-         * @param player Player to apply the modifier
+         * @param entity Entity to apply the modifier
          */
-        public void apply(ServerPlayerEntity player) {
-            apply(id, attribute, operation, player, value);
+        public void apply(T entity) {
+            apply(id, attribute, operation, entity, value);
         }
 
         protected static void apply(
                 Identifier id,
                 RegistryEntry<EntityAttribute> attribute,
                 EntityAttributeModifier.Operation operation,
-                ServerPlayerEntity player,
+                LivingEntity entity,
                 double value
         ) {
-            final var attr = player.getAttributeInstance(attribute);
+            final var attr = entity.getAttributeInstance(attribute);
             if (attr == null) return;
 
             attr.removeModifier(id);

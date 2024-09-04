@@ -10,8 +10,8 @@ import net.minecraft.util.Identifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 
 public class FollowRangeModifier extends DifficultyManager.Modifier<HostileEntity> {
-    public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.GENERIC_MAX_HEALTH;
-    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
+    public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.GENERIC_FOLLOW_RANGE;
+    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
     protected static Identifier ID = Identifier.of(PREFIX + "follow_range_modifier");
 
     public FollowRangeModifier() {
@@ -23,7 +23,7 @@ public class FollowRangeModifier extends DifficultyManager.Modifier<HostileEntit
         if (newValue > value) value = newValue;
     }
 
-    public static void apply(HostileEntity player, double value) {
-        apply(ID, ATTRIBUTE, OPERATION, player, value);
+    public static void apply(HostileEntity entity, double value) {
+        apply(ID, ATTRIBUTE, OPERATION, entity, value);
     }
 }

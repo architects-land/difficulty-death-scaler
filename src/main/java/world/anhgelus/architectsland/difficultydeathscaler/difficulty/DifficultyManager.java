@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 public abstract class DifficultyManager extends DifficultyTimer {
@@ -78,7 +80,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     public static final class Updater {
         private int difficultyLevel = 1;
 
-        private final Map<Class<? extends Modifier>, Modifier> map = new HashMap<>();
+        private final Map<Class<? extends Modifier<?>>, Modifier<?>> map = new HashMap<>();
 
         public static final Map<net.minecraft.world.Difficulty, Integer> DIFFICULTY_LEVEL = Map.of(
                 net.minecraft.world.Difficulty.PEACEFUL, 0,
@@ -91,8 +93,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
             if (level > difficultyLevel) difficultyLevel = level;
         }
 
-        public Modifier getModifier(Class<? extends Modifier> clazz) {
-            Modifier val = map.get(clazz);
+        public Modifier<?> getModifier(Class<? extends Modifier<?>> clazz) {
+            var val = map.get(clazz);
             if (val != null) return val;
             try {
                 val = clazz.getConstructor().newInstance();
@@ -104,7 +106,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
             return val;
         }
 
-        public List<Modifier> getModifiers() {
+        public List<Modifier<?>> getModifiers() {
             return new ArrayList<>(map.values());
         }
 
@@ -274,7 +276,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     public abstract void save();
 
-    protected List<Modifier> modifiers(int level) {
+    protected List<Modifier<?>> modifiers(int level) {
         final var updater = new Updater();
         for (final StepPair step : steps) {
             if (step.level() <= level) step.reached(server, server.getGameRules(), updater);
@@ -287,7 +289,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
         updateModifiersValue(updater.getModifiers());
     }
 
-    protected abstract void updateModifiersValue(List<Modifier> modifiers);
+    protected abstract void updateModifiersValue(List<Modifier<?>> modifiers);
 
     protected String generateHeaderUpdate(@Nullable UpdateType updateType) {
         final var sb = new StringBuilder();

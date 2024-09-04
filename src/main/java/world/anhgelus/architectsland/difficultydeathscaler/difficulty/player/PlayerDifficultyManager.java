@@ -76,10 +76,12 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     @Override
-    protected void updateModifiersValue(List<Modifier> modifiers) {
+    protected void updateModifiersValue(List<Modifier<?>> modifiers) {
         modifiers.forEach(m -> {
-            if (m instanceof final HealthModifier hm) healthModifierValue = (int) hm.getValue();
-            m.apply(player);
+            if (m instanceof final HealthModifier hm) {
+                healthModifierValue = (int) hm.getValue();
+                hm.apply(player);
+            }
         });
     }
 

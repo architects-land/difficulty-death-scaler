@@ -20,6 +20,7 @@ public class StateSaver extends PersistentState {
     public int deaths = 0;
     public long timeBeforeReduce = 0;
     public long timeBeforeIncrease = 0;
+    public boolean increaseEnabled = false;
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
@@ -36,6 +37,7 @@ public class StateSaver extends PersistentState {
         nbt.putInt("deaths", deaths);
         nbt.putLong("timeBeforeReduce", timeBeforeReduce);
         nbt.putLong("timeBeforeIncrease", timeBeforeReduce);
+        nbt.putBoolean("increaseEnabled", increaseEnabled);
 
         return nbt;
     }
@@ -56,6 +58,8 @@ public class StateSaver extends PersistentState {
 
         state.deaths = tag.getInt("deaths");
         state.timeBeforeReduce = tag.getLong("timeBeforeReduce");
+        state.timeBeforeIncrease = tag.getLong("timeBeforeIncrease");
+        state.increaseEnabled = tag.getBoolean("increaseEnabled");
 
         return state;
     }

@@ -82,7 +82,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         final var state = StateSaver.getServerState(server);
         numberOfDeath = state.deaths;
         delayFirstTask(state.timeBeforeReduce);
-        increaser = new DifficultyIncrease(timer, state.timeBeforeIncrease);
+        increaser = new DifficultyIncrease(this, timer, state.timeBeforeIncrease, state.increaseEnabled);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
 
         if (updateType != UpdateType.AUTOMATIC_INCREASE && updateType != UpdateType.DECREASE)
-            increaser.restart(this);
+            increaser.restart();
     }
 
     @Override
@@ -143,5 +143,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
         state.deaths = numberOfDeath;
         state.timeBeforeReduce = delay();
         state.timeBeforeIncrease = increaser.delay();
+        state.increaseEnabled = increaser.enabled();
     }
 }

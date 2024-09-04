@@ -1,5 +1,6 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty;
 
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -14,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 public abstract class DifficultyManager extends DifficultyTimer {
@@ -77,7 +80,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     public static final class Updater {
         private int difficultyLevel = 1;
 
-        private final Map<Class<? extends Modifier>, Modifier> map = new HashMap<>();
+        private final Map<Class<? extends Modifier<?>>, Modifier<?>> map = new HashMap<>();
 
         public static final Map<net.minecraft.world.Difficulty, Integer> DIFFICULTY_LEVEL = Map.of(
                 net.minecraft.world.Difficulty.PEACEFUL, 0,
@@ -90,8 +93,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
             if (level > difficultyLevel) difficultyLevel = level;
         }
 
-        public Modifier getModifier(Class<? extends Modifier> clazz) {
-            Modifier val = map.get(clazz);
+        public Modifier<?> getModifier(Class<? extends Modifier<?>> clazz) {
+            var val = map.get(clazz);
             if (val != null) return val;
             try {
                 val = clazz.getConstructor().newInstance();
@@ -103,7 +106,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
             return val;
         }
 
-        public List<Modifier> getModifiers() {
+        public List<Modifier<?>> getModifiers() {
             return new ArrayList<>(map.values());
         }
 
@@ -123,7 +126,9 @@ public abstract class DifficultyManager extends DifficultyTimer {
         void reached(MinecraftServer server, GameRules gamerules, Updater updater);
     }
 
-    public static abstract class Modifier {
+    public static abstract class Modifier<T extends LivingEntity> {
+        public static final String PREFIX = "dds_";
+
         protected double value = 0;
         protected final Identifier id;
         protected final RegistryEntry<EntityAttribute> attribute;
@@ -143,20 +148,20 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
         /**
          * Apply modifier to player
-         * @param player Player to apply the modifier
+         * @param entity Entity to apply the modifier
          */
-        public void apply(ServerPlayerEntity player) {
-            apply(id, attribute, operation, player, value);
+        public void apply(T entity) {
+            apply(id, attribute, operation, entity, value);
         }
 
         protected static void apply(
                 Identifier id,
                 RegistryEntry<EntityAttribute> attribute,
                 EntityAttributeModifier.Operation operation,
-                ServerPlayerEntity player,
+                LivingEntity entity,
                 double value
         ) {
-            final var attr = player.getAttributeInstance(attribute);
+            final var attr = entity.getAttributeInstance(attribute);
             if (attr == null) return;
 
             attr.removeModifier(id);
@@ -271,7 +276,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     public abstract void save();
 
-    protected List<Modifier> modifiers(int level) {
+    protected List<Modifier<?>> modifiers(int level) {
         final var updater = new Updater();
         for (final StepPair step : steps) {
             if (step.level() <= level) step.reached(server, server.getGameRules(), updater);
@@ -279,6 +284,12 @@ public abstract class DifficultyManager extends DifficultyTimer {
         }
         return updater.getModifiers();
     }
+
+    protected void updateModifiersValue(Updater updater) {
+        updateModifiersValue(updater.getModifiers());
+    }
+
+    protected abstract void updateModifiersValue(List<Modifier<?>> modifiers);
 
     protected String generateHeaderUpdate(@Nullable UpdateType updateType) {
         final var sb = new StringBuilder();

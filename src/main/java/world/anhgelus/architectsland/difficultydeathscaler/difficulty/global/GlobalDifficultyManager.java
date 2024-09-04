@@ -1,8 +1,10 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
 
+import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
@@ -10,11 +12,26 @@ import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
+
+import java.util.List;
 
 public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60; // 12 hours
 
     private final DifficultyIncrease increaser; // 12 hours
+
+    public static class HealthModifier extends PlayerHealthModifier {
+        public static final Identifier ID = Identifier.of(PREFIX + "global_health_modifier");
+
+        static {
+            IDENTIFIER = ID;
+        }
+
+        public HealthModifier() {
+            super(ID);
+        }
+    }
 
     public static final StepPair[] STEPS = new StepPair[]{
             new StepPair(0, (server, gamerules, updater) -> {
@@ -33,6 +50,10 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(true, server);
                 // hardcore
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
+                updater.getModifier(HealthModifier.class).update(0);
+                updater.getModifier(StepHeightModifier.class).update(0);
+                updater.getModifier(SpawnReinforcementsModifier.class).update(0);
+                updater.getModifier(FallDamageMultiplierModifier.class).update(0);
                 updater.updateDifficulty(1);
             }),
             new StepPair(3, (server, gamerules, updater) -> {
@@ -45,35 +66,74 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(true, server);
             }),
             new StepPair(10, (server, gamerules, updater) -> updater.updateDifficulty(2)),
+            new StepPair(12, (server, gamerules, updater) -> {
+                updater.getModifier(FollowRangeModifier.class).update(0.25);
+            }),
             new StepPair(13, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.DO_INSOMNIA).set(true, server);
             }),
             new StepPair(15, (server, gamerules, updater) -> {
+                updater.getModifier(HealthModifier.class).update(-2);
+            }),
+            new StepPair(16, (server, gamerules, updater) -> {
+                updater.getModifier(StepHeightModifier.class).update(0.5);
+            }),
+            new StepPair(18, (server, gamerules, updater) -> {
+                updater.getModifier(FallDamageMultiplierModifier.class).update(0.25);
+            }),
+            new StepPair(20, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(true, server);
             }),
-            new StepPair(17, (server, gamerules, updater) -> {
+            new StepPair(21, (server, gamerules, updater) -> {
+                updater.getModifier(SpawnReinforcementsModifier.class).update(0.25);
+            }),
+            new StepPair(22, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(true, server);
             }),
-            new StepPair(19, (server, gamerules, updater) -> {
+            new StepPair(23, (server, gamerules, updater) -> {
+                updater.getModifier(FallDamageMultiplierModifier.class).update(0.5);
+            }),
+            new StepPair(24, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(false, server);
             }),
-            new StepPair(20, (server, gamerules, updater) -> updater.updateDifficulty(3)),
-            new StepPair(22, (server, gamerules, updater) -> {
-                gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(true, server);
-            }),
-            new StepPair(25, (server, gamerules, updater) -> {
-                gamerules.get(GameRules.UNIVERSAL_ANGER).set(true, server);
-            }),
+            new StepPair(25, (server, gamerules, updater) -> updater.updateDifficulty(3)),
             new StepPair(26, (server, gamerules, updater) -> {
-                gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
+                updater.getModifier(StepHeightModifier.class).update(1);
+            }),
+            new StepPair(27, (server, gamerules, updater) -> {
+                updater.getModifier(FollowRangeModifier.class).update(0.35);
             }),
             new StepPair(28, (server, gamerules, updater) -> {
-                gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(false, server);
+                gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(true, server);
             }),
             new StepPair(30, (server, gamerules, updater) -> {
+                updater.getModifier(HealthModifier.class).update(-4);
+            }),
+            new StepPair(32, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.UNIVERSAL_ANGER).set(true, server);
+            }),
+            new StepPair(33, (server, gamerules, updater) -> {
+                updater.getModifier(SpawnReinforcementsModifier.class).update(0.5);
+            }),
+            new StepPair(35, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
+            }),
+            new StepPair(37, (server, gamerules, updater) -> {
+                updater.getModifier(FallDamageMultiplierModifier.class).update(1);
+            }),
+            new StepPair(38, (server, gamerules, updater) -> {
+                gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(false, server);
+            }),
+            new StepPair(40, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(false, server);
             }),
     };
+
+    protected int healthModifier = 0;
+    protected double followRangeModifier = 0;
+    protected double stepHeightModifier = 0;
+    protected double spawnReinforcementModifier = 0;
+    protected double fallDamageMultiplierModifier = 0;
 
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -83,13 +143,32 @@ public class GlobalDifficultyManager extends DifficultyManager {
         numberOfDeath = state.deaths;
         delayFirstTask(state.timeBeforeReduce);
         increaser = new DifficultyIncrease(this, timer, state.timeBeforeIncrease, state.increaseEnabled);
+
+        updateModifiersValue(modifiers(numberOfDeath));
     }
 
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
         final var pm = server.getPlayerManager();
 
-        pm.getPlayerList().forEach(p -> playSoundUpdate(updateType, p));
+        pm.getPlayerList().forEach(p -> {
+            updater.getModifiers().forEach(m -> {
+                if (m instanceof final HealthModifier mod) {
+                    healthModifier = (int) mod.getValue();
+                    mod.apply(p);
+                } else if (m instanceof final FollowRangeModifier mod) {
+                    followRangeModifier = mod.getValue();
+                } else if (m instanceof final StepHeightModifier mod) {
+                    stepHeightModifier = mod.getValue();
+                } else if (m instanceof final SpawnReinforcementsModifier mod) {
+                    spawnReinforcementModifier = mod.getValue();
+                } else if (m instanceof final FallDamageMultiplierModifier mod) {
+                    fallDamageMultiplierModifier = mod.getValue();
+                    mod.apply(p);
+                }
+            });
+            playSoundUpdate(updateType, p);
+        });
 
         if (updateType != UpdateType.SILENT)
             pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
@@ -97,6 +176,13 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
         if (updateType != UpdateType.AUTOMATIC_INCREASE && updateType != UpdateType.DECREASE)
             increaser.restart();
+    }
+
+    @Override
+    protected void updateModifiersValue(List<Modifier<?>> modifiers) {
+        modifiers.forEach(m -> {
+            if (m instanceof final HealthModifier hm) healthModifier = (int) hm.getValue();
+        });
     }
 
     @Override
@@ -134,7 +220,14 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     @Override
     public void applyModifiers(ServerPlayerEntity player) {
-        //
+        HealthModifier.apply(player, healthModifier);
+        FallDamageMultiplierModifier.apply(player, fallDamageMultiplierModifier);
+    }
+
+    public void onEntitySpawn(HostileEntity hostile) {
+        FollowRangeModifier.apply(hostile, followRangeModifier);
+        StepHeightModifier.apply(hostile, stepHeightModifier);
+        SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
     }
 
     @Override

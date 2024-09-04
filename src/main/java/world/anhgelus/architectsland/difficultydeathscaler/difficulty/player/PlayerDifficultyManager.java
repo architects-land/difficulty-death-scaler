@@ -3,12 +3,16 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.BlockBreakSpeedModifier;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.LuckModifier;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
 
 import java.util.List;
 
@@ -17,28 +21,59 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60;
 
+    public static class HealthModifier extends PlayerHealthModifier {
+        public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
+
+        static {
+            IDENTIFIER = ID;
+        }
+
+        public HealthModifier() {
+            super(ID);
+        }
+    }
+
     public static final StepPair[] STEPS = new StepPair[]{
             new StepPair(0, (server, gamerules, updater) -> {
-                updater.getModifier(PlayerHealthModifier.class).update(0);
+                updater.getModifier(HealthModifier.class).update(0);
+                updater.getModifier(LuckModifier.class).update(0.1);
+                updater.getModifier(BlockBreakSpeedModifier.class).update(0.1);
+            }),
+            new StepPair(2, (server, gamerules, updater) -> {
+                updater.getModifier(LuckModifier.class).update(0);
             }),
             new StepPair(3, (server, gamerules, updater) -> {
-                updater.getModifier(PlayerHealthModifier.class).update(-2);
+                updater.getModifier(HealthModifier.class).update(-2);
+            }),
+            new StepPair(4, (server, gamerules, updater) -> {
+                updater.getModifier(BlockBreakSpeedModifier.class).update(0);
             }),
             new StepPair(5, (server, gamerules, updater) -> {
-                updater.getModifier(PlayerHealthModifier.class).update(-4);
+                updater.getModifier(HealthModifier.class).update(-4);
             }),
             new StepPair(7, (server, gamerules, updater) -> {
-                updater.getModifier(PlayerHealthModifier.class).update(-6);
+                updater.getModifier(HealthModifier.class).update(-6);
+            }),
+            new StepPair(8, (server, gamerules, updater) -> {
+                updater.getModifier(LuckModifier.class).update(-0.1);
             }),
             new StepPair(10, (server, gamerules, updater) -> {
-                updater.getModifier(PlayerHealthModifier.class).update(-8);
+                updater.getModifier(HealthModifier.class).update(-8);
+            }),
+            new StepPair(12, (server, gamerules, updater) -> {
+                updater.getModifier(BlockBreakSpeedModifier.class).update(-0.1);
+            }),
+            new StepPair(13, (server, gamerules, updater) -> {
+                updater.getModifier(LuckModifier.class).update(-0.2);
             }),
             new StepPair(15, (server, gamerules, updater) -> {
-                updater.getModifier(PlayerHealthModifier.class).update(-10);
+                updater.getModifier(HealthModifier.class).update(-10);
             }),
     };
 
-    protected int playerHealthModifierValue = 0;
+    protected int healthModifier = 0;
+    protected double luckModifier = 0;
+    protected double blockBreakSpeedModifier = 0;
 
     public PlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -61,20 +96,25 @@ public class PlayerDifficultyManager extends DifficultyManager {
         playSoundUpdate(updateType, player);
     }
 
-    private void updateModifiersValue(Updater updater) {
-        updateModifiersValue(updater.getModifiers());
-    }
-
-    private void updateModifiersValue(List<Modifier> modifiers) {
+    @Override
+    protected void updateModifiersValue(List<Modifier<?>> modifiers) {
         modifiers.forEach(m -> {
-            if (m instanceof final PlayerHealthModifier phm) playerHealthModifierValue = (int) phm.getValue();
-            m.apply(player);
+            if (m instanceof final HealthModifier mod) {
+                healthModifier = (int) mod.getValue();
+                mod.apply(player);
+            } else if (m instanceof final LuckModifier mod) {
+                luckModifier = mod.getValue();
+                mod.apply(player);
+            } else if (m instanceof final BlockBreakSpeedModifier mod) {
+                blockBreakSpeedModifier = mod.getValue();
+                mod.apply(player);
+            }
         });
     }
 
     @Override
     protected @NotNull String generateDifficultyUpdate(UpdateType updateType, @Nullable Difficulty difficulty) {
-        final var heartAmount = (20 + playerHealthModifierValue) / 2;
+        final var heartAmount = (20 + healthModifier) / 2;
 
         final var sb = new StringBuilder();
         sb.append(generateHeaderUpdate(updateType));
@@ -108,6 +148,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     public void applyModifiers() {
-        PlayerHealthModifier.apply(player, playerHealthModifierValue);
+        HealthModifier.apply(player, healthModifier);
+        LuckModifier.apply(player, luckModifier);
+        BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);
     }
 }

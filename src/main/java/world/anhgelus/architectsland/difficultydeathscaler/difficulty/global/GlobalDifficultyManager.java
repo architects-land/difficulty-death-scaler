@@ -15,6 +15,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.FollowRangeModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.SpawnReinforcementsModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.StepHeightModifier;
 
 import java.util.List;
@@ -55,6 +56,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
                 updater.getModifier(HealthModifier.class).update(0);
                 updater.getModifier(StepHeightModifier.class).update(0);
+                updater.getModifier(SpawnReinforcementsModifier.class).update(0);
                 updater.updateDifficulty(1);
             }),
             new StepPair(3, (server, gamerules, updater) -> {
@@ -77,10 +79,13 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(HealthModifier.class).update(-2);
             }),
             new StepPair(16, (server, gamerules, updater) -> {
-                updater.getModifier(FollowRangeModifier.class).update(0.5);
+                updater.getModifier(StepHeightModifier.class).update(0.5);
             }),
             new StepPair(20, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(true, server);
+            }),
+            new StepPair(21, (server, gamerules, updater) -> {
+                updater.getModifier(SpawnReinforcementsModifier.class).update(0.25);
             }),
             new StepPair(22, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(true, server);
@@ -90,7 +95,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
             new StepPair(25, (server, gamerules, updater) -> updater.updateDifficulty(3)),
             new StepPair(26, (server, gamerules, updater) -> {
-                updater.getModifier(FollowRangeModifier.class).update(1);
+                updater.getModifier(StepHeightModifier.class).update(1);
             }),
             new StepPair(27, (server, gamerules, updater) -> {
                 updater.getModifier(FollowRangeModifier.class).update(0.35);
@@ -103,6 +108,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
             new StepPair(32, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.UNIVERSAL_ANGER).set(true, server);
+            }),
+            new StepPair(33, (server, gamerules, updater) -> {
+                updater.getModifier(SpawnReinforcementsModifier.class).update(0.5);
             }),
             new StepPair(35, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);

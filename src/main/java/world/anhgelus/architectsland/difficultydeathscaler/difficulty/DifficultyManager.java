@@ -297,6 +297,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
             sb.append("You only need to survive for §6")
                 .append(printTime(secondsBeforeDecreased))
                 .append("§r to make the difficulty decrease again.");
+        } else if (updateType == UpdateType.AUTOMATIC_INCREASE) {
+            sb.append("The difficulty is increasing automatically!");
         } else if (updateType != UpdateType.INCREASE) {
             sb.append("You only need to survive for §6")
                 .append(printTime(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))

@@ -110,7 +110,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         } else {
             sb.append("Difficulty: §cHard§r");
         }
-        if (numberOfDeath >= 1) {
+        if (numberOfDeath >= STEPS[1].level()) {
             sb.append("\n\n");
         }
         if (numberOfDeath >= STEPS[14].level()) {

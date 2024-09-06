@@ -140,15 +140,22 @@ public class PlayerDifficultyManager extends DifficultyManager {
         final var sb = new StringBuilder();
         sb.append(generateHeaderUpdate(updateType));
 
-        sb.append("You died ");
-        if (deathDay >= 4) {
-            sb.append("§c");
-        } else if (deathDay >= 2) {
-            sb.append("§e");
-        } else {
-            sb.append("§2");
+        if (deathDay != 0) {
+            sb.append("You died ");
+            if (deathDay >= 4) {
+                sb.append("§c");
+            } else if (deathDay >= 2) {
+                sb.append("§e");
+            } else {
+                sb.append("§2");
+            }
+            sb.append(deathDay).append("§r time");
+            if (deathDay > 0) {
+                sb.append("s");
+            }
+            sb.append(" in less than 24 hours.");
         }
-        sb.append(deathDay).append("§r times in less than 24 hours.\n\n");
+        sb.append("\n");
 
         sb.append("Max hearts: ");
         if (heartAmount == 10) {

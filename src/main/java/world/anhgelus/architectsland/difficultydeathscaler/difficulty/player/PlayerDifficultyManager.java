@@ -133,7 +133,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     protected void onDeath(UpdateType updateType, Updater updater) {
         if (updateType == UpdateType.SET) return;
         deathDay++;
-        deathDayStart.add(System.currentTimeMillis() / 1000);
+        deathDayStart.add(delay(System.currentTimeMillis() / 1000));
 
         if (player == null) throw new IllegalStateException("Player is null");
         if (player.getWorld().isClient()) return;
@@ -177,7 +177,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
             if (deathDay > 0) {
                 sb.append("s");
             }
-            sb.append(" in less than 24 hours.");
+            sb.append(" in less than 24 hours.\n");
         }
         sb.append("\n");
 
@@ -217,7 +217,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         state.deathDay = deathDay;
         var starts = new long[deathDayStart.size()];
         for (int i = 0; i < deathDayStart.size(); i++) {
-            starts[i] = delay(deathDayStart.get(i));
+            starts[i] = deathDayStart.get(i);
         }
         state.deathDayDelay = starts;
     }

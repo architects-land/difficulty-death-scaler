@@ -3,12 +3,10 @@
 The global difficulty affects all players.
 It mainly modifies vanilla gamerules.
 
-Currently, there are 15 steps.
-
 <deflist collapsible="true">
     <def title="0 to 2 deaths" default-state="expanded">
         <p>This step is the default one, and it is easier than most vanilla survival.</p>
-        <p>The phantoms are disabled, all blocks drop after a block explosion or a mob explosion and the difficulty is set to easy.
+        <p>Phantoms are disabled, all blocks drop after a block explosion or a mob explosion and the difficulty is set to easy.
         At least 30% of connected players must sleep to skip the night.</p>
     </def>
     <def title="3 and 4 deaths" default-state="collapsed">

@@ -131,6 +131,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     @Override
     protected void onDeath(UpdateType updateType, Updater updater) {
+        if (updateType == UpdateType.SET) return;
         deathDay++;
         deathDayStart.add(System.currentTimeMillis() / 1000);
 

@@ -20,6 +20,7 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 
@@ -101,6 +102,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             difficultyManager = new GlobalDifficultyManager(server);
             difficultyManager.setNumberOfDeath(difficultyManager.getNumberOfDeath(), true);
+            loadAllPlayerManagers(server);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -150,5 +152,12 @@ public class DifficultyDeathScaler implements ModInitializer {
         final var playerDifficulty = new PlayerDifficultyManager(server, player);
         playerDifficultyManagerMap.put(player.getUuid(), playerDifficulty);
         return playerDifficulty;
+    }
+
+    private void loadAllPlayerManagers(MinecraftServer server) {
+        final var state = StateSaver.getServerState(server);
+        state.players.forEach((uuid, data) -> {
+            playerDifficultyManagerMap.computeIfAbsent(uuid, u -> new PlayerDifficultyManager(server, uuid, data));
+        });
     }
 }

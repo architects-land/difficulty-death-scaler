@@ -83,10 +83,11 @@ public class StateSaver extends PersistentState {
     }
 
     public static PlayerData getPlayerState(ServerPlayerEntity player) {
-        final var server = player.getServer();
-        assert server != null;
-        final var state = getServerState(server);
+        return getPlayerState(player.server, player.getUuid());
+    }
 
-        return state.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerData());
+    public static PlayerData getPlayerState(MinecraftServer server, UUID uuid) {
+        final var state = getServerState(server);
+        return state.players.computeIfAbsent(uuid, u -> new PlayerData());
     }
 }

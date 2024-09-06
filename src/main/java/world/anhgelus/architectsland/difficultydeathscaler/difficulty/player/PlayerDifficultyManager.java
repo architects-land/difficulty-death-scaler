@@ -15,12 +15,11 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.B
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.LuckModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimerTask;
+import java.util.*;
 
 public class PlayerDifficultyManager extends DifficultyManager {
-    public ServerPlayerEntity player;
+    public @Nullable ServerPlayerEntity player;
+    public @Nullable UUID uuid = null;
 
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60;
     public static final int MAX_DEATHS_DAY = 5;
@@ -80,28 +79,51 @@ public class PlayerDifficultyManager extends DifficultyManager {
     protected double blockBreakSpeedModifier = 0;
 
     private int deathDay;
-    private final ArrayList<Long> deathDayStart = new ArrayList<>();
+    private final List<Long> deathDayStart = new ArrayList<>();
 
     public PlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
         this.player = player;
 
         DifficultyDeathScaler.LOGGER.info("Loading player {} difficulty data", player.getUuid());
-        final var state = StateSaver.getPlayerState(player);
-        numberOfDeath = state.deaths;
-        deathDay = state.deathDay;
-        for (final var delay : state.deathDayDelay) {
-            timer.schedule(deathDayTask(), (24*60*60 - delay)*1000L);
-        }
-        delayFirstTask(state.timeBeforeReduce);
+        loadData(StateSaver.getPlayerState(player));
 
         updateModifiersValue(modifiers(numberOfDeath));
     }
+
+    public PlayerDifficultyManager(MinecraftServer server, @NotNull UUID uuid, PlayerData data) {
+        super(server, STEPS, SECONDS_BEFORE_DECREASED);
+
+        this.uuid = uuid;
+
+        DifficultyDeathScaler.LOGGER.info("Creating player difficulty manager with data");
+        loadData(data);
+    }
+
+    private void loadData(PlayerData data) {
+        numberOfDeath = data.deaths;
+        deathDay = data.deathDay;
+        for (final var delay : data.deathDayDelay) {
+            deathDayStart.add(delay);
+        }
+        for (final var delay : data.deathDayDelay) {
+            try {
+                timer.schedule(deathDayTask(), (24*60*60 - delay)*1000L);
+            } catch (IllegalArgumentException e) {
+                DifficultyDeathScaler.LOGGER.error("An error occurred while loading data", e);
+                DifficultyDeathScaler.LOGGER.warn("Removing one day death");
+                deathDay--;
+            }
+        }
+        delayFirstTask(data.timeBeforeReduce);
+    }
+
 
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
         updateModifiersValue(updater);
 
+        if (player == null) return;
         player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
         playSoundUpdate(updateType, player);
@@ -112,6 +134,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         deathDay++;
         deathDayStart.add(System.currentTimeMillis() / 1000);
 
+        if (player == null) throw new IllegalStateException("Player is null");
         if (player.getWorld().isClient()) return;
         timer.schedule(deathDayTask(), 24*60*60*1000L);
         kickIfDiedTooMuch();
@@ -179,8 +202,15 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     @Override
     public void save() {
-        DifficultyDeathScaler.LOGGER.info("Saving player {} difficulty data", player.getUuid());
-        final var state = StateSaver.getPlayerState(player);
+        assert player != null || uuid != null;
+        PlayerData state;
+        if (player == null) {
+            DifficultyDeathScaler.LOGGER.info("Saving player with uuid {} difficulty data", uuid);
+            state = StateSaver.getPlayerState(server, uuid);
+        } else {
+            DifficultyDeathScaler.LOGGER.info("Saving player ({}) difficulty data", player.getUuid());
+            state = StateSaver.getPlayerState(player);
+        }
         state.deaths = numberOfDeath;
         state.timeBeforeReduce = delay();
         state.deathDay = deathDay;
@@ -212,8 +242,10 @@ public class PlayerDifficultyManager extends DifficultyManager {
     /**
      * Kick the player if he died too much
      * @return true if the player was kicked
+     * @throws IllegalStateException if player is null
      */
     public boolean kickIfDiedTooMuch() {
+        if (player == null) throw new IllegalStateException("Player is null");
         return kickIfDiedTooMuch(player.networkHandler);
     }
 

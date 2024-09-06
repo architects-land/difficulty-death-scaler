@@ -9,9 +9,7 @@ import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerData;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class StateSaver extends PersistentState {
     public Map<UUID, PlayerData> players = new HashMap<>();
@@ -29,6 +27,8 @@ public class StateSaver extends PersistentState {
 
             playerNbt.putInt("deaths", playerData.deaths);
             playerNbt.putLong("timeBeforeReduce", playerData.timeBeforeReduce);
+            playerNbt.putInt("deathDay", playerData.deathDay);
+            playerNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
 
             playersNbt.put(uuid.toString(), playerNbt);
         });
@@ -47,9 +47,12 @@ public class StateSaver extends PersistentState {
         final var playersNbt = tag.getCompound("players");
         playersNbt.getKeys().forEach(key -> {
             final var playerData = new PlayerData();
+            final var compound = playersNbt.getCompound(key);
 
-            playerData.deaths = playersNbt.getCompound(key).getInt("deaths");
-            playerData.timeBeforeReduce = playersNbt.getCompound(key).getLong("timeBeforeReduce");
+            playerData.deaths = compound.getInt("deaths");
+            playerData.timeBeforeReduce = compound.getLong("timeBeforeReduce");
+            playerData.deathDay = compound.getInt("deathDay");
+            playerData.deathDayDelay = compound.getLongArray("deathDayDelay");
 
             state.players.put(UUID.fromString(key), playerData);
         });
@@ -80,10 +83,11 @@ public class StateSaver extends PersistentState {
     }
 
     public static PlayerData getPlayerState(ServerPlayerEntity player) {
-        final var server = player.getServer();
-        assert server != null;
-        final var state = getServerState(server);
+        return getPlayerState(player.server, player.getUuid());
+    }
 
-        return state.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerData());
+    public static PlayerData getPlayerState(MinecraftServer server, UUID uuid) {
+        final var state = getServerState(server);
+        return state.players.computeIfAbsent(uuid, u -> new PlayerData());
     }
 }

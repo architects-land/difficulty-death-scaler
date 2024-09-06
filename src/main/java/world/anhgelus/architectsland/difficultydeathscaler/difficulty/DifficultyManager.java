@@ -15,8 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
 
 public abstract class DifficultyManager extends DifficultyTimer {
@@ -150,7 +148,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
          * Apply modifier to player
          * @param entity Entity to apply the modifier
          */
-        public void apply(T entity) {
+        public void apply(@Nullable T entity) {
+            if (entity == null) return;
             apply(id, attribute, operation, entity, value);
         }
 
@@ -242,6 +241,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
         final var updater = new Updater();
         final var rules = server.getGameRules();
 
+        onDeath(updateType, updater);
+
         for (final StepPair step : steps) {
             if (step.level() <= numberOfDeath) step.reached(server, rules, updater);
             else break;
@@ -263,6 +264,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     protected abstract void onUpdate(UpdateType updateType, Updater updater);
+
+    protected void onDeath(UpdateType updateType, Updater updater) {}
 
     /**
      * Generate difficulty update

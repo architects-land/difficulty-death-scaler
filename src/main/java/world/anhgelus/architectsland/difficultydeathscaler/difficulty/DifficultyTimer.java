@@ -37,6 +37,10 @@ public class DifficultyTimer {
     }
 
     public long delay() {
+        return delay(timerStart);
+    }
+
+    public long delay(long timerStart) {
         return System.currentTimeMillis() / 1000 - timerStart;
     }
 }

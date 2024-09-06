@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
@@ -21,11 +20,11 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -35,7 +34,7 @@ public class DifficultyDeathScaler implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     private GlobalDifficultyManager difficultyManager = null;
 
-    private final Map<ServerPlayerEntity, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
+    private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -100,7 +99,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         // set up difficulty of deathSteps[0]
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             difficultyManager = new GlobalDifficultyManager(server);
-            difficultyManager.setNumberOfDeath(difficultyManager.getNumberOfDeath(), true);
+            loadAllPlayerManagers(server);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -120,11 +119,15 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             difficultyManager.applyModifiers(handler.player);
-            getPlayerDifficultyManager(server, handler.player).applyModifiers();
+
+            final var playerDifficulty = getPlayerDifficultyManager(server, handler.player);
+            if (playerDifficulty.kickIfDiedTooMuch()) return;
+            playerDifficulty.applyModifiers();
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             difficultyManager.applyModifiers(newPlayer);
+
             final var playerDifficulty = getPlayerDifficultyManager(newPlayer.server, newPlayer);
             playerDifficulty.player = newPlayer;
             playerDifficulty.increaseDeath();
@@ -140,6 +143,20 @@ public class DifficultyDeathScaler implements ModInitializer {
     }
 
     private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
-        return playerDifficultyManagerMap.computeIfAbsent(player, p -> new PlayerDifficultyManager(server, p));
+        if (playerDifficultyManagerMap.containsKey(player.getUuid())) {
+            final var playerDifficulty = playerDifficultyManagerMap.get(player.getUuid());
+            playerDifficulty.player = player;
+            return playerDifficulty;
+        }
+        final var playerDifficulty = new PlayerDifficultyManager(server, player);
+        playerDifficultyManagerMap.put(player.getUuid(), playerDifficulty);
+        return playerDifficulty;
+    }
+
+    private void loadAllPlayerManagers(MinecraftServer server) {
+        final var state = StateSaver.getServerState(server);
+        state.players.forEach((uuid, data) -> {
+            playerDifficultyManagerMap.computeIfAbsent(uuid, u -> new PlayerDifficultyManager(server, uuid, data));
+        });
     }
 }

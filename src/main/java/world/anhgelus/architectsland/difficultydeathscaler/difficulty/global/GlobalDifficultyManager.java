@@ -24,12 +24,12 @@ public class GlobalDifficultyManager extends DifficultyManager {
     public static class HealthModifier extends PlayerHealthModifier {
         public static final Identifier ID = Identifier.of(PREFIX + "global_health_modifier");
 
-        static {
-            IDENTIFIER = ID;
-        }
-
         public HealthModifier() {
             super(ID);
+        }
+
+        public static void apply(ServerPlayerEntity player, double value) {
+            apply(ID, ATTRIBUTE, OPERATION, player, value);
         }
     }
 
@@ -129,7 +129,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
     };
 
-    protected int healthModifier = 0;
+    protected double healthModifier = 0;
     protected double followRangeModifier = 0;
     protected double stepHeightModifier = 0;
     protected double spawnReinforcementModifier = 0;
@@ -140,32 +140,23 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
         DifficultyDeathScaler.LOGGER.info("Loading global difficulty data");
         final var state = StateSaver.getServerState(server);
-        numberOfDeath = state.deaths;
         delayFirstTask(state.timeBeforeReduce);
         increaser = new DifficultyIncrease(this, timer, state.timeBeforeIncrease, state.increaseEnabled);
+        setNumberOfDeath(state.deaths, true);
 
         updateModifiersValue(modifiers(numberOfDeath));
     }
 
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
+        updateModifiersValue(updater);
+
         final var pm = server.getPlayerManager();
 
         pm.getPlayerList().forEach(p -> {
             updater.getModifiers().forEach(m -> {
-                if (m instanceof final HealthModifier mod) {
-                    healthModifier = (int) mod.getValue();
-                    mod.apply(p);
-                } else if (m instanceof final FollowRangeModifier mod) {
-                    followRangeModifier = mod.getValue();
-                } else if (m instanceof final StepHeightModifier mod) {
-                    stepHeightModifier = mod.getValue();
-                } else if (m instanceof final SpawnReinforcementsModifier mod) {
-                    spawnReinforcementModifier = mod.getValue();
-                } else if (m instanceof final FallDamageMultiplierModifier mod) {
-                    fallDamageMultiplierModifier = mod.getValue();
-                    mod.apply(p);
-                }
+                if (m instanceof final HealthModifier mod) mod.apply(p);
+                else if (m instanceof final FallDamageMultiplierModifier mod) mod.apply(p);
             });
             playSoundUpdate(updateType, p);
         });
@@ -181,7 +172,17 @@ public class GlobalDifficultyManager extends DifficultyManager {
     @Override
     protected void updateModifiersValue(List<Modifier<?>> modifiers) {
         modifiers.forEach(m -> {
-            if (m instanceof final HealthModifier hm) healthModifier = (int) hm.getValue();
+            if (m instanceof final HealthModifier mod) {
+                healthModifier = mod.getValue();
+            } else if (m instanceof final FollowRangeModifier mod) {
+                followRangeModifier = mod.getValue();
+            } else if (m instanceof final StepHeightModifier mod) {
+                stepHeightModifier = mod.getValue();
+            } else if (m instanceof final SpawnReinforcementsModifier mod) {
+                spawnReinforcementModifier = mod.getValue();
+            } else if (m instanceof final FallDamageMultiplierModifier mod) {
+                fallDamageMultiplierModifier = mod.getValue();
+            }
         });
     }
 

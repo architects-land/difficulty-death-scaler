@@ -27,12 +27,12 @@ public class PlayerDifficultyManager extends DifficultyManager {
     public static class HealthModifier extends PlayerHealthModifier {
         public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
 
-        static {
-            IDENTIFIER = ID;
-        }
-
         public HealthModifier() {
             super(ID);
+        }
+
+        public static void apply(ServerPlayerEntity player, double value) {
+            apply(ID, ATTRIBUTE, OPERATION, player, value);
         }
     }
 
@@ -74,7 +74,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
             }),
     };
 
-    protected int healthModifier = 0;
+    protected double healthModifier = 0;
     protected double luckModifier = 0;
     protected double blockBreakSpeedModifier = 0;
 
@@ -87,8 +87,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
         DifficultyDeathScaler.LOGGER.info("Loading player {} difficulty data", player.getUuid());
         loadData(StateSaver.getPlayerState(player));
-
-        updateModifiersValue(modifiers(numberOfDeath));
     }
 
     public PlayerDifficultyManager(MinecraftServer server, @NotNull UUID uuid, PlayerData data) {
@@ -117,6 +115,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         }
         delayFirstTask(data.timeBeforeReduce);
         updateTimerTask();
+        updateModifiersValue(modifiers(numberOfDeath));
     }
 
 
@@ -145,7 +144,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     protected void updateModifiersValue(List<Modifier<?>> modifiers) {
         modifiers.forEach(m -> {
             if (m instanceof final HealthModifier mod) {
-                healthModifier = (int) mod.getValue();
+                healthModifier = mod.getValue();
                 mod.apply(player);
             } else if (m instanceof final LuckModifier mod) {
                 luckModifier = mod.getValue();

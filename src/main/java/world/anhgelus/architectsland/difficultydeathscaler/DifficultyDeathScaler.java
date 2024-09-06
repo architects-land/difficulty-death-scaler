@@ -24,9 +24,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -121,6 +119,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             difficultyManager.applyModifiers(handler.player);
+
             final var playerDifficulty = getPlayerDifficultyManager(server, handler.player);
             if (playerDifficulty.kickIfDiedTooMuch()) return;
             playerDifficulty.applyModifiers();
@@ -128,6 +127,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             difficultyManager.applyModifiers(newPlayer);
+
             final var playerDifficulty = getPlayerDifficultyManager(newPlayer.server, newPlayer);
             playerDifficulty.player = newPlayer;
             playerDifficulty.increaseDeath();

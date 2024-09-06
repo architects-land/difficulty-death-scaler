@@ -11,7 +11,6 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 public abstract class PlayerHealthModifier extends DifficultyManager.Modifier<ServerPlayerEntity> {
     public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.GENERIC_MAX_HEALTH;
     public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
-    protected static Identifier IDENTIFIER;
 
     public PlayerHealthModifier(Identifier id) {
         super(id, ATTRIBUTE, OPERATION);
@@ -22,7 +21,7 @@ public abstract class PlayerHealthModifier extends DifficultyManager.Modifier<Se
         if (newValue < value) value = newValue;
     }
 
-    public static void apply(ServerPlayerEntity player, double value) {
-        apply(IDENTIFIER, ATTRIBUTE, OPERATION, player, value);
+    public static void apply(ServerPlayerEntity player, Identifier id, double value) {
+        apply(id, ATTRIBUTE, OPERATION, player, value);
     }
 }

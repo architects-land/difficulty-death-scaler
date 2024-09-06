@@ -28,7 +28,7 @@ public class StateSaver extends PersistentState {
             playerNbt.putInt("deaths", playerData.deaths);
             playerNbt.putLong("timeBeforeReduce", playerData.timeBeforeReduce);
             playerNbt.putInt("deathDay", playerData.deathDay);
-            playersNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
+            playerNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
 
             playersNbt.put(uuid.toString(), playerNbt);
         });
@@ -47,11 +47,12 @@ public class StateSaver extends PersistentState {
         final var playersNbt = tag.getCompound("players");
         playersNbt.getKeys().forEach(key -> {
             final var playerData = new PlayerData();
+            final var compound = playersNbt.getCompound(key);
 
-            playerData.deaths = playersNbt.getCompound(key).getInt("deaths");
-            playerData.timeBeforeReduce = playersNbt.getCompound(key).getLong("timeBeforeReduce");
-            playerData.deathDay = playersNbt.getCompound(key).getInt("deathDay");
-            playerData.deathDayDelay = playersNbt.getCompound(key).getLongArray("deathDayDelay");
+            playerData.deaths = compound.getInt("deaths");
+            playerData.timeBeforeReduce = compound.getLong("timeBeforeReduce");
+            playerData.deathDay = compound.getInt("deathDay");
+            playerData.deathDayDelay = compound.getLongArray("deathDayDelay");
 
             state.players.put(UUID.fromString(key), playerData);
         });

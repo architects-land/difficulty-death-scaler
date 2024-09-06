@@ -135,6 +135,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
     protected double spawnReinforcementModifier = 0;
     protected double fallDamageMultiplierModifier = 0;
 
+    private int totalOfDeath = 0;
+
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
 
@@ -143,6 +145,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         delayFirstTask(state.timeBeforeReduce);
         increaser = new DifficultyIncrease(this, timer, state.timeBeforeIncrease, state.increaseEnabled);
         setNumberOfDeath(state.deaths, true);
+        totalOfDeath = state.totalOfDeath;
 
         updateModifiersValue(modifiers(numberOfDeath));
     }
@@ -150,6 +153,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
         updateModifiersValue(updater);
+
+        if (updateType == UpdateType.INCREASE) totalOfDeath++;
 
         final var pm = server.getPlayerManager();
 
@@ -239,5 +244,10 @@ public class GlobalDifficultyManager extends DifficultyManager {
         state.timeBeforeReduce = delay();
         state.timeBeforeIncrease = increaser.delay();
         state.increaseEnabled = increaser.enabled();
+        state.totalOfDeath = totalOfDeath;
+    }
+
+    public int totalOfDeath() {
+        return totalOfDeath;
     }
 }

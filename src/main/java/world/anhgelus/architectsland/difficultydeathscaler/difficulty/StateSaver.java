@@ -18,6 +18,7 @@ public class StateSaver extends PersistentState {
     public long timeBeforeReduce = 0;
     public long timeBeforeIncrease = 0;
     public boolean increaseEnabled = false;
+    public int totalOfDeath = 0;
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
@@ -29,6 +30,7 @@ public class StateSaver extends PersistentState {
             playerNbt.putLong("timeBeforeReduce", playerData.timeBeforeReduce);
             playerNbt.putInt("deathDay", playerData.deathDay);
             playerNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
+            playerNbt.putInt("totalOfDeath", playerData.totalOfDeath);
 
             playersNbt.put(uuid.toString(), playerNbt);
         });
@@ -37,6 +39,7 @@ public class StateSaver extends PersistentState {
         nbt.putLong("timeBeforeReduce", timeBeforeReduce);
         nbt.putLong("timeBeforeIncrease", timeBeforeIncrease);
         nbt.putBoolean("increaseEnabled", increaseEnabled);
+        nbt.putInt("totalOfDeath", totalOfDeath);
 
         return nbt;
     }
@@ -53,6 +56,7 @@ public class StateSaver extends PersistentState {
             playerData.timeBeforeReduce = compound.getLong("timeBeforeReduce");
             playerData.deathDay = compound.getInt("deathDay");
             playerData.deathDayDelay = compound.getLongArray("deathDayDelay");
+            playerData.totalOfDeath = compound.getInt("totalOfDeath");
 
             state.players.put(UUID.fromString(key), playerData);
         });
@@ -60,6 +64,7 @@ public class StateSaver extends PersistentState {
         state.timeBeforeReduce = tag.getLong("timeBeforeReduce");
         state.timeBeforeIncrease = tag.getLong("timeBeforeIncrease");
         state.increaseEnabled = tag.getBoolean("increaseEnabled");
+        state.totalOfDeath = tag.getInt("totalOfDeath");
 
         return state;
     }

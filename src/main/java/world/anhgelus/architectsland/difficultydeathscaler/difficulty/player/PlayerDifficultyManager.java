@@ -81,6 +81,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
     private int deathDay;
     private final List<Long> deathDayStart = new ArrayList<>();
 
+    private int totalOfDeath = 0;
+
     public PlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
         this.player = player;
@@ -101,6 +103,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     private void loadData(PlayerData data) {
         numberOfDeath = data.deaths;
         deathDay = data.deathDay;
+        totalOfDeath = data.totalOfDeath;
         for (final var delay : data.deathDayDelay) {
             deathDayStart.add(delay);
         }
@@ -215,6 +218,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         state.deaths = numberOfDeath;
         state.timeBeforeReduce = delay();
         state.deathDay = deathDay;
+        state.totalOfDeath = totalOfDeath;
         var starts = new long[deathDayStart.size()];
         for (int i = 0; i < deathDayStart.size(); i++) {
             starts[i] = deathDayStart.get(i);
@@ -261,5 +265,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
             return true;
         }
         return false;
+    }
+
+    public int totalOfDeath() {
+        return numberOfDeath;
     }
 }

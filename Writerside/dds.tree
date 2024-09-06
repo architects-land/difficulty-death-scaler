@@ -12,4 +12,5 @@
         <toc-element topic="Player-Difficulty.md"/>
     </toc-element>
     <toc-element topic="Command.md"/>
+    <toc-element topic="Bounty.md"/>
 </instance-profile>

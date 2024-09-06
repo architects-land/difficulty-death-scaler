@@ -266,4 +266,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
         }
         return false;
     }
+
+    public int totalOfDeath() {
+        return numberOfDeath;
+    }
 }

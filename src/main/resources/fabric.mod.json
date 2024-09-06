@@ -12,7 +12,7 @@
   },
   "license": "AGPL-3.0",
   "icon": "assets/difficultydeathscaler/icon.png",
-  "environment": "*",
+  "environment": "server",
   "entrypoints": {
     "main": [
       "world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler"

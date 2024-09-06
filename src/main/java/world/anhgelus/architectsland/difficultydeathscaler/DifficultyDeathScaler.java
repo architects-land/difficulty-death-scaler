@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 
 import java.util.*;
@@ -35,6 +36,7 @@ public class DifficultyDeathScaler implements ModInitializer {
     private GlobalDifficultyManager difficultyManager = null;
 
     private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
+    private final Map<UUID, Bounty> bountyMap = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -112,17 +114,15 @@ public class DifficultyDeathScaler implements ModInitializer {
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (entity instanceof ServerPlayerEntity) {
                 difficultyManager.increaseDeath();
+
+                final var bounty = bountyMap.get(entity.getUuid());
+                if (bounty == null) return;
+                if (damageSource.getAttacker() instanceof final ServerPlayerEntity player) {
+                    bounty.onKill(getPlayerDifficultyManager(player.server, player));
+                }
                 return;
             }
             BossManager.handleKill(entity, difficultyManager);
-        });
-
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            difficultyManager.applyModifiers(handler.player);
-
-            final var playerDifficulty = getPlayerDifficultyManager(server, handler.player);
-            if (playerDifficulty.kickIfDiedTooMuch()) return;
-            playerDifficulty.applyModifiers();
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
@@ -132,6 +132,23 @@ public class DifficultyDeathScaler implements ModInitializer {
             playerDifficulty.player = newPlayer;
             playerDifficulty.increaseDeath();
             playerDifficulty.applyModifiers();
+        });
+
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            final var playerDifficulty = getPlayerDifficultyManager(server, handler.player);
+            if (playerDifficulty.kickIfDiedTooMuch()) return;
+            playerDifficulty.applyModifiers();
+
+            difficultyManager.applyModifiers(handler.player);
+
+            final var bounty = Bounty.newBounty(difficultyManager, playerDifficulty);
+            if (bounty != null) bountyMap.put(handler.player.getUuid(), bounty);
+        });
+
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            final var bounty = bountyMap.get(handler.player.getUuid());
+            if (bounty == null) return;
+            bounty.onDisconnect();
         });
 
         UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> BossManager.handleBuff(player, world, hand, entity));

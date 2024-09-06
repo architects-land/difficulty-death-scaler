@@ -246,4 +246,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
         state.increaseEnabled = increaser.enabled();
         state.totalOfDeath = totalOfDeath;
     }
+
+    public int totalOfDeath() {
+        return totalOfDeath;
+    }
 }

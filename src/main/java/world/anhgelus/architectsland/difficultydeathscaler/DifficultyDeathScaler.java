@@ -101,7 +101,6 @@ public class DifficultyDeathScaler implements ModInitializer {
         // set up difficulty of deathSteps[0]
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             difficultyManager = new GlobalDifficultyManager(server);
-            difficultyManager.setNumberOfDeath(difficultyManager.getNumberOfDeath(), true);
             loadAllPlayerManagers(server);
         });
 

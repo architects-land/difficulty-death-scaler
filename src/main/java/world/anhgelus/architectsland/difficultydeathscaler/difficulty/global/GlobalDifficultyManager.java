@@ -140,10 +140,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
         DifficultyDeathScaler.LOGGER.info("Loading global difficulty data");
         final var state = StateSaver.getServerState(server);
-        numberOfDeath = state.deaths;
         delayFirstTask(state.timeBeforeReduce);
-//        setNumberOfDeath(state.deaths, true);
         increaser = new DifficultyIncrease(this, timer, state.timeBeforeIncrease, state.increaseEnabled);
+        setNumberOfDeath(state.deaths, true);
 
         updateModifiersValue(modifiers(numberOfDeath));
     }

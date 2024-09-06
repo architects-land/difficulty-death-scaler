@@ -116,6 +116,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
             }
         }
         delayFirstTask(data.timeBeforeReduce);
+        updateTimerTask();
     }
 
 

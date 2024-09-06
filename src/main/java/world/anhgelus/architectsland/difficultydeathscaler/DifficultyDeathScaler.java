@@ -65,7 +65,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             )
         );
 
-        final LiteralArgumentBuilder<ServerCommandSource> playerCommand = literal("player").then(argument("player", EntityArgumentType.player()));
+        final LiteralArgumentBuilder<ServerCommandSource> playerCommand = literal("player");
         playerCommand.then(argument("player", EntityArgumentType.player()).then(literal("get").executes(context -> {
             final var source = context.getSource();
             final var server = source.getServer();

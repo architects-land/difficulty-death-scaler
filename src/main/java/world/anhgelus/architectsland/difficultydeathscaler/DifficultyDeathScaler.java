@@ -120,7 +120,9 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             difficultyManager.applyModifiers(handler.player);
-            getPlayerDifficultyManager(server, handler.player).applyModifiers();
+            final var playerDifficulty = getPlayerDifficultyManager(server, handler.player);
+            if (playerDifficulty.kickIfDiedTooMuch()) return;
+            playerDifficulty.applyModifiers();
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
@@ -140,6 +142,13 @@ public class DifficultyDeathScaler implements ModInitializer {
     }
 
     private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
-        return playerDifficultyManagerMap.computeIfAbsent(player.getUuid(), p -> new PlayerDifficultyManager(server, player));
+        if (playerDifficultyManagerMap.containsKey(player.getUuid())) {
+            final var playerDifficulty = playerDifficultyManagerMap.get(player.getUuid());
+            playerDifficulty.player = player;
+            return playerDifficulty;
+        }
+        final var playerDifficulty = new PlayerDifficultyManager(server, player);
+        playerDifficultyManagerMap.put(player.getUuid(), playerDifficulty);
+        return playerDifficulty;
     }
 }

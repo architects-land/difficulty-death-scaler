@@ -1,6 +1,7 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -14,12 +15,15 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.B
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.LuckModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.TimerTask;
 
 public class PlayerDifficultyManager extends DifficultyManager {
     public ServerPlayerEntity player;
 
     public static final int SECONDS_BEFORE_DECREASED = 12*60*60;
+    public static final int MAX_DEATHS_DAY = 5;
 
     public static class HealthModifier extends PlayerHealthModifier {
         public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
@@ -75,6 +79,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
     protected double luckModifier = 0;
     protected double blockBreakSpeedModifier = 0;
 
+    private int deathDay;
+    private final ArrayList<Long> deathDayStart = new ArrayList<>();
+
     public PlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
         this.player = player;
@@ -82,6 +89,10 @@ public class PlayerDifficultyManager extends DifficultyManager {
         DifficultyDeathScaler.LOGGER.info("Loading player {} difficulty data", player.getUuid());
         final var state = StateSaver.getPlayerState(player);
         numberOfDeath = state.deaths;
+        deathDay = state.deathDay;
+        for (final var delay : state.deathDayDelay) {
+            timer.schedule(deathDayTask(), (24*60*60 - delay)*1000L);
+        }
         delayFirstTask(state.timeBeforeReduce);
 
         updateModifiersValue(modifiers(numberOfDeath));
@@ -94,6 +105,16 @@ public class PlayerDifficultyManager extends DifficultyManager {
         player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
         playSoundUpdate(updateType, player);
+    }
+
+    @Override
+    protected void onDeath(UpdateType updateType, Updater updater) {
+        deathDay++;
+        deathDayStart.add(System.currentTimeMillis() / 1000);
+
+        if (player.getWorld().isClient()) return;
+        timer.schedule(deathDayTask(), 24*60*60*1000L);
+        kickIfDiedTooMuch();
     }
 
     @Override
@@ -145,11 +166,50 @@ public class PlayerDifficultyManager extends DifficultyManager {
         final var state = StateSaver.getPlayerState(player);
         state.deaths = numberOfDeath;
         state.timeBeforeReduce = delay();
+        state.deathDay = deathDay;
+        var starts = new long[deathDayStart.size()];
+        for (int i = 0; i < deathDayStart.size(); i++) {
+            starts[i] = delay(deathDayStart.get(i));
+        }
+        state.deathDayDelay = starts;
     }
 
     public void applyModifiers() {
         HealthModifier.apply(player, healthModifier);
         LuckModifier.apply(player, luckModifier);
         BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);
+    }
+
+    private TimerTask deathDayTask() {
+        return new TimerTask() {
+            @Override
+            public void run() {
+                if (deathDay != 0) {
+                    deathDay--;
+                    deathDayStart.removeFirst();
+                } else DifficultyDeathScaler.LOGGER.warn("Death day is already equal to 0");
+            }
+        };
+    }
+
+    /**
+     * Kick the player if he died too much
+     * @return true if the player was kicked
+     */
+    public boolean kickIfDiedTooMuch() {
+        return kickIfDiedTooMuch(player.networkHandler);
+    }
+
+    /**
+     * Kick the player if he died too much
+     * @return true if the player was kicked
+     */
+    public boolean kickIfDiedTooMuch(ServerPlayNetworkHandler handler) {
+        if (deathDay >= MAX_DEATHS_DAY) {
+            DifficultyDeathScaler.LOGGER.info("Kick");
+            handler.disconnect(Text.of("You died too much during 24h..."));
+            return true;
+        }
+        return false;
     }
 }

@@ -242,6 +242,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
         final var updater = new Updater();
         final var rules = server.getGameRules();
 
+        onDeath(updateType, updater);
+
         for (final StepPair step : steps) {
             if (step.level() <= numberOfDeath) step.reached(server, rules, updater);
             else break;
@@ -263,6 +265,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     protected abstract void onUpdate(UpdateType updateType, Updater updater);
+
+    protected void onDeath(UpdateType updateType, Updater updater) {}
 
     /**
      * Generate difficulty update

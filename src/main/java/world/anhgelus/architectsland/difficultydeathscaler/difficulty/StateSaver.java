@@ -9,9 +9,7 @@ import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerData;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class StateSaver extends PersistentState {
     public Map<UUID, PlayerData> players = new HashMap<>();
@@ -29,6 +27,8 @@ public class StateSaver extends PersistentState {
 
             playerNbt.putInt("deaths", playerData.deaths);
             playerNbt.putLong("timeBeforeReduce", playerData.timeBeforeReduce);
+            playerNbt.putInt("deathDay", playerData.deathDay);
+            playersNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
 
             playersNbt.put(uuid.toString(), playerNbt);
         });
@@ -50,6 +50,8 @@ public class StateSaver extends PersistentState {
 
             playerData.deaths = playersNbt.getCompound(key).getInt("deaths");
             playerData.timeBeforeReduce = playersNbt.getCompound(key).getLong("timeBeforeReduce");
+            playerData.deathDay = playersNbt.getCompound(key).getInt("deathDay");
+            playerData.deathDayDelay = playersNbt.getCompound(key).getLongArray("deathDayDelay");
 
             state.players.put(UUID.fromString(key), playerData);
         });

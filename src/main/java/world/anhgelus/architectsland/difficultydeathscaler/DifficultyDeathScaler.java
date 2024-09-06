@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
@@ -26,6 +25,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Pla
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -35,7 +35,7 @@ public class DifficultyDeathScaler implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     private GlobalDifficultyManager difficultyManager = null;
 
-    private final Map<ServerPlayerEntity, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
+    private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -140,6 +140,6 @@ public class DifficultyDeathScaler implements ModInitializer {
     }
 
     private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
-        return playerDifficultyManagerMap.computeIfAbsent(player, p -> new PlayerDifficultyManager(server, p));
+        return playerDifficultyManagerMap.computeIfAbsent(player.getUuid(), p -> new PlayerDifficultyManager(server, player));
     }
 }

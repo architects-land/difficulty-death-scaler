@@ -70,7 +70,8 @@ public class DifficultyCommand {
         );
 
         // is /dds set player [player] [difficulty|daily-death] [int]
-        final var setPlayerCommand = literal("player").then(argument("player", EntityArgumentType.player()).then(
+        final var setPlayerCommand = literal("player").then(argument("player", EntityArgumentType.player())
+            .then(
                 literal("difficulty").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
                     final var source = context.getSource();
                     final var server = source.getServer();
@@ -82,9 +83,17 @@ public class DifficultyCommand {
                     target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
                     return Command.SINGLE_SUCCESS;
                 }))
-        ).then(
+            ).then(
                 literal("daily-death").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
                     context.getSource().sendFeedback(() -> Text.literal("Not implemented yet"), false);
+                    final var source = context.getSource();
+                    final var server = source.getServer();
+                    final var target = EntityArgumentType.getPlayer(context, "player");
+                    playerDifficultyGetter.get(server, target).setDeathDay(IntegerArgumentType.getInteger(context, "number of death"));
+                    source.sendFeedback(() -> {
+                        return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
+                    }, true);
+                    target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
                     return Command.SINGLE_SUCCESS;
                 }))
         ));

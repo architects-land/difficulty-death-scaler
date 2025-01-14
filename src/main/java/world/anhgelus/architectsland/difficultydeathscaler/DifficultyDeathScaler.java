@@ -3,6 +3,7 @@ package world.anhgelus.architectsland.difficultydeathscaler;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -65,6 +66,13 @@ public class DifficultyDeathScaler implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
 
+        // New command: /dds [get|set]
+        // /dds get [none|player]
+        // /dds set [global|player]
+        // /dds set global [int]
+        // /dds set player [player] [difficulty|daily-death] [int]
+        // /dds help
+
         final Command<ServerCommandSource> globalGetExecute = context -> {
             final var source = context.getSource();
             final var server = source.getServer();
@@ -74,35 +82,30 @@ public class DifficultyDeathScaler implements ModInitializer {
             return Command.SINGLE_SUCCESS;
         };
 
-        final LiteralArgumentBuilder<ServerCommandSource> globalCommand = literal("global");
-        globalCommand.then(literal("get").executes(globalGetExecute));
-        globalCommand.then(literal("set")
-            .requires(source -> source.hasPermissionLevel(1))
-            .then(argument("number of death", IntegerArgumentType.integer())
-                .executes(context -> {
+        final LiteralArgumentBuilder<ServerCommandSource> getCommand = literal("get").then(
+                argument("player", EntityArgumentType.player()).executes(context -> {
+                    final var source = context.getSource();
+                    final var server = source.getServer();
+                    final var target = EntityArgumentType.getPlayer(context, "player");
+                    source.sendFeedback(() -> Text.literal(
+                            getPlayerDifficultyManager(server, target)
+                                    .getDifficultyUpdate(server.getOverworld().getDifficulty())
+                    ), false);
+                    return Command.SINGLE_SUCCESS;
+                })
+        ).executes(globalGetExecute);
+
+        final LiteralArgumentBuilder<ServerCommandSource> setGlobalCommand = literal("global").then(
+                argument("number of death", IntegerArgumentType.integer()).executes(context -> {
                     final var source = context.getSource();
                     difficultyManager.setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
-            )
         );
 
-        final LiteralArgumentBuilder<ServerCommandSource> playerCommand = literal("player");
-        playerCommand.then(argument("player", EntityArgumentType.player()).then(literal("get").executes(context -> {
-            final var source = context.getSource();
-            final var server = source.getServer();
-            final var target = EntityArgumentType.getPlayer(context, "player");
-            source.sendFeedback(() -> Text.literal(
-                    getPlayerDifficultyManager(server, target)
-                            .getDifficultyUpdate(server.getOverworld().getDifficulty())
-            ), false);
-            return Command.SINGLE_SUCCESS;
-        })));
-        playerCommand.then(argument("player", EntityArgumentType.player()).then(literal("set")
-            .requires(source -> source.hasPermissionLevel(1))
-            .then(argument("number of death", IntegerArgumentType.integer())
-                .executes(context -> {
+        final var setPlayerCommand = argument("player", EntityArgumentType.player()).then(
+                literal("difficulty").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
                     final var source = context.getSource();
                     final var server = source.getServer();
                     final var target = EntityArgumentType.getPlayer(context, "player");
@@ -112,9 +115,18 @@ public class DifficultyDeathScaler implements ModInitializer {
                     }, true);
                     target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
                     return Command.SINGLE_SUCCESS;
-                })
-            )
-        ));
+                }))
+        ).then(
+                literal("daily-death").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
+                    context.getSource().sendFeedback(() -> Text.literal("Not implemented yet"), false);
+                    return Command.SINGLE_SUCCESS;
+                }))
+        );
+
+        final LiteralArgumentBuilder<ServerCommandSource> setCommand = literal("set")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(setGlobalCommand)
+                .then(setPlayerCommand);
 
         final LiteralArgumentBuilder<ServerCommandSource> helpCommand = literal("help").executes(context -> {
             final var url = "https://architects-land.github.io/difficulty-death-scaler/";
@@ -131,13 +143,13 @@ public class DifficultyDeathScaler implements ModInitializer {
         });
 
         final LiteralArgumentBuilder<ServerCommandSource> command = literal("difficultydeathscaler");
-        command.then(globalCommand);
-        command.then(playerCommand);
+        command.then(setCommand);
+        command.then(getCommand);
         command.then(helpCommand);
 
         final LiteralArgumentBuilder<ServerCommandSource> commandShort = literal("dds");
-        commandShort.then(globalCommand);
-        commandShort.then(playerCommand);
+        commandShort.then(setCommand);
+        commandShort.then(getCommand);
         commandShort.then(helpCommand);
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {

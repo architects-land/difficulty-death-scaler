@@ -260,7 +260,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
             }
         }
         sb.append("\n");
-        sb.append("Number of death: §d").append(numberOfDeath).append("§r\n");
+        sb.append("Death step: §d").append(numberOfDeath).append("§r\n");
         return sb.toString();
     }
 

@@ -202,7 +202,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
         var i = 0;
         var valid = true;
-        while (i < numberOfDeath && valid) {
+        while (i < steps.length && valid) {
             if (steps[i].level() <= numberOfDeath) steps[i].reached(server, rules, updater);
             else valid = false;
             i++;

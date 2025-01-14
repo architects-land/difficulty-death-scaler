@@ -34,7 +34,7 @@ It mainly modifies vanilla gamerules.
         Remove one heart.
     </def>
     <def title="12 deaths" default-state="collapsed">
-        Increase height to 1.1.
+        Increase mob step height to 1.1.
     </def>
     <def title="13 and 14 deaths" default-state="collapsed">
         All blocks do not drop after a TNT explosion.
@@ -66,7 +66,7 @@ It mainly modifies vanilla gamerules.
         Increase mob reinforcement by 50%.
     </def>
     <def title="26 and 27 deaths" default-state="collapsed">
-        Increase step height to 1.5.
+        Increase mob step height to 1.5.
     </def>
     <def title="28 and 29 deaths" default-state="collapsed">
         <p>Limit crafting to recipes unlocked.</p>
@@ -89,6 +89,6 @@ It mainly modifies vanilla gamerules.
         Never forgive dead players!
     </def>
     <def title="40 deaths" default-state="collapsed">
-        Disable natural generation...
+        Disable natural regeneration...
     </def>
 </deflist>

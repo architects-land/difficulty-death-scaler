@@ -2,24 +2,24 @@
 
 Difficulty Death Scaler provides the `/difficultydeathscaler` (you can also use the alias `/dds`) utility command.
 
-## Global difficulty
+## Getting difficulty
 
-You can get or set the global difficulty with `/difficultydeathscaler global`.
-
-To get the global difficulty, use `/difficultydeathscaler global get`.
+You can get the difficulty with `/difficultydeathscaler get`.
 You can also use the alias `/ddsg` (which is for Difficulty Death Scaler Global).
 
-To set the global difficulty, use `/difficultydeathscaler global set [number of death]`.
-You must be op to execute this command.
-
-## Player difficulty
-
-You can get or set the global difficulty with `/difficultydeathscaler player [selector]`.
+You can get the player difficulty with `/difficultydeathscaler get [selector]`.
 Selector is obviously a selector targeting one player.
-
-To get the player difficulty, use `/difficultydeathscaler player [selector] get`.
 
 You can also use the alias `/ddsp` to get your own difficulty (which is for Difficulty Death Scaler Player).
 
-To set the player difficulty, use `/difficultydeathscaler player [selector] set [number of death]`.
-You must be op to execute this command.
+## Setting difficulty
+
+You must be OP to use these commands.
+
+You can set the global difficulty with `/difficultydeathscaler set global [number of death]`.
+
+You can set the player difficulty with `/difficultydeathscaler set player [selector] difficulty [number of death]`.
+Selector is obviously a selector targeting one player.
+
+You can also set the number of daily death with `/difficultydeathscaler set player [selector] daily-death [number of death]`.
+Selector is obviously a selector targeting one player.

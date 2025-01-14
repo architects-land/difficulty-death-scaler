@@ -308,4 +308,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
             );
         }
     }
+
+    @Override
+    public abstract String toString();
 }

@@ -82,7 +82,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             return Command.SINGLE_SUCCESS;
         };
 
-        final LiteralArgumentBuilder<ServerCommandSource> getCommand = literal("get").then(
+        final var getCommand = literal("get").then(
                 argument("player", EntityArgumentType.player()).executes(context -> {
                     final var source = context.getSource();
                     final var server = source.getServer();
@@ -95,7 +95,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 })
         ).executes(globalGetExecute);
 
-        final LiteralArgumentBuilder<ServerCommandSource> setGlobalCommand = literal("global").then(
+        final var setGlobalCommand = literal("global").then(
                 argument("number of death", IntegerArgumentType.integer()).executes(context -> {
                     final var source = context.getSource();
                     difficultyManager.setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
@@ -104,7 +104,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 })
         );
 
-        final var setPlayerCommand = argument("player", EntityArgumentType.player()).then(
+        final var setPlayerCommand = literal("player").then(argument("player", EntityArgumentType.player()).then(
                 literal("difficulty").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
                     final var source = context.getSource();
                     final var server = source.getServer();
@@ -121,14 +121,14 @@ public class DifficultyDeathScaler implements ModInitializer {
                     context.getSource().sendFeedback(() -> Text.literal("Not implemented yet"), false);
                     return Command.SINGLE_SUCCESS;
                 }))
-        );
+        ));
 
-        final LiteralArgumentBuilder<ServerCommandSource> setCommand = literal("set")
+        final var setCommand = literal("set")
                 .requires(source -> source.hasPermissionLevel(2))
                 .then(setGlobalCommand)
                 .then(setPlayerCommand);
 
-        final LiteralArgumentBuilder<ServerCommandSource> helpCommand = literal("help").executes(context -> {
+        final var helpCommand = literal("help").executes(context -> {
             final var url = "https://architects-land.github.io/difficulty-death-scaler/";
             final var link = Text.literal(url);
             link.fillStyle(

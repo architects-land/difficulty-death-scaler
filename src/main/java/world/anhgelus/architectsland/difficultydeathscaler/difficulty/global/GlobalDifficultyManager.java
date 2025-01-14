@@ -169,6 +169,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
         setNumberOfDeath(state.deaths, true);
         totalOfDeath = state.totalOfDeath;
 
+        // update difficulty after restart
+        server.setDifficulty(getUpdater().getDifficulty(), true);
+
         updateModifiersValue(getModifiers(numberOfDeath));
     }
 
@@ -261,6 +264,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         FollowRangeModifier.apply(hostile, followRangeModifier);
         StepHeightModifier.apply(hostile, stepHeightModifier);
         SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
+        // replace a piglin by two piglins brutes (for 50 piglins)
         if (SPAWN_PIGLIN_BRUTE && !hostile.hasCustomName() && hostile instanceof PiglinEntity && Math.random()*100 < 2) {
             EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
             EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);

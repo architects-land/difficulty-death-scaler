@@ -17,8 +17,16 @@ It has a lot of features including:
 ## Command
 
 The mod adds one command: `/difficultydeathscaler` (or `/dds`)
-- `/difficultydeathscaler global get` gives the current global difficulty (or `/ddsg`)
-- `/difficultydeathscaler global set [number of death]` sets the number of death in global difficulty (player must be OP)
-- `/difficultydeathscaler player [selector] get` gives the current player difficulty targeted by the selector
-- `/difficultydeathscaler player [selector] set [number of death]` sets the number of death in player difficulty targeted
-by the selector (player must be OP)
+- `/difficultydeathscaler get` gives the current global difficulty (or `/ddsg`)
+- `/difficultydeathscaler get [selector]` gives the current player difficulty targeted by the selector
+(`/ddsp` gives your current difficulty)
+- `/difficultydeathscaler set global [number of death]` sets the number of death in global difficulty (OP command)
+- `/difficultydeathscaler set player [selector] difficulty [number of death]` sets the number of death in player
+difficulty targeted by the selector (OP command)
+- `/difficultydeathscaler set player [selector] daily-death [number of death]` sets the number of death in 24h for
+targeted player by the selector (OP command)
+
+## Configuration
+
+This mod can be configured via gamerules.
+Check the [wiki](https://architects-land.github.io/difficulty-death-scaler/) to have more information.

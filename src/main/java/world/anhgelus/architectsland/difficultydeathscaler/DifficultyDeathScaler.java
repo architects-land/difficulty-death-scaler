@@ -1,5 +1,6 @@
 package world.anhgelus.architectsland.difficultydeathscaler;
 
+import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -22,6 +23,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,17 +35,17 @@ public class DifficultyDeathScaler implements ModInitializer {
     private GlobalDifficultyManager difficultyManager;
 
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_TEMP_BAN = GameRuleRegistry.register(
-            MOD_ID +":enableTempBan",
+            MOD_ID + ":enableTempBan",
             GameRules.Category.MISC,
             GameRuleFactory.createBooleanRule(true)
     );
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
-            MOD_ID +":deathBeforeTempBan",
+            MOD_ID + ":deathBeforeTempBan",
             GameRules.Category.MISC,
             GameRuleFactory.createIntRule(5)
     );
     public static final GameRules.Key<GameRules.IntRule> TEMP_BAN_DURATION = GameRuleRegistry.register(
-            MOD_ID +":tempBanDuration",
+            MOD_ID + ":tempBanDuration",
             GameRules.Category.MISC,
             GameRuleFactory.createIntRule(12)
     );
@@ -56,21 +58,22 @@ public class DifficultyDeathScaler implements ModInitializer {
         LOGGER.info("Difficulty Death Scaler started");
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            DifficultyCommand.setPlayerDifficultyGetter(this::getPlayerDifficultyManager);
-            DifficultyCommand.register(dispatcher, () -> difficultyManager);
+            Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
+            Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
+            DifficultyCommand.register(dispatcher);
         });
 
-        // set up base difficulty
+        // set up base difficulty and player difficulty fetcher
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             difficultyManager = new GlobalDifficultyManager(server);
             loadAllPlayerManagers(server);
+
+            Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             difficultyManager.save();
-            playerDifficultyManagerMap.forEach((player, manager) -> {
-                manager.save();
-            });
+            playerDifficultyManagerMap.forEach((player, manager) -> manager.save());
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
@@ -115,7 +118,9 @@ public class DifficultyDeathScaler implements ModInitializer {
             bounty.onDisconnect();
         });
 
-        UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> BossManager.handleBuff(player, world, hand, entity));
+        UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+            return BossManager.handleBuff(player, world, hand, entity);
+        });
 
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (!(entity instanceof HostileEntity)) return;
@@ -123,14 +128,29 @@ public class DifficultyDeathScaler implements ModInitializer {
         });
     }
 
+    /**
+     * Set player in difficulty manager
+     */
     private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
-        if (playerDifficultyManagerMap.containsKey(player.getUuid())) {
-            final var playerDifficulty = playerDifficultyManagerMap.get(player.getUuid());
-            playerDifficulty.player = player;
-            return playerDifficulty;
+        final var difficulty = getPlayerDifficultyManager(server, player.getGameProfile());
+        difficulty.player = player;
+        return difficulty;
+    }
+
+    /**
+     * Does not set player in difficulty manager!
+     */
+    private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, GameProfile profile) {
+        if (playerDifficultyManagerMap.containsKey(profile.getId())) {
+            return playerDifficultyManagerMap.get(profile.getId());
         }
-        final var playerDifficulty = new PlayerDifficultyManager(server, difficultyManager, player);
-        playerDifficultyManagerMap.put(player.getUuid(), playerDifficulty);
+        final var playerDifficulty = new PlayerDifficultyManager(
+                server,
+                difficultyManager,
+                profile.getId(),
+                StateSaver.getPlayerState(server, profile.getId())
+        );
+        playerDifficultyManagerMap.put(profile.getId(), playerDifficulty);
         return playerDifficulty;
     }
 

@@ -26,7 +26,9 @@ public abstract class AnnoyingCreeper {
         @Shadow
         @Final
         private CreeperEntity creeper;
-        private @Shadow LivingEntity target;
+
+        @Shadow
+        private LivingEntity target;
 
         @Inject(at = @At("RETURN"), method = "canStart", cancellable = true)
         public void canStart(CallbackInfoReturnable<Boolean> cir) {
@@ -44,7 +46,7 @@ public abstract class AnnoyingCreeper {
                 return;
             }
             if (this.creeper.isCharged()) {
-                if (this.creeper.squaredDistanceTo(this.target) > 40.0 || !this.creeper.getVisibilityCache().canSee(this.target)) {
+                if (this.creeper.squaredDistanceTo(this.target) > 49.0 || !this.creeper.getVisibilityCache().canSee(this.target)) {
                     this.creeper.setFuseSpeed(-1);
                 } else {
                     creeper.setFuseSpeed(1);
@@ -73,8 +75,9 @@ public abstract class AnnoyingCreeper {
 
         @Inject(at = @At("RETURN"), method = "<init>")
         protected void init(EntityType<? extends HostileEntity> entityType, World world, CallbackInfo ci) {
-            if (!GlobalDifficultyManager.areCreepersBetter()) return;
-            if (Math.random() * 100 < (5 * Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath() % 35))
+            final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+            if (difficulty == null) return;
+            if (Math.random() * 100 < (2 * difficulty.getNumberOfDeath()) % 21)
                 this.dataTracker.set(CHARGED, true);
         }
 

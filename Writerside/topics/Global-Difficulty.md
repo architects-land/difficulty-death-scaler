@@ -54,7 +54,8 @@ It mainly modifies vanilla gamerules.
         Remove another heart (two hearts removed).
     </def>
     <def title="22 deaths" default-state="collapsed">
-        All players must sleep to pass the night.
+        <p>All players must sleep to pass the night.</p>
+        <p>Charged creepers start spawning (spawn rates increase with each death)</p>
     </def>
     <def title="23 deaths" default-state="collapsed">
         Increase follow range by 35%.

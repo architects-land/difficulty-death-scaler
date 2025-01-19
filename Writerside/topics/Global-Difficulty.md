@@ -71,7 +71,7 @@ It mainly modifies vanilla gamerules.
     </def>
     <def title="28 and 29 deaths" default-state="collapsed">
         <p>Limit crafting to recipes unlocked.</p>
-        <p>Piglins brutes spawn in the Nether... (Good luck)</p>
+        <p>Piglins brutes start spawning in the Nether... (Good luck: spawn rates increase with each death)</p>
     </def>
     <def title="30 and 31 deaths" default-state="collapsed">
         Enable universal anger.

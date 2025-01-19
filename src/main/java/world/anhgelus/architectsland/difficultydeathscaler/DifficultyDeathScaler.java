@@ -1,8 +1,5 @@
 package world.anhgelus.architectsland.difficultydeathscaler;
 
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -13,18 +10,14 @@ import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyCommand;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
@@ -34,13 +27,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
-
 public class DifficultyDeathScaler implements ModInitializer {
     public static final String MOD_ID = "difficulty-death-scaler";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    private GlobalDifficultyManager difficultyManager = null;
+    private GlobalDifficultyManager difficultyManager;
 
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_TEMP_BAN = GameRuleRegistry.register(
             MOD_ID +":enableTempBan",
@@ -65,102 +55,12 @@ public class DifficultyDeathScaler implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Difficulty Death Scaler started");
 
-        final Command<ServerCommandSource> globalGetExecute = context -> {
-            final var source = context.getSource();
-            final var server = source.getServer();
-            source.sendFeedback(() -> {
-                return Text.literal(difficultyManager.getDifficultyUpdate(server.getOverworld().getDifficulty()));
-            }, false);
-            return Command.SINGLE_SUCCESS;
-        };
-
-        final LiteralArgumentBuilder<ServerCommandSource> globalCommand = literal("global");
-        globalCommand.then(literal("get").executes(globalGetExecute));
-        globalCommand.then(literal("set")
-            .requires(source -> source.hasPermissionLevel(1))
-            .then(argument("number of death", IntegerArgumentType.integer())
-                .executes(context -> {
-                    final var source = context.getSource();
-                    difficultyManager.setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
-                    source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
-                    return Command.SINGLE_SUCCESS;
-                })
-            )
-        );
-
-        final LiteralArgumentBuilder<ServerCommandSource> playerCommand = literal("player");
-        playerCommand.then(argument("player", EntityArgumentType.player()).then(literal("get").executes(context -> {
-            final var source = context.getSource();
-            final var server = source.getServer();
-            final var target = EntityArgumentType.getPlayer(context, "player");
-            source.sendFeedback(() -> Text.literal(
-                    getPlayerDifficultyManager(server, target)
-                            .getDifficultyUpdate(server.getOverworld().getDifficulty())
-            ), false);
-            return Command.SINGLE_SUCCESS;
-        })));
-        playerCommand.then(argument("player", EntityArgumentType.player()).then(literal("set")
-            .requires(source -> source.hasPermissionLevel(1))
-            .then(argument("number of death", IntegerArgumentType.integer())
-                .executes(context -> {
-                    final var source = context.getSource();
-                    final var server = source.getServer();
-                    final var target = EntityArgumentType.getPlayer(context, "player");
-                    getPlayerDifficultyManager(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
-                    source.sendFeedback(() -> {
-                        return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
-                    }, true);
-                    target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
-                    return Command.SINGLE_SUCCESS;
-                })
-            )
-        ));
-
-        final LiteralArgumentBuilder<ServerCommandSource> helpCommand = literal("help").executes(context -> {
-            final var url = "https://architects-land.github.io/difficulty-death-scaler/";
-            final var link = Text.literal(url);
-            link.fillStyle(
-                link.getStyle()
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url))
-                    .withFormatting(Formatting.UNDERLINE)
-            );
-            context.getSource().sendFeedback(() ->
-                    Text.literal("The wiki is available at ").append(link),
-                    false);
-            return Command.SINGLE_SUCCESS;
-        });
-
-        final LiteralArgumentBuilder<ServerCommandSource> command = literal("difficultydeathscaler");
-        command.then(globalCommand);
-        command.then(playerCommand);
-        command.then(helpCommand);
-
-        final LiteralArgumentBuilder<ServerCommandSource> commandShort = literal("dds");
-        commandShort.then(globalCommand);
-        commandShort.then(playerCommand);
-        commandShort.then(helpCommand);
-
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(command);
-            dispatcher.register(commandShort);
-            dispatcher.register(literal("ddsg").executes(globalGetExecute));
-            dispatcher.register(literal("ddsp").executes(context -> {
-                final var source = context.getSource();
-                final var server = source.getServer();
-                final var target = source.getPlayer();
-                if (target == null) {
-                    source.sendFeedback(() -> Text.literal("You are not a player"), false);
-                    return 2;
-                }
-                source.sendFeedback(() -> Text.literal(
-                        getPlayerDifficultyManager(server, target)
-                                .getDifficultyUpdate(server.getOverworld().getDifficulty())
-                ), false);
-                return Command.SINGLE_SUCCESS;
-            }));
+            DifficultyCommand.setPlayerDifficultyGetter(this::getPlayerDifficultyManager);
+            DifficultyCommand.register(dispatcher, () -> difficultyManager);
         });
 
-        // set up difficulty of deathSteps[0]
+        // set up base difficulty
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             difficultyManager = new GlobalDifficultyManager(server);
             loadAllPlayerManagers(server);

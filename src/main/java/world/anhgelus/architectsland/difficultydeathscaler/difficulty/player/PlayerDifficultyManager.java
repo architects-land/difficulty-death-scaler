@@ -247,6 +247,26 @@ public class PlayerDifficultyManager extends DifficultyManager {
         BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);
     }
 
+    public void setDeathDay(int n) {
+        if (kickIfDiedTooMuch()) return;
+        if (deathDay == n) return;
+        final var now = System.currentTimeMillis() / 1000;
+        if (n > deathDay) {
+            for (int i = 0; i < n-deathDay; i++) {
+                deathDayStart.add(delay(now));
+                timer.schedule(deathDayTask(), 24*1000L);
+            }
+            deathDay = n;
+            return;
+        }
+        resetDeathDay();
+        deathDay = n;
+        for (int i = 0; i < n; i++) {
+            deathDayStart.add(delay(now));
+            timer.schedule(deathDayTask(), 24*1000L);
+        }
+    }
+
     private TimerTask deathDayTask() {
         return new TimerTask() {
             @Override
@@ -269,9 +289,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
     public boolean diedTooMuch() {
         final var rules = server.getGameRules();
         if (!rules.get(DifficultyDeathScaler.ENABLE_TEMP_BAN).get()) return false;
-        return deathDay >= rules.get(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN).get() ||
-                (tempBan && System.currentTimeMillis() / 1000 - bannedSince
-                        < rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get()*60*60L);
+        return deathDay >= rules.getInt(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN) ||
+                (tempBan && System.currentTimeMillis() / 1000 - bannedSince < rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get()*60*60L);
     }
 
     /**
@@ -306,5 +325,29 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     public int getTotalOfDeath() {
         return numberOfDeath;
+    }
+
+    @Override
+    public String toString() {
+        final var sb = new StringBuilder();
+        sb.append("PlayerDifficultyManager(uuid=");
+        if (uuid == null) sb.append("null");
+        else sb.append(uuid);
+        sb.append(", number of death=")
+            .append(numberOfDeath)
+            .append(", banned since=")
+            .append(bannedSince)
+            .append(", total of death=")
+            .append(totalOfDeath)
+            .append(", death day=")
+            .append(deathDay)
+            .append(") {luck modifier=")
+            .append(luckModifier)
+            .append(", health modifier=")
+            .append(healthModifier)
+            .append(", block break speed modifier=")
+            .append(blockBreakSpeedModifier)
+            .append("}");
+        return sb.toString();
     }
 }

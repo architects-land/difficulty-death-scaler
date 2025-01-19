@@ -169,6 +169,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
         setNumberOfDeath(state.deaths, true);
         totalOfDeath = state.totalOfDeath;
 
+        // update difficulty after restart
+        server.setDifficulty(getUpdater().getDifficulty(), true);
+
         updateModifiersValue(getModifiers(numberOfDeath));
     }
 
@@ -261,6 +264,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         FollowRangeModifier.apply(hostile, followRangeModifier);
         StepHeightModifier.apply(hostile, stepHeightModifier);
         SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
+        // replace a piglin by two piglins brutes (for 50 piglins)
         if (SPAWN_PIGLIN_BRUTE && !hostile.hasCustomName() && hostile instanceof PiglinEntity && Math.random()*100 < 2) {
             EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
             EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
@@ -301,5 +305,34 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     public double getHealthModifier() {
         return healthModifier;
+    }
+
+    @Override
+    public String toString() {
+        final var sb = new StringBuilder();
+        sb.append("GlobalDifficultyManager(number of death=")
+            .append(numberOfDeath)
+            .append(", total of death=")
+            .append(totalOfDeath)
+            .append(") {better skeletons=")
+            .append(BETTER_SKELETON)
+            .append(", better zombies=")
+            .append(BETTER_ZOMBIES)
+            .append(", better creepers=")
+            .append(BETTER_CREEPERS)
+            .append(", spawn piglin brute=")
+            .append(SPAWN_PIGLIN_BRUTE)
+            .append(", health modifier=")
+            .append(healthModifier)
+            .append(", follow range modifier=")
+            .append(followRangeModifier)
+            .append(", step height modifier=")
+            .append(stepHeightModifier)
+            .append(", spawn reinforcement modifier=")
+            .append(spawnReinforcementModifier)
+            .append(", fall damage multiplier modifier=")
+            .append(fallDamageMultiplierModifier)
+            .append("}");
+        return sb.toString();
     }
 }

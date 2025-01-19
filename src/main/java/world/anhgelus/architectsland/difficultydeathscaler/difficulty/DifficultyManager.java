@@ -180,19 +180,33 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     protected void updateDeath(UpdateType updateType) {
-        final var updater = new Updater();
-        final var rules = server.getGameRules();
+        final var updater = getUpdater();
 
         if (updateType != UpdateType.DECREASE) onDeath(updateType, updater);
 
-        for (final Step step : steps) {
-            if (step.level() <= numberOfDeath) step.reached(server, rules, updater);
-            else break;
-        }
-
         if (Arrays.stream(steps).noneMatch(x -> x.level() == numberOfDeath) && updateType != UpdateType.SET) return;
 
+        getUpdatedSteps(updater);
+
         onUpdate(updateType, updater);
+    }
+
+    protected Updater getUpdater() {
+        final var updater = new Updater();
+        getUpdatedSteps(updater);
+        return updater;
+    }
+
+    protected void getUpdatedSteps(Updater updater) {
+        final var rules = server.getGameRules();
+
+        var i = 0;
+        var valid = true;
+        while (i < steps.length && valid) {
+            if (steps[i].level() <= numberOfDeath) steps[i].reached(server, rules, updater);
+            else valid = false;
+            i++;
+        }
     }
 
     public void stopAutomaticDecrease() {
@@ -246,7 +260,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
             }
         }
         sb.append("\n");
-        sb.append("Number of death: §d").append(numberOfDeath).append("§r\n");
+        sb.append("Death step: §d").append(numberOfDeath).append("§r\n");
         return sb.toString();
     }
 
@@ -294,4 +308,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
             );
         }
     }
+
+    @Override
+    public abstract String toString();
 }

@@ -9,7 +9,8 @@
     "AnnoyingDrowned",
     "AnnoyingMobEntity",
     "AnnoyingSkeleton",
-    "AnnoyingZombie"
+    "AnnoyingZombie",
+    "PlayerManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

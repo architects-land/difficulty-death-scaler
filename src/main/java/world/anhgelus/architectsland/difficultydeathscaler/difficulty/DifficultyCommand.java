@@ -6,48 +6,24 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
+import static world.anhgelus.architectsland.difficultydeathscaler.utils.Getters.GLOBAL_DIFFICULTY_GETTER;
+import static world.anhgelus.architectsland.difficultydeathscaler.utils.Getters.PLAYER_DIFFICULTY_GETTER;
 
 public class DifficultyCommand {
-
-    /**
-     * Functional interface giving the player difficulty manager
-     */
-    @FunctionalInterface
-    public interface PlayerDifficultyGetter {
-        PlayerDifficultyManager get(MinecraftServer server, ServerPlayerEntity player);
-    }
-
-    /**
-     * Functional interface giving the global difficulty manager
-     */
-    @FunctionalInterface
-    public interface GlobalDifficultyGetter {
-        GlobalDifficultyManager get();
-    }
-
-    private static PlayerDifficultyGetter playerDifficultyGetter;
-
-    public static void setPlayerDifficultyGetter(PlayerDifficultyGetter playerDifficultyGetter) {
-        DifficultyCommand.playerDifficultyGetter = playerDifficultyGetter;
-    }
-
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, GlobalDifficultyGetter globalDifficultyGetter) {
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         final Command<ServerCommandSource> globalGetExecute = context -> {
             final var source = context.getSource();
             final var server = source.getServer();
             source.sendFeedback(() -> {
-                return Text.literal(globalDifficultyGetter.get().getDifficultyUpdate(server.getOverworld().getDifficulty()));
+                return Text.literal(GLOBAL_DIFFICULTY_GETTER.get().getDifficultyUpdate(server.getOverworld().getDifficulty()));
             }, false);
             return Command.SINGLE_SUCCESS;
         };
@@ -63,7 +39,7 @@ public class DifficultyCommand {
         final var setGlobalCommand = literal("global").then(
                 argument("number of death", IntegerArgumentType.integer()).executes(context -> {
                     final var source = context.getSource();
-                    globalDifficultyGetter.get().setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
+                    GLOBAL_DIFFICULTY_GETTER.get().setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
@@ -71,32 +47,32 @@ public class DifficultyCommand {
 
         // is /dds set player [player] [difficulty|daily-death] [int]
         final var setPlayerCommand = literal("player").then(argument("player", EntityArgumentType.player())
-            .then(
-                literal("difficulty").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
-                    final var source = context.getSource();
-                    final var server = source.getServer();
-                    final var target = EntityArgumentType.getPlayer(context, "player");
-                    playerDifficultyGetter.get(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
-                    source.sendFeedback(() -> {
-                        return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
-                    }, true);
-                    target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
-                    return Command.SINGLE_SUCCESS;
-                }))
-            ).then(
-                literal("daily-death").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.literal("Not implemented yet"), false);
-                    final var source = context.getSource();
-                    final var server = source.getServer();
-                    final var target = EntityArgumentType.getPlayer(context, "player");
-                    playerDifficultyGetter.get(server, target).setDeathDay(IntegerArgumentType.getInteger(context, "number of death"));
-                    source.sendFeedback(() -> {
-                        return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
-                    }, true);
-                    target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
-                    return Command.SINGLE_SUCCESS;
-                }))
-        ));
+                .then(
+                        literal("difficulty").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
+                            final var source = context.getSource();
+                            final var server = source.getServer();
+                            final var target = EntityArgumentType.getPlayer(context, "player");
+                            PLAYER_DIFFICULTY_GETTER.get(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
+                            source.sendFeedback(() -> {
+                                return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
+                            }, true);
+                            target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
+                            return Command.SINGLE_SUCCESS;
+                        }))
+                ).then(
+                        literal("daily-death").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
+                            context.getSource().sendFeedback(() -> Text.literal("Not implemented yet"), false);
+                            final var source = context.getSource();
+                            final var server = source.getServer();
+                            final var target = EntityArgumentType.getPlayer(context, "player");
+                            PLAYER_DIFFICULTY_GETTER.get(server, target).setDeathDay(IntegerArgumentType.getInteger(context, "number of death"));
+                            source.sendFeedback(() -> {
+                                return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
+                            }, true);
+                            target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
+                            return Command.SINGLE_SUCCESS;
+                        }))
+                ));
 
         // is /dds set [global|player]
         final var setCommand = literal("set")
@@ -150,7 +126,7 @@ public class DifficultyCommand {
         final var source = context.getSource();
         final var server = source.getServer();
         source.sendFeedback(() -> Text.literal(
-                playerDifficultyGetter.get(server, target)
+                PLAYER_DIFFICULTY_GETTER.get(server, target)
                         .getDifficultyUpdate(server.getOverworld().getDifficulty())
         ), false);
         return Command.SINGLE_SUCCESS;

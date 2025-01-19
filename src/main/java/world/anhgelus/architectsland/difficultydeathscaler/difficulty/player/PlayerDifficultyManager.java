@@ -25,6 +25,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     public static final int SECONDS_BEFORE_DECREASED = 24*60*60;
 
+    public static final Text KICKED_DIED_TOO_MUCH_MESSAGE = Text.of("You died too much during 24h...\nYou can log back in 12h.");
+
     public static class HealthModifier extends PlayerHealthModifier {
         public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
 
@@ -314,7 +316,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 resetDeathDay();
                 return false;
             }
-            handler.disconnect(Text.of("You died too much during 24h...\nYou can log back in 12h."));
+            handler.disconnect(KICKED_DIED_TOO_MUCH_MESSAGE);
             return true;
         } else if (tempBan) {
             tempBan = false;

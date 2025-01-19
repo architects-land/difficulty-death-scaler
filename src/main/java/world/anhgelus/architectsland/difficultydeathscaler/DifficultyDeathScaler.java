@@ -103,7 +103,6 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             final var playerDifficulty = getPlayerDifficultyManager(server, handler.player);
-            if (playerDifficulty.kickIfDiedTooMuch()) return;
             playerDifficulty.applyModifiers();
 
             difficultyManager.applyModifiers(handler.player);

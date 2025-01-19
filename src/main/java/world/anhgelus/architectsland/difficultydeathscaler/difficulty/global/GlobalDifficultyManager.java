@@ -263,7 +263,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
         // if mobs was already spawned, return
         if (hostile.hasCustomName()) return;
-        if (hostile instanceof PiglinEntity && Math.random() * 100 < numberOfDeath % 27) {
+        if (hostile instanceof PiglinEntity && numberOfDeath > 26 && Math.random() * 100 < numberOfDeath % 27) {
             EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
             hostile.discard();
         }

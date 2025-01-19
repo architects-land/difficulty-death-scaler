@@ -77,6 +77,7 @@ public abstract class AnnoyingCreeper {
         protected void init(EntityType<? extends HostileEntity> entityType, World world, CallbackInfo ci) {
             final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
             if (difficulty == null) return;
+            if (difficulty.getNumberOfDeath() < 21) return;
             if (Math.random() * 100 < 2 * (difficulty.getNumberOfDeath() % 21))
                 this.dataTracker.set(CHARGED, true);
         }

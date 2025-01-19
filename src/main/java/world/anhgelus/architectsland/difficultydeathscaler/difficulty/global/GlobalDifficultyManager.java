@@ -154,7 +154,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     protected double spawnReinforcementModifier = 0;
     protected double fallDamageMultiplierModifier = 0;
 
-    private int totalOfDeath = 0;
+    private int totalOfDeath;
 
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -303,26 +303,16 @@ public class GlobalDifficultyManager extends DifficultyManager {
     @Override
     public String toString() {
         final var sb = new StringBuilder();
-        sb.append("GlobalDifficultyManager(number of death=")
-                .append(numberOfDeath)
-                .append(", total of death=")
-                .append(totalOfDeath)
-                .append(") {better skeletons=")
-                .append(BETTER_SKELETON)
-                .append(", better zombies=")
-                .append(BETTER_ZOMBIES)
-                .append(", better creepers=")
-                .append(BETTER_CREEPERS)
-                .append(", health modifier=")
-                .append(healthModifier)
-                .append(", follow range modifier=")
-                .append(followRangeModifier)
-                .append(", step height modifier=")
-                .append(stepHeightModifier)
-                .append(", spawn reinforcement modifier=")
-                .append(spawnReinforcementModifier)
-                .append(", fall damage multiplier modifier=")
-                .append(fallDamageMultiplierModifier)
+        sb.append("GlobalDifficultyManager(number of death=").append(numberOfDeath)
+                .append(", total of death=").append(totalOfDeath)
+                .append(") {better skeletons=").append(BETTER_SKELETON)
+                .append(", better zombies=").append(BETTER_ZOMBIES)
+                .append(", better creepers=").append(BETTER_CREEPERS)
+                .append(", health modifier=").append(healthModifier)
+                .append(", follow range modifier=").append(followRangeModifier)
+                .append(", step height modifier=").append(stepHeightModifier)
+                .append(", spawn reinforcement modifier=").append(spawnReinforcementModifier)
+                .append(", fall damage multiplier modifier=").append(fallDamageMultiplierModifier)
                 .append("}");
         return sb.toString();
     }

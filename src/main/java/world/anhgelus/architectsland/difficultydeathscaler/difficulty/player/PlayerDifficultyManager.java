@@ -345,20 +345,13 @@ public class PlayerDifficultyManager extends DifficultyManager {
         sb.append("PlayerDifficultyManager(uuid=");
         if (uuid == null) sb.append("null");
         else sb.append(uuid);
-        sb.append(", number of death=")
-                .append(numberOfDeath)
-                .append(", banned since=")
-                .append(bannedSince)
-                .append(", total of death=")
-                .append(totalOfDeath)
-                .append(", death day=")
-                .append(deathDay)
-                .append(") {luck modifier=")
-                .append(luckModifier)
-                .append(", health modifier=")
-                .append(healthModifier)
-                .append(", block break speed modifier=")
-                .append(blockBreakSpeedModifier)
+        sb.append(", number of death=").append(numberOfDeath)
+                .append(", banned since=").append(bannedSince)
+                .append(", total of death=").append(totalOfDeath)
+                .append(", death day=").append(deathDay)
+                .append(") {luck modifier=").append(luckModifier)
+                .append(", health modifier=").append(healthModifier)
+                .append(", block break speed modifier=").append(blockBreakSpeedModifier)
                 .append("}");
         return sb.toString();
     }

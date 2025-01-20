@@ -13,7 +13,6 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.BlockBreakSpeedModifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.LuckModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
 
@@ -23,7 +22,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     public @Nullable ServerPlayerEntity player;
     public @Nullable UUID uuid = null;
 
-    public static final int SECONDS_BEFORE_DECREASED = 24*60*60;
+    public static final int SECONDS_BEFORE_DECREASED = 24 * 60 * 60;
 
     public static final Text KICKED_DIED_TOO_MUCH_MESSAGE = Text.of("You died too much during 24h...\nYou can log back in 12h.");
 
@@ -42,11 +41,14 @@ public class PlayerDifficultyManager extends DifficultyManager {
     public static final Step[] STEPS = new Step[]{
             new Step(0, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(0);
-                updater.getModifier(LuckModifier.class).update(0.1);
-                updater.getModifier(BlockBreakSpeedModifier.class).update(0.1);
+//                updater.getModifier(LuckModifier.class).update(0.1);
+                updater.getModifier(BlockBreakSpeedModifier.class).update(0.4); // is haste 2
             }),
             new Step(1, (server, gamerules, updater) -> {
-                updater.getModifier(LuckModifier.class).update(0);
+//                updater.getModifier(LuckModifier.class).update(0);
+                updater.getModifier(BlockBreakSpeedModifier.class).update(0.2); // is haste 1
+            }),
+            new Step(2, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-2);
             }),
             new Step(3, (server, gamerules, updater) -> {
@@ -56,15 +58,12 @@ public class PlayerDifficultyManager extends DifficultyManager {
             new Step(5, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-6);
             }),
-            new Step(6, (server, gamerules, updater) -> {
-                updater.getModifier(LuckModifier.class).update(-0.1);
-            }),
             new Step(7, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-8);
             }),
             new Step(8, (server, gamerules, updater) -> {
-                updater.getModifier(BlockBreakSpeedModifier.class).update(-0.1);
-                updater.getModifier(LuckModifier.class).update(-0.2);
+                updater.getModifier(BlockBreakSpeedModifier.class).update(-0.2); // is mining fatigue 1
+//                updater.getModifier(LuckModifier.class).update(-0.2);
             }),
             new Step(10, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-10);
@@ -72,7 +71,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     };
 
     protected double healthModifier = 0;
-    protected double luckModifier = 0;
+    //    protected double luckModifier = 0;
     protected double blockBreakSpeedModifier = 0;
 
     private final GlobalDifficultyManager globalManager;
@@ -114,7 +113,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         }
         for (final var delay : data.deathDayDelay) {
             try {
-                timer.schedule(deathDayTask(), (24*60*60 - delay)*1000L);
+                timer.schedule(deathDayTask(), (24 * 60 * 60 - delay) * 1000L);
             } catch (IllegalArgumentException e) {
                 DifficultyDeathScaler.LOGGER.error("An error occurred while loading data", e);
                 DifficultyDeathScaler.LOGGER.warn("Removing one day death");
@@ -150,7 +149,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
             throw new IllegalStateException("Player is null");
         }
         if (player.getWorld().isClient()) return;
-        timer.schedule(deathDayTask(), 24*60*60*1000L);
+        timer.schedule(deathDayTask(), 24 * 60 * 60 * 1000L);
         if (!diedTooMuch()) return;
         // temp ban
         tempBan = true;
@@ -166,10 +165,10 @@ public class PlayerDifficultyManager extends DifficultyManager {
             if (m instanceof final HealthModifier mod) {
                 healthModifier = mod.getValue();
                 mod.apply(player);
-            } else if (m instanceof final LuckModifier mod) {
+            }/* else if (m instanceof final LuckModifier mod) {
                 luckModifier = mod.getValue();
                 mod.apply(player);
-            } else if (m instanceof final BlockBreakSpeedModifier mod) {
+            } */ else if (m instanceof final BlockBreakSpeedModifier mod) {
                 blockBreakSpeedModifier = mod.getValue();
                 mod.apply(player);
             }
@@ -245,7 +244,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     public void applyModifiers() {
         HealthModifier.apply(player, healthModifier);
-        LuckModifier.apply(player, luckModifier);
+//        LuckModifier.apply(player, luckModifier);
         BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);
     }
 
@@ -254,9 +253,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
         if (deathDay == n) return;
         final var now = System.currentTimeMillis() / 1000;
         if (n > deathDay) {
-            for (int i = 0; i < n-deathDay; i++) {
+            for (int i = 0; i < n - deathDay; i++) {
                 deathDayStart.add(delay(now));
-                timer.schedule(deathDayTask(), 24*1000L);
+                timer.schedule(deathDayTask(), 24 * 1000L);
             }
             deathDay = n;
             return;
@@ -265,7 +264,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         deathDay = n;
         for (int i = 0; i < n; i++) {
             deathDayStart.add(delay(now));
-            timer.schedule(deathDayTask(), 24*1000L);
+            timer.schedule(deathDayTask(), 24 * 1000L);
         }
     }
 
@@ -292,11 +291,12 @@ public class PlayerDifficultyManager extends DifficultyManager {
         final var rules = server.getGameRules();
         if (!rules.get(DifficultyDeathScaler.ENABLE_TEMP_BAN).get()) return false;
         return deathDay >= rules.getInt(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN) ||
-                (tempBan && System.currentTimeMillis() / 1000 - bannedSince < rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get()*60*60L);
+                (tempBan && System.currentTimeMillis() / 1000 - bannedSince < rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get() * 60 * 60L);
     }
 
     /**
      * Kick the player if he died too much
+     *
      * @return true if the player was kicked
      * @throws IllegalStateException if player is null
      */
@@ -307,6 +307,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     /**
      * Kick the player if he died too much
+     *
      * @return true if the player was kicked
      */
     public boolean kickIfDiedTooMuch(ServerPlayNetworkHandler handler) {
@@ -336,20 +337,20 @@ public class PlayerDifficultyManager extends DifficultyManager {
         if (uuid == null) sb.append("null");
         else sb.append(uuid);
         sb.append(", number of death=")
-            .append(numberOfDeath)
-            .append(", banned since=")
-            .append(bannedSince)
-            .append(", total of death=")
-            .append(totalOfDeath)
-            .append(", death day=")
-            .append(deathDay)
-            .append(") {luck modifier=")
-            .append(luckModifier)
-            .append(", health modifier=")
-            .append(healthModifier)
-            .append(", block break speed modifier=")
-            .append(blockBreakSpeedModifier)
-            .append("}");
+                .append(numberOfDeath)
+                .append(", banned since=")
+                .append(bannedSince)
+                .append(", total of death=")
+                .append(totalOfDeath)
+                .append(", death day=")
+                .append(deathDay)
+                .append(") {health modifier=")
+                .append(healthModifier)
+//                .append(", luck modifier=")
+//                .append(luckModifier)
+                .append(", block break speed modifier=")
+                .append(blockBreakSpeedModifier)
+                .append("}");
         return sb.toString();
     }
 }

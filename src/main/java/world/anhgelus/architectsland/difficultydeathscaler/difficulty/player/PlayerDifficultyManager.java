@@ -180,6 +180,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 mod.apply(player);
             } */ else if (m instanceof final BlockBreakSpeedModifier mod) {
                 blockBreakSpeedModifier = mod.getValue();
+                mod.apply(player);
             } else if (m instanceof final MovementSpeedModifier mod) {
                 movementSpeedModifier = mod.getValue();
                 mod.apply(player);

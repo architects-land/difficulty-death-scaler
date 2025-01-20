@@ -78,7 +78,9 @@ public abstract class AnnoyingCreeper {
             final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
             if (difficulty == null) return;
             if (difficulty.getNumberOfDeath() < 21) return;
-            if (Math.random() * 100 < 2 * (difficulty.getNumberOfDeath() % 21))
+            var proba = 2 * (difficulty.getNumberOfDeath()) % 21;
+            if (difficulty.getNumberOfDeath() >= 40) proba = 40; // limit the proba at max difficulty
+            if (Getters.RANDOM.nextFloat() * 100 < proba)
                 this.dataTracker.set(CHARGED, true);
         }
 

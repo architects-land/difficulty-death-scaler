@@ -6,7 +6,11 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 
+import java.util.Random;
+
 public class Getters {
+    public static final Random RANDOM = new Random();
+
     /**
      * Functional interface giving the player difficulty manager with GameProfile
      */

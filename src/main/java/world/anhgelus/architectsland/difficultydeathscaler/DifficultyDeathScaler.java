@@ -57,7 +57,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Difficulty Death Scaler started");
+        LOGGER.info("Difficulty Death Scaler initialized");
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
@@ -71,6 +71,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             loadAllPlayerManagers(server);
 
             Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);
+            Getters.RANDOM.setSeed(server.getOverworld().getSeed());
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {

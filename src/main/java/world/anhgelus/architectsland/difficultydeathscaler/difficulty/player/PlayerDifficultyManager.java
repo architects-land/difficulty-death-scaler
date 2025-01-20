@@ -14,6 +14,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.BlockBreakSpeedModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.MovementSpeedModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
 
 import java.util.*;
@@ -43,10 +44,12 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 updater.getModifier(HealthModifier.class).update(0);
 //                updater.getModifier(LuckModifier.class).update(0.1);
                 updater.getModifier(BlockBreakSpeedModifier.class).update(0.4); // is haste 2
+                updater.getModifier(MovementSpeedModifier.class).update(0.1); // is speed 1
             }),
             new Step(1, (server, gamerules, updater) -> {
 //                updater.getModifier(LuckModifier.class).update(0);
                 updater.getModifier(BlockBreakSpeedModifier.class).update(0.2); // is haste 1
+                updater.getModifier(MovementSpeedModifier.class).update(0);
             }),
             new Step(2, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-2);
@@ -59,13 +62,19 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 updater.getModifier(HealthModifier.class).update(-6);
             }),
             new Step(7, (server, gamerules, updater) -> {
-                updater.getModifier(HealthModifier.class).update(-8);
+                updater.getModifier(MovementSpeedModifier.class).update(-0.1); // is slowness 1
             }),
             new Step(8, (server, gamerules, updater) -> {
                 updater.getModifier(BlockBreakSpeedModifier.class).update(-0.2); // is mining fatigue 1
 //                updater.getModifier(LuckModifier.class).update(-0.2);
             }),
             new Step(10, (server, gamerules, updater) -> {
+                updater.getModifier(HealthModifier.class).update(-8);
+            }),
+            new Step(12, (server, gamerules, updater) -> {
+                updater.getModifier(MovementSpeedModifier.class).update(-0.2); // is slowness 2
+            }),
+            new Step(15, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-10);
             }),
     };
@@ -73,6 +82,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     protected double healthModifier = 0;
     //    protected double luckModifier = 0;
     protected double blockBreakSpeedModifier = 0;
+    protected double movementSpeedModifier = 0;
 
     private final GlobalDifficultyManager globalManager;
 
@@ -170,6 +180,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 mod.apply(player);
             } */ else if (m instanceof final BlockBreakSpeedModifier mod) {
                 blockBreakSpeedModifier = mod.getValue();
+            } else if (m instanceof final MovementSpeedModifier mod) {
+                movementSpeedModifier = mod.getValue();
                 mod.apply(player);
             }
         });
@@ -350,6 +362,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
 //                .append(luckModifier)
                 .append(", block break speed modifier=")
                 .append(blockBreakSpeedModifier)
+                .append(", movement speed modifier=")
+                .append(movementSpeedModifier)
                 .append("}");
         return sb.toString();
     }

@@ -11,12 +11,24 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 @Mixin(ZombieEntity.class)
 public abstract class AnnoyingZombie extends HostileEntity {
     protected AnnoyingZombie(EntityType<? extends HostileEntity> entityType, World world) {
         super(entityType, world);
+    }
+
+    @Inject(at = @At("RETURN"), method = "<init>(Lnet/minecraft/entity/EntityType;Lnet/minecraft/world/World;)V")
+    protected void init(EntityType<? extends ZombieEntity> entityType, World world, CallbackInfo ci) {
+        final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+        if (difficulty == null) return;
+        MobUtils.customSpawn(difficulty.getNumberOfDeath() - 9, 30, () -> {
+            // turn into baby zombies
+            this.setBaby(true);
+            return null;
+        });
     }
 
     @Inject(at = @At("HEAD"), method = "initGoals")

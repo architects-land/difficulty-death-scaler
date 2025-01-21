@@ -13,12 +13,7 @@ public class BlockBreakSpeedModifier extends Modifier<ServerPlayerEntity> {
     protected static Identifier ID = Identifier.of(PREFIX + "block_break_speed_modifier");
 
     public BlockBreakSpeedModifier() {
-        super(ID, ATTRIBUTE, OPERATION);
-    }
-
-    @Override
-    public void update(double newValue) {
-        if (newValue < value) value = newValue;
+        super(ID, ATTRIBUTE, OPERATION, Check.SMALLER);
     }
 
     public static void apply(ServerPlayerEntity player, double value) {

@@ -186,6 +186,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 mod.apply(player);
             }
         });
+        DifficultyDeathScaler.LOGGER.info("Updating modifiers {}", this);
     }
 
     @Override

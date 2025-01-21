@@ -12,12 +12,7 @@ public abstract class PlayerHealthModifier extends Modifier<ServerPlayerEntity> 
     public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
 
     public PlayerHealthModifier(Identifier id) {
-        super(id, ATTRIBUTE, OPERATION);
-    }
-
-    @Override
-    public void update(double newValue) {
-        if (newValue < value) value = newValue;
+        super(id, ATTRIBUTE, OPERATION, Check.SMALLER);
     }
 
     public static void apply(ServerPlayerEntity player, Identifier id, double value) {

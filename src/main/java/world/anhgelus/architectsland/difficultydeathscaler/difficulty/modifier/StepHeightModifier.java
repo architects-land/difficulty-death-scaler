@@ -13,12 +13,7 @@ public class StepHeightModifier extends Modifier<HostileEntity> {
     protected static Identifier ID = Identifier.of(PREFIX + "step_height_modifier");
 
     public StepHeightModifier() {
-        super(ID, ATTRIBUTE, OPERATION);
-    }
-
-    @Override
-    public void update(double newValue) {
-        if (newValue > value) value = newValue;
+        super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
     }
 
     public static void apply(HostileEntity player, double value) {

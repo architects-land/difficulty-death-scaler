@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.GoalsUtils;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 @Mixin(ZombieEntity.class)
 public abstract class AnnoyingZombie extends HostileEntity {
@@ -27,7 +27,7 @@ public abstract class AnnoyingZombie extends HostileEntity {
 
     @Inject(at = @At("RETURN"), method = "initGoals")
     protected void betterGoals(CallbackInfo ci) {
-        if ((ZombieEntity)(Object) this instanceof ZombifiedPiglinEntity) return;
-        if (GlobalDifficultyManager.areZombiesBetter()) GoalsUtils.commonBetterGoals(this, targetSelector);
+        if ((ZombieEntity) (Object) this instanceof ZombifiedPiglinEntity) return;
+        if (GlobalDifficultyManager.areZombiesBetter()) MobUtils.commonBetterGoals(this, targetSelector);
     }
 }

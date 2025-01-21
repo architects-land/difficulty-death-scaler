@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 public abstract class AnnoyingCreeper {
     @Mixin(CreeperIgniteGoal.class)
@@ -78,10 +79,10 @@ public abstract class AnnoyingCreeper {
             final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
             if (difficulty == null) return;
             if (difficulty.getNumberOfDeath() < 21) return;
-            var proba = 2 * (difficulty.getNumberOfDeath()) % 21;
-            if (difficulty.getNumberOfDeath() >= 40) proba = 40; // limit the proba at max difficulty
-            if (Getters.RANDOM.nextFloat() * 100 < proba)
+            MobUtils.customSpawn(2 * (difficulty.getNumberOfDeath()) % 21, 40, () -> {
                 this.dataTracker.set(CHARGED, true);
+                return null;
+            });
         }
 
         @Inject(at = @At("RETURN"), method = "initGoals")

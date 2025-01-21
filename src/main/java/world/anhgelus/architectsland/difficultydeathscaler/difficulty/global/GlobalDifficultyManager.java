@@ -17,7 +17,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 import java.util.List;
 
@@ -264,12 +264,13 @@ public class GlobalDifficultyManager extends DifficultyManager {
         SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
         // if mobs was already spawned, return
         if (hostile.hasCustomName()) return;
-        var proba = 1.5 * (numberOfDeath % 27);
-        if (numberOfDeath >= 40) proba = 20; // limit the proba at max difficulty
-        if (hostile instanceof PiglinEntity && numberOfDeath > 26 && Getters.RANDOM.nextFloat() * 100 < proba) {
-            EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
-            hostile.discard();
-        }
+        if (hostile instanceof PiglinEntity)
+            MobUtils.customSpawn(1.5 * (numberOfDeath % 27), 20, () -> {
+                // spawn piglin brutes
+                EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
+                hostile.discard();
+                return null;
+            });
     }
 
     @Override

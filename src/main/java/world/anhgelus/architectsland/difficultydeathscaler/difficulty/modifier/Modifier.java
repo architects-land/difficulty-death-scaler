@@ -7,7 +7,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class Modifier<T extends LivingEntity> {
+public class Modifier<T extends LivingEntity> {
     public static final String PREFIX = "dds_";
 
     protected enum Check {

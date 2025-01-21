@@ -22,7 +22,7 @@ public class MobUtils {
         targetSelector.add(1, new ActiveTargetGoal<>(e, PlayerEntity.class, true));
     }
 
-    public static void customSpawn(double proba, double max, Callable<Object> exec) {
+    public static void customSpawn(float proba, float max, Callable<Object> exec) {
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
         if (difficulty == null) return;
         if (difficulty.getNumberOfDeath() >= 40) proba = max;

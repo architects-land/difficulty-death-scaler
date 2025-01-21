@@ -3,6 +3,8 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
@@ -24,8 +26,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
     public @Nullable UUID uuid = null;
 
     public static final int SECONDS_BEFORE_DECREASED = 24 * 60 * 60;
-
-    public static final Text KICKED_DIED_TOO_MUCH_MESSAGE = Text.of("You died too much during 24h...\nYou can log back in 12h.");
 
     public static class HealthModifier extends PlayerHealthModifier {
         public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
@@ -308,6 +308,19 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     /**
+     * @throws IllegalStateException if the player is not temp banned
+     */
+    public Text getKickedDiedTooMuchMessage() {
+        if (!tempBan) throw new IllegalStateException("Player is not temp banned");
+        final var rules = server.getGameRules();
+        final var banTime = System.currentTimeMillis() / 1000 - bannedSince;
+        final var banLength = rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get() * 60 * 60L;
+        return MutableText.of(new PlainTextContent.Literal("You died too much during 24h...\nYou can log back in "))
+                .append(formatSeconds(banLength - banTime))
+                .append(".");
+    }
+
+    /**
      * Kick the player if he died too much
      *
      * @return true if the player was kicked
@@ -330,7 +343,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 resetDeathDay();
                 return false;
             }
-            handler.disconnect(KICKED_DIED_TOO_MUCH_MESSAGE);
+            handler.disconnect(getKickedDiedTooMuchMessage());
             return true;
         } else if (tempBan) {
             tempBan = false;

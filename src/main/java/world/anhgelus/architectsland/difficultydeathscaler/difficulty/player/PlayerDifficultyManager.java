@@ -250,13 +250,13 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     public void setDeathDay(int n) {
-        if (kickIfDiedTooMuch()) return;
         if (deathDay == n) return;
         if (n > deathDay) {
             for (int i = 0; i < n - deathDay; i++) {
                 scheduleDeathDayTask();
             }
             deathDay = n;
+            kickIfDiedTooMuch();
             return;
         }
         resetDeathDay();
@@ -264,6 +264,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         for (int i = 0; i < n; i++) {
             scheduleDeathDayTask();
         }
+        kickIfDiedTooMuch();
     }
 
     private void scheduleDeathDayTask() {

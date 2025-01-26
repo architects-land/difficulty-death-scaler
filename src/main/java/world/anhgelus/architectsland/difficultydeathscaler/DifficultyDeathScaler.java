@@ -11,9 +11,11 @@ import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +57,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Difficulty Death Scaler started");
+        LOGGER.info("Difficulty Death Scaler initialized");
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
@@ -69,6 +71,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             loadAllPlayerManagers(server);
 
             Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);
+            Getters.RANDOM.setSeed(server.getOverworld().getSeed());
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -118,7 +121,10 @@ public class DifficultyDeathScaler implements ModInitializer {
         });
 
         UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            return BossManager.handleBuff(player, world, hand, entity);
+            if (!(entity instanceof LivingEntity)) {
+                return ActionResult.PASS;
+            }
+            return BossManager.handleBuff(player, world, hand, (LivingEntity) entity);
         });
 
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {

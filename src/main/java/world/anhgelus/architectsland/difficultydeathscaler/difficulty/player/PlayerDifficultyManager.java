@@ -17,13 +17,16 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.L
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimerTask;
+import java.util.UUID;
 
 public class PlayerDifficultyManager extends DifficultyManager {
     public @Nullable ServerPlayerEntity player;
     public @Nullable UUID uuid = null;
 
-    public static final int SECONDS_BEFORE_DECREASED = 24*60*60;
+    public static final int SECONDS_BEFORE_DECREASED = 24 * 60 * 60;
 
     public static final Text KICKED_DIED_TOO_MUCH_MESSAGE = Text.of("You died too much during 24h...\nYou can log back in 12h.");
 
@@ -81,6 +84,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     private boolean tempBan;
     private long bannedSince = -1;
     private final List<Long> deathDayStart = new ArrayList<>();
+    private final List<TimerTask> deathDayTasks = new ArrayList<>();
 
     private int totalOfDeath = 0;
 
@@ -110,11 +114,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
         bannedSince = data.bannedSince;
         tempBan = bannedSince != -1;
         for (final var delay : data.deathDayDelay) {
-            deathDayStart.add(delay);
-        }
-        for (final var delay : data.deathDayDelay) {
             try {
-                timer.schedule(deathDayTask(), (24*60*60 - delay)*1000L);
+                scheduleDeathDayTask(delay);
+                deathDayStart.add(delay);
             } catch (IllegalArgumentException e) {
                 DifficultyDeathScaler.LOGGER.error("An error occurred while loading data", e);
                 DifficultyDeathScaler.LOGGER.warn("Removing one day death");
@@ -142,19 +144,17 @@ public class PlayerDifficultyManager extends DifficultyManager {
     protected void onDeath(UpdateType updateType, Updater updater) {
         if (updateType == UpdateType.SET) return;
         deathDay++;
-        final var now = System.currentTimeMillis() / 1000;
-        deathDayStart.add(delay(now));
 
         if (player == null) {
             DifficultyDeathScaler.LOGGER.warn("Updating death of null player. UpdateType {}", updateType);
             throw new IllegalStateException("Player is null");
         }
         if (player.getWorld().isClient()) return;
-        timer.schedule(deathDayTask(), 24*60*60*1000L);
+        scheduleDeathDayTask();
         if (!diedTooMuch()) return;
         // temp ban
         tempBan = true;
-        bannedSince = now;
+        bannedSince = System.currentTimeMillis() / 1000;
         kickIfDiedTooMuch();
         // resetting death day
         resetDeathDay();
@@ -250,27 +250,34 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     public void setDeathDay(int n) {
-        if (kickIfDiedTooMuch()) return;
         if (deathDay == n) return;
-        final var now = System.currentTimeMillis() / 1000;
         if (n > deathDay) {
-            for (int i = 0; i < n-deathDay; i++) {
-                deathDayStart.add(delay(now));
-                timer.schedule(deathDayTask(), 24*1000L);
+            for (int i = 0; i < n - deathDay; i++) {
+                scheduleDeathDayTask();
             }
             deathDay = n;
+            kickIfDiedTooMuch();
             return;
         }
         resetDeathDay();
         deathDay = n;
         for (int i = 0; i < n; i++) {
-            deathDayStart.add(delay(now));
-            timer.schedule(deathDayTask(), 24*1000L);
+            scheduleDeathDayTask();
         }
+        kickIfDiedTooMuch();
     }
 
-    private TimerTask deathDayTask() {
-        return new TimerTask() {
+    private void scheduleDeathDayTask() {
+        scheduleDeathDayTask(0);
+    }
+
+    private void scheduleDeathDayTask(long delayTime) {
+        if (delayTime == 0) {
+            deathDayStart.add(delay(System.currentTimeMillis() / 1000));
+        } else {
+            deathDayStart.add(delayTime);
+        }
+        final var task = new TimerTask() {
             @Override
             public void run() {
                 if (deathDay != 0) {
@@ -279,24 +286,27 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 } else DifficultyDeathScaler.LOGGER.warn("Death day is already equal to 0");
             }
         };
+        timer.schedule(task, (24 * 60 * 60 - delayTime) * 1000L);
+        deathDayTasks.add(task);
     }
 
     private void resetDeathDay() {
         deathDay = 0;
         deathDayStart.clear();
-        timer.cancel();
-        timer = new Timer();
+        deathDayTasks.forEach(TimerTask::cancel);
+        deathDayTasks.clear();
     }
 
     public boolean diedTooMuch() {
         final var rules = server.getGameRules();
         if (!rules.get(DifficultyDeathScaler.ENABLE_TEMP_BAN).get()) return false;
         return deathDay >= rules.getInt(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN) ||
-                (tempBan && System.currentTimeMillis() / 1000 - bannedSince < rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get()*60*60L);
+                (tempBan && System.currentTimeMillis() / 1000 - bannedSince < rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get() * 60 * 60L);
     }
 
     /**
      * Kick the player if he died too much
+     *
      * @return true if the player was kicked
      * @throws IllegalStateException if player is null
      */
@@ -307,6 +317,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     /**
      * Kick the player if he died too much
+     *
      * @return true if the player was kicked
      */
     public boolean kickIfDiedTooMuch(ServerPlayNetworkHandler handler) {
@@ -335,21 +346,14 @@ public class PlayerDifficultyManager extends DifficultyManager {
         sb.append("PlayerDifficultyManager(uuid=");
         if (uuid == null) sb.append("null");
         else sb.append(uuid);
-        sb.append(", number of death=")
-            .append(numberOfDeath)
-            .append(", banned since=")
-            .append(bannedSince)
-            .append(", total of death=")
-            .append(totalOfDeath)
-            .append(", death day=")
-            .append(deathDay)
-            .append(") {luck modifier=")
-            .append(luckModifier)
-            .append(", health modifier=")
-            .append(healthModifier)
-            .append(", block break speed modifier=")
-            .append(blockBreakSpeedModifier)
-            .append("}");
+        sb.append(", number of death=").append(numberOfDeath)
+                .append(", banned since=").append(bannedSince)
+                .append(", total of death=").append(totalOfDeath)
+                .append(", death day=").append(deathDay)
+                .append(") {luck modifier=").append(luckModifier)
+                .append(", health modifier=").append(healthModifier)
+                .append(", block break speed modifier=").append(blockBreakSpeedModifier)
+                .append("}");
         return sb.toString();
     }
 }

@@ -17,11 +17,12 @@ import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 import java.util.List;
 
 public class GlobalDifficultyManager extends DifficultyManager {
-    public static final int SECONDS_BEFORE_DECREASED = 12*60*60; // 12 hours
+    public static final int SECONDS_BEFORE_DECREASED = 12 * 60 * 60; // 12 hours
 
     private final DifficultyIncrease increaser; // 12 hours
 
@@ -46,7 +47,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 BETTER_CREEPERS = false;
                 BETTER_ZOMBIES = false;
                 BETTER_SKELETON = false;
-                SPAWN_PIGLIN_BRUTE = false;
                 // explosion decay
                 gamerules.get(GameRules.BLOCK_EXPLOSION_DROP_DECAY).set(false, server);
                 gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(false, server);
@@ -123,7 +123,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
             new Step(28, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(true, server);
-                SPAWN_PIGLIN_BRUTE = true;
             }),
             new Step(30, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.UNIVERSAL_ANGER).set(true, server);
@@ -149,7 +148,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
     protected static boolean BETTER_SKELETON = false;
     protected static boolean BETTER_ZOMBIES = false;
     protected static boolean BETTER_CREEPERS = false;
-    protected static boolean SPAWN_PIGLIN_BRUTE = false;
 
     protected double healthModifier = 0;
     protected double followRangeModifier = 0;
@@ -157,7 +155,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     protected double spawnReinforcementModifier = 0;
     protected double fallDamageMultiplierModifier = 0;
 
-    private int totalOfDeath = 0;
+    private int totalOfDeath;
 
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -233,7 +231,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         if (numberOfDeath >= STEPS[1].level()) {
             sb.append("\n\n");
         }
-        if (numberOfDeath >= STEPS[STEPS.length-1].level()) {
+        if (numberOfDeath >= STEPS[STEPS.length - 1].level()) {
             sb.append("§cWell... Good luck... you dont have regen anymore§r");
         } else if (numberOfDeath >= STEPS[21].level()) {
             sb.append("§cNether is gonna be very dangerous...§r");
@@ -264,12 +262,15 @@ public class GlobalDifficultyManager extends DifficultyManager {
         FollowRangeModifier.apply(hostile, followRangeModifier);
         StepHeightModifier.apply(hostile, stepHeightModifier);
         SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
-        // replace a piglin by two piglins brutes (for 50 piglins)
-        if (SPAWN_PIGLIN_BRUTE && !hostile.hasCustomName() && hostile instanceof PiglinEntity && Math.random()*100 < 2) {
-            EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
-            EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
-            hostile.discard();
-        }
+        // if mobs was already spawned, return
+        if (hostile.hasCustomName()) return;
+        if (hostile instanceof PiglinEntity)
+            MobUtils.customSpawn(1.5f * (numberOfDeath % 27), 20, () -> {
+                // spawn piglin brutes
+                EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
+                hostile.discard();
+                return null;
+            });
     }
 
     @Override
@@ -299,10 +300,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
         return BETTER_CREEPERS;
     }
 
-    public static boolean canSpawnPiglinsBrute() {
-        return SPAWN_PIGLIN_BRUTE;
-    }
-
     public double getHealthModifier() {
         return healthModifier;
     }
@@ -310,29 +307,17 @@ public class GlobalDifficultyManager extends DifficultyManager {
     @Override
     public String toString() {
         final var sb = new StringBuilder();
-        sb.append("GlobalDifficultyManager(number of death=")
-            .append(numberOfDeath)
-            .append(", total of death=")
-            .append(totalOfDeath)
-            .append(") {better skeletons=")
-            .append(BETTER_SKELETON)
-            .append(", better zombies=")
-            .append(BETTER_ZOMBIES)
-            .append(", better creepers=")
-            .append(BETTER_CREEPERS)
-            .append(", spawn piglin brute=")
-            .append(SPAWN_PIGLIN_BRUTE)
-            .append(", health modifier=")
-            .append(healthModifier)
-            .append(", follow range modifier=")
-            .append(followRangeModifier)
-            .append(", step height modifier=")
-            .append(stepHeightModifier)
-            .append(", spawn reinforcement modifier=")
-            .append(spawnReinforcementModifier)
-            .append(", fall damage multiplier modifier=")
-            .append(fallDamageMultiplierModifier)
-            .append("}");
+        sb.append("GlobalDifficultyManager(number of death=").append(numberOfDeath)
+                .append(", total of death=").append(totalOfDeath)
+                .append(") {better skeletons=").append(BETTER_SKELETON)
+                .append(", better zombies=").append(BETTER_ZOMBIES)
+                .append(", better creepers=").append(BETTER_CREEPERS)
+                .append(", health modifier=").append(healthModifier)
+                .append(", follow range modifier=").append(followRangeModifier)
+                .append(", step height modifier=").append(stepHeightModifier)
+                .append(", spawn reinforcement modifier=").append(spawnReinforcementModifier)
+                .append(", fall damage multiplier modifier=").append(fallDamageMultiplierModifier)
+                .append("}");
         return sb.toString();
     }
 }

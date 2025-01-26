@@ -61,7 +61,6 @@ public class DifficultyCommand {
                         }))
                 ).then(
                         literal("daily-death").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
-                            context.getSource().sendFeedback(() -> Text.literal("Not implemented yet"), false);
                             final var source = context.getSource();
                             final var server = source.getServer();
                             final var target = EntityArgumentType.getPlayer(context, "player");

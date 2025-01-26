@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.GoalsUtils;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 @Mixin(AbstractSkeletonEntity.class)
 public abstract class AnnoyingSkeleton extends HostileEntity {
@@ -24,7 +24,7 @@ public abstract class AnnoyingSkeleton extends HostileEntity {
         if (!GlobalDifficultyManager.areSkeletonsBetter()) return;
         // flee Player
         goalSelector.add(3, new FleeEntityGoal<>(
-                (AbstractSkeletonEntity) (Object)this,
+                (AbstractSkeletonEntity) (Object) this,
                 PlayerEntity.class,
                 1.5f,
                 1.2,
@@ -34,6 +34,6 @@ public abstract class AnnoyingSkeleton extends HostileEntity {
 
     @Inject(at = @At("RETURN"), method = "initGoals")
     protected void betterGoals(CallbackInfo ci) {
-        if (GlobalDifficultyManager.areSkeletonsBetter()) GoalsUtils.commonBetterGoals(this, targetSelector);
+        if (GlobalDifficultyManager.areSkeletonsBetter()) MobUtils.commonBetterGoals(this, targetSelector);
     }
 }

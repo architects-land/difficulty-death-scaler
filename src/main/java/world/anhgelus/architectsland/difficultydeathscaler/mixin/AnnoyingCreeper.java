@@ -5,6 +5,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.ai.goal.CreeperIgniteGoal;
 import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -17,12 +18,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 public abstract class AnnoyingCreeper {
     @Mixin(CreeperIgniteGoal.class)
     private abstract static class IgniteGoal {
-        private @Shadow @Final CreeperEntity creeper;
-        private @Shadow LivingEntity target;
+        @Shadow
+        @Final
+        private CreeperEntity creeper;
+
+        @Shadow
+        private LivingEntity target;
 
         @Inject(at = @At("RETURN"), method = "canStart", cancellable = true)
         public void canStart(CallbackInfoReturnable<Boolean> cir) {
@@ -34,20 +41,26 @@ public abstract class AnnoyingCreeper {
         @Inject(at = @At("HEAD"), method = "tick", cancellable = true)
         public void tick(CallbackInfo ci) {
             if (!GlobalDifficultyManager.areCreepersBetter()) return;
+            ci.cancel();
             if (this.target == null) {
                 this.creeper.setFuseSpeed(-1);
                 return;
             }
-            if (this.creeper.squaredDistanceTo(this.target) > 20.0) {
-                this.creeper.setFuseSpeed(-1);
+            if (this.creeper.isCharged()) {
+                if (this.creeper.squaredDistanceTo(this.target) > 49.0 || !this.creeper.getVisibilityCache().canSee(this.target)) {
+                    this.creeper.setFuseSpeed(-1);
+                } else {
+                    creeper.setFuseSpeed(1);
+                }
                 return;
             }
-            if (!this.creeper.getVisibilityCache().canSee(this.target)) {
+            if (this.creeper.squaredDistanceTo(this.target) > 20.0 ||
+                    (!this.creeper.getVisibilityCache().canSee(this.target) && this.creeper.squaredDistanceTo(this.target) > 49.0)
+            ) {
                 this.creeper.setFuseSpeed(-1);
                 return;
             }
             creeper.setFuseSpeed(2);
-            ci.cancel();
         }
     }
 
@@ -55,6 +68,21 @@ public abstract class AnnoyingCreeper {
     private abstract static class Creeper extends HostileEntity {
         protected Creeper(EntityType<? extends HostileEntity> entityType, World world) {
             super(entityType, world);
+        }
+
+        @Shadow
+        @Final
+        private static TrackedData<Boolean> CHARGED;
+
+        @Inject(at = @At("RETURN"), method = "<init>")
+        protected void init(EntityType<? extends HostileEntity> entityType, World world, CallbackInfo ci) {
+            final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+            if (difficulty == null) return;
+            if (difficulty.getNumberOfDeath() < 21) return;
+            MobUtils.customSpawn(2 * (difficulty.getNumberOfDeath()) % 21, 40, () -> {
+                this.dataTracker.set(CHARGED, true);
+                return null;
+            });
         }
 
         @Inject(at = @At("RETURN"), method = "initGoals")

@@ -13,12 +13,7 @@ public class FallDamageMultiplierModifier extends Modifier<ServerPlayerEntity> {
     protected static Identifier ID = Identifier.of(PREFIX + "fall_damage_multiplier_modifier");
 
     public FallDamageMultiplierModifier() {
-        super(ID, ATTRIBUTE, OPERATION);
-    }
-
-    @Override
-    public void update(double newValue) {
-        if (newValue > value) value = newValue;
+        super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
     }
 
     public static void apply(ServerPlayerEntity player, double value) {

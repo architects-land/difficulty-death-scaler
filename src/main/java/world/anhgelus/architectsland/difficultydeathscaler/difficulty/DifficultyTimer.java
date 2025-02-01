@@ -6,7 +6,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class DifficultyTimer {
+public abstract class DifficultyTimer {
     protected long initialDelay = 0;
     protected long timerStart = System.currentTimeMillis() / 1000;
 
@@ -21,6 +21,7 @@ public class DifficultyTimer {
     }
 
     protected void executeTask(TimerTask task, @Nullable TimerTask pastTask, long delay, long repeatEach) {
+        if (timer == null) throw new IllegalStateException("Timer has not been initialized");
         if (pastTask == null && initialDelay != 0) {
             try {
                 timer.schedule(task, (delay - initialDelay) * 1000L, repeatEach * 1000L);
@@ -57,6 +58,10 @@ public class DifficultyTimer {
         sb.append(seconds).append(" seconds");
 
         return sb.toString();
+    }
+
+    public void stop() {
+        if (timer != null) timer.cancel();
     }
 
     public long delay() {

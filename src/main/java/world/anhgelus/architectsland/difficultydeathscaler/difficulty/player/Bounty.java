@@ -3,16 +3,15 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyTimer;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Bounty {
+public class Bounty extends DifficultyTimer {
     public static final double BOUNTY_DEATH_PERCENTAGE = 0.02;
     public static final int BOUNTY_ENABLED_AFTER = 30;
-
-    private final Timer timer = new Timer();
 
     private final GlobalDifficultyManager globalDifficulty;
     private final PlayerDifficultyManager playerDifficulty;
@@ -21,6 +20,7 @@ public class Bounty {
     private boolean enabled = false;
 
     private Bounty(GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
+        timer = new Timer();
         this.globalDifficulty = globalDifficulty;
         this.playerDifficulty = playerDifficulty;
         this.player = playerDifficulty.player;
@@ -33,12 +33,12 @@ public class Bounty {
                 enabled = true;
                 bountyBroadcast();
             }
-        }, Math.round(delay*5*60*1000L));
+        }, Math.round(delay * 5 * 60 * 1000L));
     }
 
     private void bountyBroadcast() {
         final var sb = new StringBuilder();
-        sb.append( "§8==================== §rBounty! §8====================§r\n");
+        sb.append("§8==================== §rBounty! §8====================§r\n");
         sb.append("A bounty is put on ");
 
         var name = "";
@@ -69,7 +69,7 @@ public class Bounty {
         disable();
         assert attackerDifficulty.player != null;
         final var sb = new StringBuilder();
-        sb.append( "§8==================== §rBounty! §8====================§r\n");
+        sb.append("§8==================== §rBounty! §8====================§r\n");
 
         var name = "";
         if (player.getDisplayName() == null) name = player.getName().getString();
@@ -102,7 +102,7 @@ public class Bounty {
         if (!enabled) return;
         disable();
         final var sb = new StringBuilder();
-        sb.append( "§8==================== §rBounty! §8====================§r\n");
+        sb.append("§8==================== §rBounty! §8====================§r\n");
 
         var name = "";
         if (player.getDisplayName() == null) name = player.getName().getString();
@@ -117,7 +117,13 @@ public class Bounty {
 
     private void disable() {
         enabled = false;
-        timer.cancel();
+        stop();
+    }
+
+    @Override
+    public void stop() {
+        if (!enabled) return;
+        disable();
     }
 
     public static @Nullable Bounty newBounty(GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {

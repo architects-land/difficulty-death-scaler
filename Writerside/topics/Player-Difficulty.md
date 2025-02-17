@@ -19,7 +19,7 @@ You can modify the temp ban with these gamerules:
     </def>
     <def title="1 death" default-state="collapsed">
         <p>Reset movement speed.</p>
-        <p>Set break speed to 20% (is like a haste 2 effect)</p>
+        <p>Set break speed to 20% (is like a haste 1 effect)</p>
     </def>
     <def title="2 deaths" default-state="collapsed">
         Remove one heart

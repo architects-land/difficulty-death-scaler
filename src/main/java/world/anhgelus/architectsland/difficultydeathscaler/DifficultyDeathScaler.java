@@ -143,15 +143,22 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         EntitySleepEvents.START_SLEEPING.register((entity, world) -> {
             // if the number is too high, return
-           if (Getters.RANDOM.nextFloat()*100 > Event.percentageToEmit(difficultyManager.getNumberOfDeath())) return;
-           // emit a new random events
-           final var val = Event.values();
-           val[Getters.RANDOM.nextInt(val.length)].emit(entity.getServer());
+            if (Getters.RANDOM.nextFloat()*100 > Event.percentageToEmit(difficultyManager.getNumberOfDeath())) return;
+            // emit a new random events
+            final var server = entity.getServer();
+            if (server == null) throw new IllegalStateException("Server is null");
+            final var rules = server.getGameRules();
+            if (rules == null) return;
+            final var val = Event.values();
+            var ev = val[Getters.RANDOM.nextInt(val.length)];
+            while (!rules.getBoolean(GameRules.DO_INSOMNIA) && ev == Event.PHANTOMS_NIGHTMARE) {
+                ev = val[Getters.RANDOM.nextInt(val.length)];
+            }
+            ev.emit(server);
+
         });
 
         EntitySleepEvents.ALLOW_BED.register((entity, sleepingPos, state, vanillaResult) -> {
-            // if vanilla can't, pass
-            if (!vanillaResult) return ActionResult.PASS;
             return Event.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
         });
     }

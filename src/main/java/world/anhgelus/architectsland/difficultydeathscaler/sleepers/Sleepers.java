@@ -9,6 +9,7 @@ import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,6 +32,7 @@ public enum Sleepers {
     PHANTOMS_NIGHTMARE("It never ends.", server -> {}, server -> {}),
     RUN("Don't fight, run!", server -> {
         final var since = System.currentTimeMillis() / 50;
+        MobUtils.HOSTILE_MOBS_BURN = false;
         GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {
             final var now = System.currentTimeMillis() / 50;
 
@@ -45,6 +47,7 @@ public enum Sleepers {
         };
     }, server -> {
         GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {};
+        MobUtils.HOSTILE_MOBS_BURN = true;
     }),
     ANVIL_RAIN("It's raining.", server -> {}, server -> {});
 

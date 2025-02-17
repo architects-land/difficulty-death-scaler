@@ -14,7 +14,6 @@ import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
@@ -27,7 +26,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.event.Event;
+import world.anhgelus.architectsland.difficultydeathscaler.sleepers.Sleepers;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
@@ -85,7 +84,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 manager.stop();
             });
             bountyMap.forEach((player, bounty) -> bounty.stop());
-            Event.stop();
+            Sleepers.stop();
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
@@ -143,15 +142,15 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         EntitySleepEvents.START_SLEEPING.register((entity, world) -> {
             // if the number is too high, return
-            if (Getters.RANDOM.nextFloat()*100 > Event.percentageToEmit(difficultyManager.getNumberOfDeath())) return;
+            if (Getters.RANDOM.nextFloat()*100 > Sleepers.percentageToEmit(difficultyManager.getNumberOfDeath())) return;
             // emit a new random events
             final var server = entity.getServer();
             if (server == null) throw new IllegalStateException("Server is null");
             final var rules = server.getGameRules();
             if (rules == null) return;
-            final var val = Event.values();
+            final var val = Sleepers.values();
             var ev = val[Getters.RANDOM.nextInt(val.length)];
-            while (!rules.getBoolean(GameRules.DO_INSOMNIA) && ev == Event.PHANTOMS_NIGHTMARE) {
+            while (!rules.getBoolean(GameRules.DO_INSOMNIA) && ev == Sleepers.PHANTOMS_NIGHTMARE) {
                 ev = val[Getters.RANDOM.nextInt(val.length)];
             }
             ev.emit(server);
@@ -159,7 +158,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         });
 
         EntitySleepEvents.ALLOW_BED.register((entity, sleepingPos, state, vanillaResult) -> {
-            return Event.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
+            return Sleepers.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
         });
     }
 

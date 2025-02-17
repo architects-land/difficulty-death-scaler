@@ -1,4 +1,4 @@
-package world.anhgelus.architectsland.difficultydeathscaler.event;
+package world.anhgelus.architectsland.difficultydeathscaler.sleepers;
 
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -13,7 +13,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public enum Event {
+public enum Sleepers {
     LONG_NIGHT("Polar night.", server -> {
         final var rules = server.getGameRules();
         if (rules == null) return;
@@ -60,13 +60,13 @@ public enum Event {
     private static final Timer timer = new Timer();
     private static boolean canSleep;
 
-    Event(String description, On execStart, On execStop, boolean skipNight) {
+    Sleepers(String description, On execStart, On execStop, boolean skipNight) {
         this.description = description;
         this.skipNight = skipNight;
         this.execStart = execStart;
         this.execStop = execStop;
     }
-    Event(String description, On execStart, On execStop) {
+    Sleepers(String description, On execStart, On execStop) {
         this.description = description;
         this.skipNight = true;
         this.execStart = execStart;

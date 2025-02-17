@@ -33,11 +33,14 @@ public enum Event {
         final var since = System.currentTimeMillis() / 50;
         GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {
             final var now = System.currentTimeMillis() / 50;
+
             RegistryEntry<StatusEffect> effect;
             if (Getters.RANDOM.nextFloat() * 100 > 90) effect = StatusEffects.RESISTANCE;
             else effect = StatusEffects.INVISIBILITY;
+
             final var diff = (int) (20*60*20 - now + since);
-            if (diff < 0) throw new IllegalStateException("Difference in run is below zero");
+            if (diff < 0) throw new IllegalStateException("Difference in event RUN is below zero");
+
             living.addStatusEffect(new StatusEffectInstance(effect, diff, 2, false, false));
         };
     }, server -> {
@@ -55,6 +58,7 @@ public enum Event {
     public final On execStop;
 
     private static final Timer timer = new Timer();
+    private static boolean canSleep;
 
     Event(String description, On execStart, On execStop, boolean skipNight) {
         this.description = description;
@@ -75,6 +79,7 @@ public enum Event {
             @Override
             public void run() {
                 // starts
+                canSleep = skipNight;
                 server.getPlayerManager().broadcast(Text.of(description), false);
                 execStart.on(server);
                 // schedule stop 20 minutes later
@@ -82,10 +87,19 @@ public enum Event {
                     @Override
                     public void run() {
                         execStop.on(server);
+                        canSleep = true;
                     }
                 }, 20*60*1000);
             }
         }, when*60*1000);
+    }
+
+    public static boolean canSleep() {
+        return canSleep;
+    }
+
+    public static int percentageToEmit(int level) {
+        return (int) Math.floor(10 / (0.95 + (double) (level * level) /200));
     }
 
     public static void stop() {

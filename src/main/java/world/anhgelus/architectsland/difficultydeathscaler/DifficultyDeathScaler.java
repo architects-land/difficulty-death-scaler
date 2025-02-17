@@ -3,6 +3,7 @@ package world.anhgelus.architectsland.difficultydeathscaler;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -13,6 +14,7 @@ import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
@@ -137,6 +139,20 @@ public class DifficultyDeathScaler implements ModInitializer {
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (!(entity instanceof HostileEntity)) return;
             difficultyManager.onEntitySpawn((HostileEntity) entity);
+        });
+
+        EntitySleepEvents.START_SLEEPING.register((entity, world) -> {
+            // if the number is too high, return
+           if (Getters.RANDOM.nextFloat()*100 > Event.percentageToEmit(difficultyManager.getNumberOfDeath())) return;
+           // emit a new random events
+           final var val = Event.values();
+           val[Getters.RANDOM.nextInt(val.length)].emit(entity.getServer());
+        });
+
+        EntitySleepEvents.ALLOW_BED.register((entity, sleepingPos, state, vanillaResult) -> {
+            // if vanilla can't, pass
+            if (!vanillaResult) return ActionResult.PASS;
+            return Event.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
         });
     }
 

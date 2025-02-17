@@ -25,6 +25,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.event.Event;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
@@ -82,6 +83,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 manager.stop();
             });
             bountyMap.forEach((player, bounty) -> bounty.stop());
+            Event.stop();
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {

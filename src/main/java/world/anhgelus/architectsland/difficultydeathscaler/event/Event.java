@@ -11,6 +11,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.Glo
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.Timer;
+import java.util.TimerTask;
 
 public enum Event {
     LONG_NIGHT("Polar night.", server -> {
@@ -69,11 +70,22 @@ public enum Event {
     }
 
     public void emit(MinecraftServer server) {
-        //TODO: schedule new task with random delay between 2*60*1000 and 5*60*1000
-        server.getPlayerManager().broadcast(Text.of(description), false);
-        execStart.on(server);
-        //TODO: schedule new task to stop event after 20*60*1000
-        execStop.on(server);
+        final long when = (long) Math.floor(3*Getters.RANDOM.nextFloat()+2); // between 2 and 5
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // starts
+                server.getPlayerManager().broadcast(Text.of(description), false);
+                execStart.on(server);
+                // schedule stop 20 minutes later
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        execStop.on(server);
+                    }
+                }, 20*60*1000);
+            }
+        }, when*60*1000);
     }
 
     public static void stop() {

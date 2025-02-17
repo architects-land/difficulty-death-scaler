@@ -23,6 +23,7 @@ public class MobUtils {
     }
 
     public static void customSpawn(float proba, float max, Callable<Object> exec) {
+        if (proba <= 0) return;
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
         if (difficulty == null) return;
         if (difficulty.getNumberOfDeath() >= 40) proba = max;

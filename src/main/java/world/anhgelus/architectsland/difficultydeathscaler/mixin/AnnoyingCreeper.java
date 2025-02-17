@@ -79,7 +79,7 @@ public abstract class AnnoyingCreeper {
             final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
             if (difficulty == null) return;
             if (difficulty.getNumberOfDeath() < 21) return;
-            MobUtils.customSpawn(2 * (difficulty.getNumberOfDeath()) % 21, 40, () -> {
+            MobUtils.customSpawn(2 * (difficulty.getNumberOfDeath() - 21), 40, () -> {
                 this.dataTracker.set(CHARGED, true);
                 return null;
             });

@@ -1,6 +1,7 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
 
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PiglinEntity;
@@ -23,6 +24,13 @@ import java.util.List;
 
 public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12 * 60 * 60; // 12 hours
+    public static int PIGLIN_BRUTES_BOOST = 0;
+    public static EntityModifies CUSTOM_SPAWN_EFFECTS;
+
+    @FunctionalInterface
+    public interface EntityModifies{
+        void modify(LivingEntity entity);
+    }
 
     private final DifficultyIncrease increaser; // 12 hours
 
@@ -264,8 +272,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
         SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
         // if mobs was already spawned, return
         if (hostile.hasCustomName()) return;
+        CUSTOM_SPAWN_EFFECTS.modify(hostile);
         if (hostile instanceof PiglinEntity)
-            MobUtils.customSpawn(1.5f * (numberOfDeath - 27), 20, () -> {
+            MobUtils.customSpawn(1.5f * (numberOfDeath - 27) + PIGLIN_BRUTES_BOOST, 20, () -> {
                 // spawn piglin brutes
                 EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
                 hostile.discard();

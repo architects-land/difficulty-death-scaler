@@ -1,18 +1,14 @@
 package world.anhgelus.architectsland.difficultydeathscaler.sleepers;
 
-import net.minecraft.block.BedBlock;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageType;
-import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.World;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
@@ -67,7 +63,9 @@ public enum Sleepers {
     public final On execStop;
 
     private static final Timer timer = new Timer();
+
     private static boolean canSleep;
+    private static long lastSleep;
 
     Sleepers(String description, On execStart, On execStop, boolean skipNight) {
         this.description = description;
@@ -113,6 +111,31 @@ public enum Sleepers {
                 canSleep = true;
             }
         }, 20*60*1000);
+    }
+
+    public static boolean tryEmitNewEvent(MinecraftServer server) {
+        // prevent emitting events during the same night
+        final var world = server.getWorld(World.OVERWORLD);
+        if (world == null) {
+            DifficultyDeathScaler.LOGGER.warn("Impossible to get the overworld");
+            return false;
+        }
+        final var time = world.getTime();
+        if (time - lastSleep < 10*60*20) return false;
+        lastSleep = time;
+        // emitting random event
+        final var rules = server.getGameRules();
+        if (rules == null) {
+            DifficultyDeathScaler.LOGGER.warn("Impossible to get gamerules");
+            return false;
+        }
+        final var val = Sleepers.values();
+        var ev = val[Getters.RANDOM.nextInt(val.length)];
+        while (!rules.getBoolean(GameRules.DO_INSOMNIA) && ev == Sleepers.PHANTOMS_NIGHTMARE) {
+            ev = val[Getters.RANDOM.nextInt(val.length)];
+        }
+        ev.emit(server);
+        return true;
     }
 
     public static boolean canSleep() {

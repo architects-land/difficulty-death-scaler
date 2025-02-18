@@ -1,8 +1,14 @@
 package world.anhgelus.architectsland.difficultydeathscaler.sleepers;
 
+import net.minecraft.block.BedBlock;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.DamageType;
+import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
@@ -78,7 +84,17 @@ public enum Sleepers {
 
     public void emit(MinecraftServer server) {
         if (!skipNight) {
-            //TODO: handle skipping the night
+            server.getPlayerManager().getPlayerList().forEach(p -> {
+                if (!p.isSleeping()) return;
+                final var world = p .getServerWorld();
+                final var source = new DamageSource(
+                        world.getRegistryManager()
+                                .getOrThrow(RegistryKeys.DAMAGE_TYPE)
+                                .getEntry(DamageTypes.BAD_RESPAWN_POINT.getValue())
+                                .orElseThrow()
+                );
+                p.damage(world, source, 1);
+            });
             runStart(server);
             return;
         }

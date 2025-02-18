@@ -46,7 +46,7 @@ public class BossManager {
         if (!itemStack.isOf(BUFFING_ITEM)) return ActionResult.PASS;
         itemStack.decrementUnlessCreative(1, player);
 
-        Boss.fromEntity(e).buff();
+        Boss.fromEntity(e, dragonBuff).buff();
         buffedBosses.add(e.getUuid());
 
         e.setHealth(e.getMaxHealth());

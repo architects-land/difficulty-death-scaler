@@ -22,19 +22,20 @@ public class DragonBuff {
     private final EnderDragonEntity enderDragon;
     private final Set<ServerPlayerEntity> players = new HashSet<>();
 
+    private int adjustHealth;
+
     public DragonBuff(EnderDragonEntity enderDragon) {
         this.enderDragon = enderDragon;
     }
 
     public void playerEntersEnd(ServerPlayerEntity player) {
+        if (players.contains(player)) return;
         final var playersBefore = this.players.size();
         players.add(player);
-        // player already joined the end
-        if (playersBefore == players.size()) return;
 
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath();
-        final var oh = newHealth(playersBefore, difficulty); // old health
-        final var nh = newHealth(players.size(), difficulty); // new health
+        final var oh = adjustedNewHealth(playersBefore, difficulty); // old health
+        final var nh = adjustedNewHealth(players.size(), difficulty); // new health
         if (nh - oh < 0) {
             DifficultyDeathScaler.LOGGER.warn("Dragon's health is lower: {} (now) vs {} (before)", nh, oh);
             return;
@@ -45,10 +46,21 @@ public class DragonBuff {
         enderDragon.heal(nh - oh);
     }
 
+    private int adjustedNewHealth(int players, int difficulty) {
+        return newHealth(players, difficulty) + adjustHealth;
+    }
+
+    public void setAdjustHealth(int adjustHealth) {
+        this.adjustHealth = adjustHealth;
+        final var val = ((float) adjustedNewHealth(players.size(), Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath()) / BASE) - 1;
+        buff(enderDragon, val);
+        if (adjustHealth > 0) enderDragon.heal(adjustHealth);
+    }
+
     private static int newHealth(int players, int difficulty) {
         return (int) Math.floor(
                 ALPHA * (Math.log(players + 1) * Math.pow(((double) difficulty / BETA + 1), 2) - Math.log(2)) + BASE
-        );
+        ); // alpha*( ln(players+1) * (difficulty/beta + 1)^2 - ln(2) ) + base
     }
 
     private static void buff(EnderDragonEntity enderDragon, float val) {

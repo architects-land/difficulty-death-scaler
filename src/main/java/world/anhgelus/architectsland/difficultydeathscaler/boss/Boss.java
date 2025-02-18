@@ -6,6 +6,7 @@ import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.boss.WitherEntity;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.ElderGuardianEntity;
 import net.minecraft.entity.mob.WardenEntity;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -13,6 +14,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.RaycastContext;
+import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 public class Boss {
@@ -89,11 +91,9 @@ public class Boss {
         }
     }
 
-    public static Boss fromEntity(LivingEntity entity) {
+    public static Boss fromEntity(LivingEntity entity, @Nullable DragonBuff dragonBuff) {
         if (entity instanceof WitherEntity) {
             return new Boss(entity, (e) -> {
-                DifficultyDeathScaler.LOGGER.info("Wither buffed");
-
                 final var world = e.getWorld();
 
                 final var hitResult = world.raycast(new RaycastContext(
@@ -108,6 +108,14 @@ public class Boss {
                 if (world.getBlockState(hitResult.getBlockPos()).getBlock() != Blocks.BEDROCK) return;
 
                 e.setPosition(e.getPos().add(0, -2, 0));
+            });
+        } else if (entity instanceof EnderDragonEntity) {
+            return new Boss(entity, (e) -> {
+                if (dragonBuff == null) {
+                    DifficultyDeathScaler.LOGGER.warn("Dragon buff is null during the buff of the ender dragon...");
+                    return;
+                }
+                dragonBuff.setAdjustHealth(100);
             });
         }
         return new Boss(entity);

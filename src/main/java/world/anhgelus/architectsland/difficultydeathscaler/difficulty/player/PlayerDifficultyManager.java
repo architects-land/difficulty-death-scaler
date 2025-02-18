@@ -140,7 +140,10 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
-        if (player == null) return;
+        if (player == null) {
+            DifficultyDeathScaler.LOGGER.warn("Player in {} is null", this);
+            return;
+        }
 
         updateModifiersValue(updater);
 

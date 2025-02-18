@@ -3,6 +3,7 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyTimer;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 
@@ -83,7 +84,10 @@ public class Bounty extends DifficultyTimer {
         sb.append("They swap their player difficulty!\n");
         sb.append("§8=============================================§r");
 
-        if (player.getServer() == null) return;
+        if (player.getServer() == null) {
+            DifficultyDeathScaler.LOGGER.warn("Server is null");
+            return;
+        }
         player.getServer().getPlayerManager().broadcast(Text.of(sb.toString()), false);
 
         final var n = attackerDifficulty.getNumberOfDeath();

@@ -26,8 +26,7 @@ public class Boss {
 
     public Boss(LivingEntity entity) {
         this.entity = entity;
-        this.customBehavior = (e) -> {
-        };
+        this.customBehavior = (e) -> {};
     }
 
     public Boss(LivingEntity entity, CustomBehavior behavior) {

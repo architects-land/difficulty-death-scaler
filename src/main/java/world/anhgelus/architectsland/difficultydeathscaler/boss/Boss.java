@@ -81,7 +81,7 @@ public class Boss {
         return 0;
     }
 
-    private static void buffAttribute(LivingEntity entity, RegistryEntry<EntityAttribute> attribute, String id, float value, EntityAttributeModifier.Operation operation) {
+    public static void buffAttribute(LivingEntity entity, RegistryEntry<EntityAttribute> attribute, String id, float value, EntityAttributeModifier.Operation operation) {
         final var attr = entity.getAttributeInstance(attribute);
         if (attr != null) {
             final var modifier = new EntityAttributeModifier(Identifier.of(id), value, operation);

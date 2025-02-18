@@ -144,6 +144,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
             if (destination.getRegistryKey() != World.END) return;
+            BossManager.playerEntersEnd(player);
         });
     }
 

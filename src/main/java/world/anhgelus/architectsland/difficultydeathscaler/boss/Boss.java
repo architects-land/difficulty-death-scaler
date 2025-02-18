@@ -96,8 +96,12 @@ public class Boss {
 
                 final var world = e.getWorld();
 
-                BlockHitResult hitResult = world.raycast(new RaycastContext(
-                        e.getPos(), e.getPos().add(0, 4, 0), RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, e
+                final var hitResult = world.raycast(new RaycastContext(
+                        e.getPos(),
+                        e.getPos().add(0, 4, 0),
+                        RaycastContext.ShapeType.COLLIDER,
+                        RaycastContext.FluidHandling.NONE,
+                        e
                 ));
 
                 if (hitResult.getType() != HitResult.Type.BLOCK) return;

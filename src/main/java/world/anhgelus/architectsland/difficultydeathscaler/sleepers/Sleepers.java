@@ -86,14 +86,7 @@ public enum Sleepers {
         if (!skipNight) {
             server.getPlayerManager().getPlayerList().forEach(p -> {
                 if (!p.isSleeping()) return;
-                final var world = p .getServerWorld();
-                final var source = new DamageSource(
-                        world.getRegistryManager()
-                                .getOrThrow(RegistryKeys.DAMAGE_TYPE)
-                                .getEntry(DamageTypes.BAD_RESPAWN_POINT.getValue())
-                                .orElseThrow()
-                );
-                p.damage(world, source, 1);
+                p.wakeUp();
             });
             runStart(server);
             return;

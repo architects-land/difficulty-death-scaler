@@ -7,9 +7,12 @@ If you die more 5 times or more in less than 24 hours, you are temp ban for 12 h
 This feature prevents a player to increase the difficulty too much.
 
 You can modify the temp ban with these gamerules:
-- `difficulty-death-scaler:enableTempBan` to disable the temp ban (default: true)
-- `difficulty-death-scaler:deathBeforeTempBan` to set the number of death before a ban (default: 5)
-- `difficulty-death-scaler:tempBanDuration` to set the temp ban's duration in hour (default: 12)
+- `dds:enableTempBan` to disable the temp ban (default: true)
+- `dds:deathBeforeTempBan` to set the number of death before a ban (default: 5)
+- `dds:tempBanDuration` to set the temp ban's duration in hour (default: 12)
+
+> Before the `2.0.0-rc.1`, the gamerules use the prefix `difficulty-death-scaler:...` instead of `dds:`.
+{style="warning"}
 
 <deflist collapsible="true">
     <def title="0 death" default-state="expanded">

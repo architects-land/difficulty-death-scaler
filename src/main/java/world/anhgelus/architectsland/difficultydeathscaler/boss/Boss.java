@@ -114,6 +114,7 @@ public class Boss {
         final var sb = new StringBuilder();
         sb.append("Boss(entity uuid=").append(entity.getUuid())
                 .append(", entity class=").append(entity.getClass().getSimpleName())
+                .append(", entity location=").append(entity.getPos().toString())
                 .append(")");
         return sb.toString();
     }

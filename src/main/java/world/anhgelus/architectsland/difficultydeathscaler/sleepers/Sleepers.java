@@ -77,24 +77,33 @@ public enum Sleepers {
     }
 
     public void emit(MinecraftServer server) {
+        if (!skipNight) {
+            //TODO: handle skipping the night
+            runStart(server);
+            return;
+        }
         final long when = (long) Math.floor(3*Getters.RANDOM.nextFloat()+2); // between 2 and 5
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                // starts
-                canSleep = skipNight;
-                server.getPlayerManager().broadcast(Text.of(description), false);
-                execStart.on(server);
-                // schedule stop 20 minutes later
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        execStop.on(server);
-                        canSleep = true;
-                    }
-                }, 20*60*1000);
+                runStart(server);
             }
         }, when*60*1000);
+    }
+
+    private void runStart(MinecraftServer server) {
+        // starts
+        canSleep = skipNight;
+        server.getPlayerManager().broadcast(Text.of(description), false);
+        execStart.on(server);
+        // schedule stop 20 minutes later
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                execStop.on(server);
+                canSleep = true;
+            }
+        }, 20*60*1000);
     }
 
     public static boolean canSleep() {

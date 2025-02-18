@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 import java.net.SocketAddress;
 
@@ -16,10 +17,7 @@ import static world.anhgelus.architectsland.difficultydeathscaler.utils.Getters.
 public abstract class PlayerManagerMixin {
     @Inject(at = @At("HEAD"), method = "checkCanJoin", cancellable = true)
     private void checkCanJoin(SocketAddress address, GameProfile profile, CallbackInfoReturnable<Text> cir) {
-        if (PROFILE_DIFFICULTY_GETTER == null) return;
         final var difficulty = PROFILE_DIFFICULTY_GETTER.get(profile);
-        if (difficulty == null) return;
-        if (difficulty.diedTooMuch())
-            cir.setReturnValue(difficulty.getKickedDiedTooMuchMessage());
+        if (difficulty.diedTooMuch()) cir.setReturnValue(difficulty.getKickedDiedTooMuchMessage());
     }
 }

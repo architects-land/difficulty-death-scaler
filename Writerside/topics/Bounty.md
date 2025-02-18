@@ -1,7 +1,7 @@
 # Bounty
 
 If a player has 2% (or less) of the total number of death, a bounty is put on this player.
-The bounty swaps the player difficulty between the killer and the player.
+The bounty swaps the [player difficulty](Player-Difficulty.md) between the killer and the player.
 
 > The bounty starts between 5 and 10 minutes *after* the connection of the player.
 > 

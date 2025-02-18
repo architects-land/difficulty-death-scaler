@@ -26,8 +26,7 @@ public class Boss {
 
     public Boss(LivingEntity entity) {
         this.entity = entity;
-        this.customBehavior = (e) -> {
-        };
+        this.customBehavior = (e) -> {};
     }
 
     public Boss(LivingEntity entity, CustomBehavior behavior) {
@@ -97,8 +96,12 @@ public class Boss {
 
                 final var world = e.getWorld();
 
-                BlockHitResult hitResult = world.raycast(new RaycastContext(
-                        e.getPos(), e.getPos().add(0, 4, 0), RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, e
+                final var hitResult = world.raycast(new RaycastContext(
+                        e.getPos(),
+                        e.getPos().add(0, 4, 0),
+                        RaycastContext.ShapeType.COLLIDER,
+                        RaycastContext.FluidHandling.NONE,
+                        e
                 ));
 
                 if (hitResult.getType() != HitResult.Type.BLOCK) return;
@@ -115,6 +118,7 @@ public class Boss {
         final var sb = new StringBuilder();
         sb.append("Boss(entity uuid=").append(entity.getUuid())
                 .append(", entity class=").append(entity.getClass().getSimpleName())
+                .append(", entity location=").append(entity.getPos().toString())
                 .append(")");
         return sb.toString();
     }

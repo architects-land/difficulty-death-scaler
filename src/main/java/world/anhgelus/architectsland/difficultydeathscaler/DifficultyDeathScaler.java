@@ -35,21 +35,22 @@ import java.util.UUID;
 
 public class DifficultyDeathScaler implements ModInitializer {
     public static final String MOD_ID = "difficulty-death-scaler";
+    public static final String GAMERULE_PREFIX = "dds";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     private GlobalDifficultyManager difficultyManager;
 
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_TEMP_BAN = GameRuleRegistry.register(
-            MOD_ID + ":enableTempBan",
+            GAMERULE_PREFIX + ":enableTempBan",
             GameRules.Category.MISC,
             GameRuleFactory.createBooleanRule(true)
     );
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
-            MOD_ID + ":deathBeforeTempBan",
+            GAMERULE_PREFIX + ":deathBeforeTempBan",
             GameRules.Category.MISC,
             GameRuleFactory.createIntRule(5)
     );
     public static final GameRules.Key<GameRules.IntRule> TEMP_BAN_DURATION = GameRuleRegistry.register(
-            MOD_ID + ":tempBanDuration",
+            GAMERULE_PREFIX + ":tempBanDuration",
             GameRules.Category.MISC,
             GameRuleFactory.createIntRule(12)
     );
@@ -62,8 +63,6 @@ public class DifficultyDeathScaler implements ModInitializer {
         LOGGER.info("Difficulty Death Scaler initialized");
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
-            Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
             DifficultyCommand.register(dispatcher);
         });
 
@@ -72,6 +71,8 @@ public class DifficultyDeathScaler implements ModInitializer {
             difficultyManager = new GlobalDifficultyManager(server);
             loadAllPlayerManagers(server);
 
+            Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
+            Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
             Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);
             Getters.RANDOM.setSeed(server.getOverworld().getSeed());
         });

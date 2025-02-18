@@ -10,7 +10,7 @@ When you kill a buffed boss, you reduce one step of the [global difficulty](Glob
 
 ## Ender Dragon
 
-The Ender Dragon's health is modified according to the current difficulty and the number of players in the end.
+The Ender Dragon's health is modified according to the current difficulty and to the number of players in the end.
 
 Each time a player joins the fight, the dragon gains more health.
 
@@ -26,18 +26,25 @@ the dragon (200 actually, like in vanilla).
 
 ## Buff
 
-The Ender Dragon has more health.
+<procedure title="Elder Guardian" id="elder_guardian" collapsible="true">
+    <step>Has a better knockback resistance</step>
+    <step>Is smaller</step>
+    <step>Has more health</step>
+    <step>Is faster</step>
+    <step>Do more damage</step>
+</procedure>
 
-The Wither's stats are not modified, but you can't trap it in bedrock: you have to do the real fight.
+<procedure title="Ender Dragon" id="ender_dragon" collapsible="true">
+    <step>Has more health</step>
+</procedure>
 
-The Elder Guardian:
-- has a better knockback resistance
-- is smaller
-- has more health
-- is faster
-- do more damage
+<procedure title="Warden" id="warden" collapsible="true">
+    <step>Has a better knockback resistance (it's not very useful actually...)</step>
+    <step>Is faster</step>
+    <step>Is angry when he is buffed</step>
+</procedure>
 
-The Warden:
-- has a better knockback resistance (it's not very useful actually...)
-- is faster
-- is angry when he is buffed
+<procedure title="Wither" id="wither" collapsible="true">
+    <step>Stats are not modified</step>
+    <step>Can't be trapped in bedrock</step>
+</procedure>

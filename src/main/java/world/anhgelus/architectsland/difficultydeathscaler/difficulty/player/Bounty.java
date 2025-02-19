@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyTimer;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -26,7 +27,9 @@ public class Bounty extends DifficultyTimer {
         this.playerDifficulty = playerDifficulty;
         this.player = playerDifficulty.player;
 
-        final var delay = 1 + Math.random() * (2 - 1);
+        final var delay = Getters.RANDOM.nextInt(2) + 1;
+
+        DifficultyDeathScaler.LOGGER.info("New bounty {} broadcast in {} minutes", this, delay * 5);
 
         timer.schedule(new TimerTask() {
             @Override
@@ -130,12 +133,28 @@ public class Bounty extends DifficultyTimer {
         disable();
     }
 
-    public static @Nullable Bounty newBounty(GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
+    @Nullable
+    public static Bounty newBounty(GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
         if (globalDifficulty.getTotalOfDeath() >= BOUNTY_ENABLED_AFTER &&
                 (double) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() <= BOUNTY_DEATH_PERCENTAGE
         ) {
             return new Bounty(globalDifficulty, playerDifficulty);
         }
         return null;
+    }
+
+
+    public String toString() {
+        final var sb = new StringBuilder();
+        sb.append("Bounty(")
+                .append("bountyDeathPercentage=").append(BOUNTY_DEATH_PERCENTAGE)
+                .append(", bountyEnabledAfter=").append(BOUNTY_ENABLED_AFTER)
+                .append(", player=").append(player.getName().getString())
+                .append(", player_uuid=").append(player.getUuid())
+                .append(", player_totalDeath=").append(playerDifficulty.getTotalOfDeath())
+                .append(", global_totalDeath=").append(globalDifficulty.getTotalOfDeath())
+                .append(", player_deathPercentage=").append((float) playerDifficulty.getTotalOfDeath()/globalDifficulty.getTotalOfDeath())
+                .append(")");
+        return sb.toString();
     }
 }

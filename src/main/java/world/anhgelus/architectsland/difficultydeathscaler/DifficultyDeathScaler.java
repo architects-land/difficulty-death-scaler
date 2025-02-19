@@ -72,7 +72,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
             Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);
-            Getters.RANDOM.setSeed(server.getOverworld().getSeed());
+            Getters.RANDOM = server.getOverworld().getRandom();
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {

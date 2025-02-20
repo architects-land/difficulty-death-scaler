@@ -1,11 +1,11 @@
 # Bounty
 
-If a player has 2% (or less) of the total number of death, a bounty is put on this player.
+If a player has 4% (or less) of the total number of death, a bounty is put on this player.
 The bounty swaps the [player difficulty](Player-Difficulty.md) between the killer and the player.
 
 > The bounty starts between 5 and 10 minutes *after* the connection of the player.
 > 
-> If the server has less than 30 deaths, the bounty will never be introduced.
+> If the server has less than 20 deaths, the bounty will never be introduced.
 > {style="note"}
 
 Player A died once and the server has 50 deaths.

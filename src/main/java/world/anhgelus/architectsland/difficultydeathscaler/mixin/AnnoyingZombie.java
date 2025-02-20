@@ -23,6 +23,7 @@ public abstract class AnnoyingZombie extends HostileEntity {
 
     @Inject(at = @At("RETURN"), method = "<init>(Lnet/minecraft/entity/EntityType;Lnet/minecraft/world/World;)V")
     protected void init(EntityType<? extends ZombieEntity> entityType, World world, CallbackInfo ci) {
+        if (Getters.GLOBAL_DIFFICULTY_GETTER == null) return;
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
         MobUtils.customSpawn(difficulty.getNumberOfDeath() - 9, 30, () -> {
             // turn into baby zombies

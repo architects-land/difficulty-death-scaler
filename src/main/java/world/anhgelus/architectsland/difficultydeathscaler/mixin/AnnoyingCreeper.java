@@ -77,6 +77,7 @@ public abstract class AnnoyingCreeper {
 
         @Inject(at = @At("RETURN"), method = "<init>")
         protected void init(EntityType<? extends HostileEntity> entityType, World world, CallbackInfo ci) {
+            if (Getters.GLOBAL_DIFFICULTY_GETTER == null) return;
             final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
             if (difficulty.getNumberOfDeath() < 21) return;
             MobUtils.customSpawn(2 * (difficulty.getNumberOfDeath() - 21), 40, () -> {

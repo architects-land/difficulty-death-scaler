@@ -26,6 +26,7 @@ public abstract class AnnoyingDrowned extends HostileEntity {
 
     @Inject(at = @At("RETURN"), method = "<init>")
     protected void init(EntityType<? extends ZombieEntity> entityType, World world, CallbackInfo ci) {
+        if (Getters.GLOBAL_DIFFICULTY_GETTER == null) return;
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
         MobUtils.customSpawn(difficulty.getNumberOfDeath() - 9, 30, () -> {
             // drowned with more tridents

@@ -12,7 +12,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class Bounty extends DifficultyTimer {
-    public static final double BOUNTY_DEATH_PERCENTAGE = 0.02;
+    public static final double BOUNTY_DEATH_PERCENTAGE = 0.04;
     public static final int BOUNTY_ENABLED_AFTER = 20;
 
     private final GlobalDifficultyManager globalDifficulty;

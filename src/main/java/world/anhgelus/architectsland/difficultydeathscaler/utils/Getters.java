@@ -3,13 +3,12 @@ package world.anhgelus.architectsland.difficultydeathscaler.utils;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.random.Random;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 
-import java.util.Random;
-
 public class Getters {
-    public static final Random RANDOM = new Random();
+    public static Random RANDOM;
 
     /**
      * Functional interface giving the player difficulty manager with GameProfile

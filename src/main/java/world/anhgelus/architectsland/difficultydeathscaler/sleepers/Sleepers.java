@@ -26,13 +26,13 @@ public enum Sleepers {
         if (rules == null) return;
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
     }, false),
-    BRUTAL_HELL("Axes are wainting for you.", server -> {
+    BRUTAL_HELL("Wendy, I'm home.", server -> {
         GlobalDifficultyManager.PIGLIN_BRUTES_BOOST += 30; // is like day 28
     }, server -> {
         GlobalDifficultyManager.PIGLIN_BRUTES_BOOST -= 30;
     }),
     PHANTOMS_NIGHTMARE("It never ends.", server -> {}, server -> {}),
-    RUN("Don't fight, run!", server -> {
+    RUN("Get the fuck out!", server -> {
         final var since = System.currentTimeMillis() / 50;
         MobUtils.HOSTILE_MOBS_BURN = false;
         GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {
@@ -51,7 +51,7 @@ public enum Sleepers {
         GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {};
         MobUtils.HOSTILE_MOBS_BURN = true;
     }),
-    ANVIL_RAIN("It's raining.", server -> {}, server -> {});
+    ANVIL_RAIN("Heavy rain.", server -> {}, server -> {});
 
     public interface On {
         void on(MinecraftServer server);

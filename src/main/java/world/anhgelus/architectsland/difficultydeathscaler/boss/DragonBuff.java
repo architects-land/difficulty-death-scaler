@@ -21,7 +21,7 @@ public class DragonBuff {
 
     private final EnderDragonEntity enderDragon;
     private final Set<ServerPlayerEntity> players = new HashSet<>();
-    private int n = 0;
+    private int oldHealth;
 
     private int adjustHealth;
 
@@ -31,20 +31,19 @@ public class DragonBuff {
 
     public void playerEntersEnd(ServerPlayerEntity player) {
         if (players.contains(player)) return;
-        final var playersBefore = n++;
-//        players.add(player);
+        players.add(player);
 
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath();
-        final var oh = adjustedNewHealth(playersBefore, difficulty); // old health
-        final var nh = adjustedNewHealth(n, difficulty); // new health
-        if (nh - oh < 0) {
-            DifficultyDeathScaler.LOGGER.warn("Dragon's health is lower: {} (now) vs {} (before)", nh, oh);
+        final var nh = adjustedNewHealth(players.size(), difficulty); // new health
+        if (nh - oldHealth < 0) {
+            DifficultyDeathScaler.LOGGER.warn("Dragon's health is lower: {} (now) vs {} (before)", nh, oldHealth);
             return;
         }
         final var val = ((float) nh / BASE) - 1;
         buff(enderDragon, val);
         // heal the dragon the difference
-        enderDragon.heal(nh - oh);
+        enderDragon.heal(nh - oldHealth);
+        oldHealth = nh;
         DifficultyDeathScaler.LOGGER.info("Dragon's health: {}", nh);
     }
 

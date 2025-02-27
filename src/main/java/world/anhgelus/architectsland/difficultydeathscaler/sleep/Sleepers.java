@@ -21,9 +21,9 @@ public class Sleepers {
     }, false);
 
     public static final Sleeper BRUTAL_HELL = new Sleeper("Wendy, I'm home.", server -> {
-        GlobalDifficultyManager.PIGLIN_BRUTES_BOOST += 28; // for day 28
+        GlobalDifficultyManager.PIGLIN_BRUTES_BOOST += 32; // for day 32
     }, server -> {
-        GlobalDifficultyManager.PIGLIN_BRUTES_BOOST -= 28;
+        GlobalDifficultyManager.PIGLIN_BRUTES_BOOST -= 32;
     });
 
     public static final Sleeper PHANTOMS_NIGHTMARE = new Sleeper("It never ends.", server -> {

@@ -67,7 +67,7 @@ public class Bounty extends DifficultyTimer {
 
     public void onKill(PlayerDifficultyManager attackerDifficulty) {
         if (!enabled) return;
-        disable();
+        enabled = false;
         assert attackerDifficulty.player != null;
         final var sb = new StringBuilder();
         sb.append("§8==================== §rBounty! §8====================§r\n");
@@ -99,12 +99,12 @@ public class Bounty extends DifficultyTimer {
         if (!enabled) return;
         player = playerDifficulty.player;
         if ((double) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() > BOUNTY_DEATH_PERCENTAGE)
-            disable();
+            enabled = false;
     }
 
     public void onDisconnect() {
         if (!enabled) return;
-        disable();
+        enabled = false;
         final var sb = new StringBuilder();
         sb.append("§8==================== §rBounty! §8====================§r\n");
 
@@ -117,17 +117,6 @@ public class Bounty extends DifficultyTimer {
 
         if (player.getServer() == null) return;
         player.getServer().getPlayerManager().broadcast(Text.of(sb.toString()), false);
-    }
-
-    private void disable() {
-        enabled = false;
-        stop();
-    }
-
-    @Override
-    public void stop() {
-        if (!enabled) return;
-        disable();
     }
 
     @Nullable

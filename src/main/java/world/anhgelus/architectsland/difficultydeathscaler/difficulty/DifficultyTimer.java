@@ -15,11 +15,11 @@ public abstract class DifficultyTimer {
         initialDelay = delay;
     }
 
-    protected TickTask executeTask(TickTask.Task task, @Nullable TickTask pastTask, long repeatEach) {
+    protected TickTask executeTask(TimerAccess.Task task, @Nullable TimerAccess.TickTask pastTask, long repeatEach) {
         return executeTask(task, pastTask, repeatEach, repeatEach);
     }
 
-    protected TickTask executeTask(TickTask.Task task, @Nullable TickTask pastTask, long delay, long repeatEach) {
+    protected TickTask executeTask(TimerAccess.Task task, @Nullable TimerAccess.TickTask pastTask, long delay, long repeatEach) {
         if (timer == null) throw new IllegalStateException("Timer has not been initialized");
         if (pastTask == null && initialDelay != 0) {
             TickTask tt;
@@ -62,10 +62,6 @@ public abstract class DifficultyTimer {
         sb.append(seconds).append(" seconds");
 
         return sb.toString();
-    }
-
-    public void stop() {
-        if (timer != null) timer.dds_cancel();
     }
 
     public long delay() {

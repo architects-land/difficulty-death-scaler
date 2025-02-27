@@ -23,7 +23,7 @@ public class DifficultyIncrease extends DifficultyTimer {
 
     public void restart() {
         if (increaseTask != null) increaseTask.cancel();
-        final TickTask.Task task = () -> {
+        final TimerAccess.Task task = () -> {
             enabled = true;
             manager.increaseDeath(true);
             manager.stopAutomaticDecrease();

@@ -3,21 +3,13 @@ package world.anhgelus.architectsland.difficultydeathscaler.timer;
 /**
  * Represents a complete task called each tick
  */
-public class TickTask {
-    /**
-     * Represents a task to run after ticking
-     */
-    @FunctionalInterface
-    public interface Task {
-        void run();
-    }
-
+public class TickTask implements TimerAccess.TickTask {
     private boolean cancelled = false;
 
     public final long ticksDelay;
     public final long ticksRepeat;
     public final boolean repeat;
-    public final Task task;
+    public final TimerAccess.Task task;
 
     private long currentTicking;
 
@@ -28,7 +20,7 @@ public class TickTask {
      * @param ticksDelay  Delay before the first task's run
      * @param ticksRepeat Repeat each tick
      */
-    public TickTask(Task task, long ticksDelay, long ticksRepeat) {
+    public TickTask(TimerAccess.Task task, long ticksDelay, long ticksRepeat) {
         this.ticksDelay = ticksDelay;
         this.ticksRepeat = ticksRepeat;
         this.task = task;
@@ -42,7 +34,7 @@ public class TickTask {
      * @param task       Task to run after the delay or the repeat time
      * @param ticksDelay Delay before the first task's run
      */
-    public TickTask(Task task, long ticksDelay) {
+    public TickTask(TimerAccess.Task task, long ticksDelay) {
         this.ticksDelay = ticksDelay;
         this.ticksRepeat = -1;
         this.task = task;
@@ -67,8 +59,10 @@ public class TickTask {
      * Cancel the task
      *
      * @return the remaining ticks before the run of the Task
+     * @throws IllegalStateException if the task is already cancelled
      */
     public long cancel() {
+        if (cancelled) throw new IllegalStateException("Task already cancelled");
         cancelled = true;
         return currentTicking;
     }

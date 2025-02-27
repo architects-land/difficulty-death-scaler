@@ -6,7 +6,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
 import java.util.ArrayList;
@@ -16,7 +15,7 @@ import java.util.function.BooleanSupplier;
 @Mixin(ServerWorld.class)
 public class WorldTimerAccess implements TimerAccess {
     @Unique
-    private final List<TickTask> tasks = new ArrayList<>();
+    private final List<TimerAccess.TickTask> tasks = new ArrayList<>();
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
@@ -24,12 +23,17 @@ public class WorldTimerAccess implements TimerAccess {
     }
 
     @Override
-    public void dds_runTask(TickTask task) {
+    public void dds_runTask(TimerAccess.TickTask task) {
         tasks.add(task);
     }
 
     @Override
     public void dds_cancel() {
-        tasks.forEach(TickTask::cancel);
+        tasks.stream().filter(t -> !t.isCancelled()).forEach(TickTask::cancel);
+    }
+
+    @Override
+    public List<TickTask> dds_getTasks() {
+        return tasks.stream().filter(t -> !t.isCancelled()).toList();
     }
 }

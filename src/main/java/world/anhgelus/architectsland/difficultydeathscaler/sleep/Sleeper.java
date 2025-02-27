@@ -97,6 +97,6 @@ public class Sleeper {
 
     public static int percentageToEmit(int level) {
         level = Math.min(level, 40);
-        return (int) Math.floor(10 / (0.95 + (double) (level * level) / 200));
+        return 2 * (int) Math.floor(10 / (0.95 + (double) (level * level) / 200));
     }
 }

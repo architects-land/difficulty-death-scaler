@@ -9,12 +9,14 @@ import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public abstract class DifficultyManager extends DifficultyTimer {
-    private TimerTask reducerTask;
+    private TickTask reducerTask;
 
     protected final long secondsBeforeDecreased;
 
@@ -24,7 +26,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     protected int numberOfDeath;
 
     protected DifficultyManager(MinecraftServer server, Step[] steps, long secondsBeforeDecreased) {
-        timer = new Timer();
+        timer = TimerAccess.getTimerFromOverworld(server);
         this.server = server;
         this.steps = steps;
         numberOfDeath = 0;
@@ -117,7 +119,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     /**
      * Set the number of death
-     * @param n number of death
+     *
+     * @param n      number of death
      * @param silent if the update is silent
      */
     public void setNumberOfDeath(int n, boolean silent) {
@@ -157,8 +160,14 @@ public abstract class DifficultyManager extends DifficultyTimer {
             }
         };
         timerStart = System.currentTimeMillis() / 1000;
-        executeTask(task, reducerTask, secondsBeforeDecreased);
-        reducerTask = task;
+        reducerTask = executeTask(() -> {
+            timerStart = System.currentTimeMillis() / 1000;
+            decreaseDeath();
+            if (numberOfDeath == 0) {
+                reducerTask.cancel();
+                timerStart = -1;
+            }
+        }, reducerTask, secondsBeforeDecreased);
     }
 
     public void decreaseDeath() {
@@ -171,7 +180,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
         for (int i = steps.length - 1; i > 0; i--) {
             if (numberOfDeath >= steps[i].level()) {
-                numberOfDeath = steps[i-1].level();
+                numberOfDeath = steps[i - 1].level();
                 break;
             }
         }
@@ -219,10 +228,12 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     protected abstract void onUpdate(UpdateType updateType, Updater updater);
 
-    protected void onDeath(UpdateType updateType, Updater updater) {}
+    protected void onDeath(UpdateType updateType, Updater updater) {
+    }
 
     /**
      * Generate difficulty update
+     *
      * @param updateType Type of update (if null, it's a get and not an update)
      * @param difficulty Difficulty of the game
      * @return Message to print
@@ -250,7 +261,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     protected String generateHeaderUpdate(@Nullable UpdateType updateType) {
         final var sb = new StringBuilder();
-        if (updateType == null) sb.append( "§8============== §rCurrent difficulty: §8==============§r");
+        if (updateType == null) sb.append("§8============== §rCurrent difficulty: §8==============§r");
         else {
             switch (updateType) {
                 case INCREASE -> sb.append("§8============== §rDifficulty increase! §8==============§r");
@@ -272,22 +283,22 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
         if (updateType == UpdateType.DECREASE) {
             sb.append("You only need to survive for §6")
-                .append(formatSeconds(secondsBeforeDecreased))
-                .append("§r to make the difficulty decrease again.");
+                    .append(formatSeconds(secondsBeforeDecreased))
+                    .append("§r to make the difficulty decrease again.");
         } else if (updateType == UpdateType.AUTOMATIC_INCREASE) {
             sb.append("The difficulty is increasing automatically!");
         } else if (updateType != UpdateType.INCREASE) {
             sb.append("You only need to survive for §6")
-                .append(formatSeconds(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
-                .append("§r to make the difficulty decrease.");
+                    .append(formatSeconds(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
+                    .append("§r to make the difficulty decrease.");
         } else if (numberOfDeath < steps[2].level()) {
             sb.append("You were on the lowest difficulty for §6")
-                .append(formatSeconds(System.currentTimeMillis() / 1000 - timerStart))
-                .append("§r, but you had to die and ruin everything, hadn't you?");
+                    .append(formatSeconds(System.currentTimeMillis() / 1000 - timerStart))
+                    .append("§r, but you had to die and ruin everything, hadn't you?");
         } else {
             sb.append("If ").append(beginning).append(" for §6")
-                .append(formatSeconds(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
-                .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+                    .append(formatSeconds(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
+                    .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
         }
         sb.append("\n§8=============================================§r");
         return sb.toString();

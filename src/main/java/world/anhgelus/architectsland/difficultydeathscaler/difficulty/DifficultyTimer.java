@@ -2,39 +2,43 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty;
 
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
-
-import java.util.Timer;
-import java.util.TimerTask;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
 public abstract class DifficultyTimer {
     protected long initialDelay = 0;
     protected long timerStart = System.currentTimeMillis() / 1000;
 
-    protected Timer timer;
+    protected TimerAccess timer;
 
     protected void delayFirstTask(long delay) {
         initialDelay = delay;
     }
 
-    protected void executeTask(TimerTask task, @Nullable TimerTask pastTask, long repeatEach) {
-        executeTask(task, pastTask, repeatEach, repeatEach);
+    protected TickTask executeTask(TickTask.Task task, @Nullable TickTask pastTask, long repeatEach) {
+        return executeTask(task, pastTask, repeatEach, repeatEach);
     }
 
-    protected void executeTask(TimerTask task, @Nullable TimerTask pastTask, long delay, long repeatEach) {
+    protected TickTask executeTask(TickTask.Task task, @Nullable TickTask pastTask, long delay, long repeatEach) {
         if (timer == null) throw new IllegalStateException("Timer has not been initialized");
         if (pastTask == null && initialDelay != 0) {
+            TickTask tt;
             try {
-                timer.schedule(task, (delay - initialDelay) * 1000L, repeatEach * 1000L);
+                tt = new TickTask(task, (delay - initialDelay) * 20L, repeatEach * 20L);
+                timer.dds_runTask(tt);
                 timerStart -= initialDelay;
             } catch (IllegalArgumentException e) {
                 DifficultyDeathScaler.LOGGER.error("An exception occurred while launching the first task", e);
                 DifficultyDeathScaler.LOGGER.warn("Resetting delay to 0");
                 initialDelay = 0;
-                timer.schedule(task, delay * 1000L, repeatEach * 1000L);
+                tt = new TickTask(task, delay * 20L, repeatEach * 20L);
+                timer.dds_runTask(tt);
             }
-            return;
+            return tt;
         }
-        timer.schedule(task, delay * 1000L, repeatEach * 1000L);
+        final var tt = new TickTask(task, delay * 20L, repeatEach * 20L);
+        timer.dds_runTask(tt);
+        return tt;
     }
 
     protected static String formatSeconds(long time) {
@@ -61,7 +65,7 @@ public abstract class DifficultyTimer {
     }
 
     public void stop() {
-        if (timer != null) timer.cancel();
+        if (timer != null) timer.dds_cancel();
     }
 
     public long delay() {

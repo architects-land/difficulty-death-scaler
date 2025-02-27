@@ -11,6 +11,8 @@ public interface TimerAccess {
      */
     void dds_runTask(TickTask task);
 
+    void dds_cancel();
+
     /**
      * Get the timer linked to the overworld
      *

@@ -18,10 +18,10 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.B
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.MovementSpeedModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimerTask;
 import java.util.UUID;
 
 public class PlayerDifficultyManager extends DifficultyManager {
@@ -93,7 +93,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     private boolean tempBan;
     private long bannedSince = -1;
     private final List<Long> deathDayStart = new ArrayList<>();
-    private final List<TimerTask> deathDayTasks = new ArrayList<>();
+    private final List<TickTask> deathDayTasks = new ArrayList<>();
 
     private int totalOfDeath = 0;
 
@@ -293,23 +293,20 @@ public class PlayerDifficultyManager extends DifficultyManager {
         } else {
             deathDayStart.add(delayTime);
         }
-        final var task = new TimerTask() {
-            @Override
-            public void run() {
-                if (deathDay != 0) {
-                    deathDay--;
-                    deathDayStart.removeFirst();
-                } else DifficultyDeathScaler.LOGGER.warn("Death day is already equal to 0");
-            }
-        };
-        timer.schedule(task, (24 * 60 * 60 - delayTime) * 1000L);
+        final var task = new TickTask(() -> {
+            if (deathDay != 0) {
+                deathDay--;
+                deathDayStart.removeFirst();
+            } else DifficultyDeathScaler.LOGGER.warn("Death day is already equal to 0");
+        }, (24 * 60 * 60 - delayTime) * 20L);
+        timer.dds_runTask(task);
         deathDayTasks.add(task);
     }
 
     private void resetDeathDay() {
         deathDay = 0;
         deathDayStart.clear();
-        deathDayTasks.forEach(TimerTask::cancel);
+        deathDayTasks.forEach(TickTask::cancel);
         deathDayTasks.clear();
     }
 

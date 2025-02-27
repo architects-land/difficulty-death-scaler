@@ -14,21 +14,21 @@ public class TickTask {
 
     private boolean cancelled = false;
 
-    private final long ticksDelay;
-    private final long ticksRepeat;
-    private final boolean repeat;
-    private final Task task;
+    public final long ticksDelay;
+    public final long ticksRepeat;
+    public final boolean repeat;
+    public final Task task;
 
     private long currentTicking;
 
     /**
      * Create a new repeating TickTask
      *
+     * @param task        Task to run after the delay or the repeat time
      * @param ticksDelay  Delay before the first task's run
      * @param ticksRepeat Repeat each tick
-     * @param task        Task to run after the delay or the repeat time
      */
-    public TickTask(long ticksDelay, long ticksRepeat, Task task) {
+    public TickTask(Task task, long ticksDelay, long ticksRepeat) {
         this.ticksDelay = ticksDelay;
         this.ticksRepeat = ticksRepeat;
         this.task = task;
@@ -39,10 +39,10 @@ public class TickTask {
     /**
      * Create a new TickTask
      *
-     * @param ticksDelay Delay before the first task's run
      * @param task       Task to run after the delay or the repeat time
+     * @param ticksDelay Delay before the first task's run
      */
-    public TickTask(long ticksDelay, Task task) {
+    public TickTask(Task task, long ticksDelay) {
         this.ticksDelay = ticksDelay;
         this.ticksRepeat = -1;
         this.task = task;
@@ -75,13 +75,5 @@ public class TickTask {
 
     public boolean isCancelled() {
         return cancelled;
-    }
-
-    public long getTicksDelay() {
-        return ticksDelay;
-    }
-
-    public long getTicksRepeat() {
-        return ticksRepeat;
     }
 }

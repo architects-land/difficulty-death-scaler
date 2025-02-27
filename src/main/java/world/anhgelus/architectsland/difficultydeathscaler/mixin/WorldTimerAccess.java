@@ -27,4 +27,9 @@ public class WorldTimerAccess implements TimerAccess {
     public void dds_runTask(TickTask task) {
         tasks.add(task);
     }
+
+    @Override
+    public void dds_cancel() {
+        tasks.forEach(TickTask::cancel);
+    }
 }

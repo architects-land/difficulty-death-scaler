@@ -19,14 +19,17 @@ public class Sleepers {
         if (rules == null) return;
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
     }, false);
+
     public static final Sleeper BRUTAL_HELL = new Sleeper("Wendy, I'm home.", server -> {
         GlobalDifficultyManager.PIGLIN_BRUTES_BOOST += 28; // for day 28
     }, server -> {
         GlobalDifficultyManager.PIGLIN_BRUTES_BOOST -= 28;
     });
+
     public static final Sleeper PHANTOMS_NIGHTMARE = new Sleeper("It never ends.", server -> {
     }, server -> {
     });
+
     public static final Sleeper RUN = new Sleeper("Get the fuck out! They are invisible!", server -> {
         final var since = System.currentTimeMillis() / 50;
         MobUtils.HOSTILE_MOBS_BURN = false;
@@ -47,9 +50,10 @@ public class Sleepers {
         };
         MobUtils.HOSTILE_MOBS_BURN = true;
     });
+
     public static final Sleeper ANVIL_RAIN = new Sleeper("Heavy rain.", server -> {
     }, server -> {
     });
 
-    public static final Sleeper[] values = {LONG_NIGHT, BRUTAL_HELL, RUN, ANVIL_RAIN};
+    public static final Sleeper[] values = {LONG_NIGHT, PHANTOMS_NIGHTMARE, BRUTAL_HELL, RUN, ANVIL_RAIN};
 }

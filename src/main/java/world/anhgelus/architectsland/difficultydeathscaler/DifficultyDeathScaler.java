@@ -141,6 +141,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         });
 
         EntitySleepEvents.START_SLEEPING.register((entity, pos) -> {
+            if (!Sleeper.canSleep()) return;
             // if the number is too high, return
             if (Getters.RANDOM.nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
                 return;

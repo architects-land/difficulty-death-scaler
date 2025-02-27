@@ -51,7 +51,6 @@ public class Sleeper {
         }
         final long when = (long) Math.floor(3 * Getters.RANDOM.nextFloat() + 2); // between 2 and 5
         TimerAccess.getTimerFromOverworld(server).dds_setTimer(when * 60 * 20, () -> runStart(server));
-        runStart(server);
     }
 
     private void runStart(MinecraftServer server) {
@@ -97,6 +96,7 @@ public class Sleeper {
     }
 
     public static int percentageToEmit(int level) {
+        level = Math.min(level, 40);
         return (int) Math.floor(10 / (0.95 + (double) (level * level) / 200));
     }
 }

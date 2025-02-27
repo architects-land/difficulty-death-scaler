@@ -26,7 +26,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.sleepers.Sleepers;
+import world.anhgelus.architectsland.difficultydeathscaler.sleepers.Sleeper;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
@@ -142,7 +142,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         EntitySleepEvents.START_SLEEPING.register((entity, pos) -> {
             // if the number is too high, return
-            if (Getters.RANDOM.nextFloat() * 100 > Sleepers.percentageToEmit(difficultyManager.getNumberOfDeath()))
+            if (Getters.RANDOM.nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
                 return;
             // try starting a new event
             final var server = entity.getServer();
@@ -150,11 +150,11 @@ public class DifficultyDeathScaler implements ModInitializer {
                 LOGGER.warn("Server is null");
                 return;
             }
-            if (Sleepers.tryEmitNewEvent(server)) LOGGER.info("Starting a new sleep event");
+            if (Sleeper.tryEmitNewEvent(server)) LOGGER.info("Starting a new sleep event");
         });
 
         EntitySleepEvents.ALLOW_BED.register((entity, sleepingPos, state, vanillaResult) -> {
-            return Sleepers.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
+            return Sleeper.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
         });
     }
 

@@ -1,4 +1,4 @@
-package world.anhgelus.architectsland.difficultydeathscaler.sleepers;
+package world.anhgelus.architectsland.difficultydeathscaler.sleep;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -59,7 +59,7 @@ public class Sleeper {
         canSleep = false;
         server.getPlayerManager().broadcast(Text.of(description), false);
         execStart.on(server);
-        // schedule stop 20 minutes later
+        // schedules stop
         TimerAccess.getTimerFromOverworld(server).dds_setTimer(EVENT_DURATION, () -> {
             DifficultyDeathScaler.LOGGER.info("finished");
             execStop.on(server);

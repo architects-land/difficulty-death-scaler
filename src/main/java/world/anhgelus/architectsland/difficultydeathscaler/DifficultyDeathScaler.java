@@ -26,7 +26,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.sleepers.Sleeper;
+import world.anhgelus.architectsland.difficultydeathscaler.sleep.Sleeper;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;

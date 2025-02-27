@@ -1,4 +1,4 @@
-package world.anhgelus.architectsland.difficultydeathscaler.sleepers;
+package world.anhgelus.architectsland.difficultydeathscaler.sleep;
 
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;

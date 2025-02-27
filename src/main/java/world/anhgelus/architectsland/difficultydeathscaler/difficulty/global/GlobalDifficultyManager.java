@@ -274,13 +274,17 @@ public class GlobalDifficultyManager extends DifficultyManager {
         // if mobs was already spawned, return
         if (hostile.hasCustomName()) return;
         CUSTOM_SPAWN_EFFECTS.modify(hostile);
-        if (hostile instanceof PiglinEntity)
-            MobUtils.customSpawn(1.5f * (numberOfDeath - 27) + PIGLIN_BRUTES_BOOST, 20, () -> {
-                // spawn piglin brutes
-                EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
-                hostile.discard();
-                return null;
-            });
+        if (hostile instanceof PiglinEntity) {
+            MobUtils.customSpawn(
+                    1.5f * (numberOfDeath + PIGLIN_BRUTES_BOOST - 27),
+                    20 + 1.5f * PIGLIN_BRUTES_BOOST,
+                    () -> {
+                        // spawn piglin brutes
+                        EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
+                        hostile.discard();
+                        return null;
+                    });
+        }
     }
 
     @Override

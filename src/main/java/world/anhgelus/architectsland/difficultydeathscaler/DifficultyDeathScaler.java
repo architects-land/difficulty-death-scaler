@@ -144,7 +144,6 @@ public class DifficultyDeathScaler implements ModInitializer {
             // if the number is too high, return
             if (Getters.RANDOM.nextFloat() * 100 > Sleepers.percentageToEmit(difficultyManager.getNumberOfDeath()))
                 return;
-            LOGGER.info("sleep event proba");
             // try starting a new event
             final var server = entity.getServer();
             if (server == null) {

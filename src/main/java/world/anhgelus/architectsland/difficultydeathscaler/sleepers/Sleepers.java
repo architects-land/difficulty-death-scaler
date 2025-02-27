@@ -1,8 +1,10 @@
 package world.anhgelus.architectsland.difficultydeathscaler.sleepers;
 
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
@@ -25,14 +27,14 @@ public enum Sleepers {
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
     }, false),
     BRUTAL_HELL("Wendy, I'm home.", server -> {
-        GlobalDifficultyManager.PIGLIN_BRUTES_BOOST += 30; // is like day 28
+        GlobalDifficultyManager.PIGLIN_BRUTES_BOOST += 28; // for day 28
     }, server -> {
-        GlobalDifficultyManager.PIGLIN_BRUTES_BOOST -= 30;
+        GlobalDifficultyManager.PIGLIN_BRUTES_BOOST -= 28;
     }),
     PHANTOMS_NIGHTMARE("It never ends.", server -> {
     }, server -> {
     }),
-    RUN("Get the fuck out!", server -> {
+    RUN("Get the fuck out! They are invisible!", server -> {
         final var since = System.currentTimeMillis() / 50;
         MobUtils.HOSTILE_MOBS_BURN = false;
         GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {
@@ -65,14 +67,14 @@ public enum Sleepers {
     public final On execStart;
     public final On execStop;
 
-    private static boolean canSleep;
+    private static boolean canSleep = true;
     private static long lastSleep;
 
     Sleepers(String description, On execStart, On execStop, boolean skipNight) {
         this.description = description;
-        this.skipNight = skipNight;
         this.execStart = execStart;
         this.execStop = execStop;
+        this.skipNight = skipNight;
     }
 
     Sleepers(String description, On execStart, On execStop) {
@@ -84,24 +86,27 @@ public enum Sleepers {
 
     public void emit(MinecraftServer server) {
         if (!skipNight) {
-            server.getPlayerManager().getPlayerList().forEach(p -> {
-                if (!p.isSleeping()) return;
-                p.wakeUp();
-            });
+            server.getPlayerManager()
+                    .getPlayerList()
+                    .stream()
+                    .filter(LivingEntity::isSleeping)
+                    .forEach(PlayerEntity::wakeUp);
             runStart(server);
             return;
         }
         final long when = (long) Math.floor(3 * Getters.RANDOM.nextFloat() + 2); // between 2 and 5
         TimerAccess.getTimerFromOverworld(server).dds_setTimer(when * 60 * 20, () -> runStart(server));
+        runStart(server);
     }
 
     private void runStart(MinecraftServer server) {
         // starts
-        canSleep = skipNight;
+        canSleep = false;
         server.getPlayerManager().broadcast(Text.of(description), false);
         execStart.on(server);
         // schedule stop 20 minutes later
         TimerAccess.getTimerFromOverworld(server).dds_setTimer(20 * 60 * 20, () -> {
+            DifficultyDeathScaler.LOGGER.info("finished");
             execStop.on(server);
             canSleep = true;
         });
@@ -115,7 +120,7 @@ public enum Sleepers {
             return false;
         }
         final var time = world.getTime();
-//        if (time - lastSleep < 10 * 60 * 20) return false;
+        if (time - lastSleep < 10 * 60 * 20) return false;
         lastSleep = time;
         // emitting random event
         final var rules = server.getGameRules();

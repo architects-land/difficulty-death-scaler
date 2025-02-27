@@ -24,6 +24,16 @@ the dragon (200 actually, like in vanilla).
     </def>
 </deflist>
 
+The dragon also have their blast resistance adjusted according to the current difficulty.
+
+<deflist collapsible="true">
+    <def title="Math behind" default-state="collapsed">
+        The formula describing the blast resistance is
+<code>min( 1- (difficulty-1)/40 * amount, amount)</code> where <code>difficulty</code> is the difficulty and 
+<code>amount</code> is the base damage.
+    </def>
+</deflist>
+
 ## Buff
 
 <procedure title="Elder Guardian" id="elder_guardian" collapsible="true">

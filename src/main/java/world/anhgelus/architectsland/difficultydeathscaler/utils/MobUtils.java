@@ -12,6 +12,7 @@ import java.util.concurrent.Callable;
 
 public class MobUtils {
     public static boolean HOSTILE_MOBS_BURN = true;
+    public static boolean PHANTOMS_NIGHTMARE = false;
 
     public static void commonBetterGoals(HostileEntity e, GoalSelector targetSelector) {
         for (Goal g : targetSelector.getGoals()) {

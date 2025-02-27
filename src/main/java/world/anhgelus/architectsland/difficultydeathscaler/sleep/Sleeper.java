@@ -4,7 +4,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
-import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
@@ -50,7 +49,7 @@ public class Sleeper {
             return;
         }
         final long when = (long) Math.floor(3 * Getters.RANDOM.nextFloat() + 2); // between 2 and 5
-        TimerAccess.getTimerFromOverworld(server).dds_setTimer(when * 60 * 20, () -> runStart(server));
+        TimerAccess.getTimerFromOverworld(server).dds_setTimer(1 * 60 * 20, () -> runStart(server));
     }
 
     private void runStart(MinecraftServer server) {
@@ -84,9 +83,6 @@ public class Sleeper {
         }
         final var val = Sleepers.values;
         var ev = val[Getters.RANDOM.nextInt(val.length)];
-        while (!rules.getBoolean(GameRules.DO_INSOMNIA) && ev == Sleepers.PHANTOMS_NIGHTMARE) {
-            ev = val[Getters.RANDOM.nextInt(val.length)];
-        }
         ev.emit(server);
         return true;
     }

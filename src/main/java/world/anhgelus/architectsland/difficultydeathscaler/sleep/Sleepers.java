@@ -27,7 +27,9 @@ public class Sleepers {
     });
 
     public static final Sleeper PHANTOMS_NIGHTMARE = new Sleeper("It never ends.", server -> {
+        MobUtils.PHANTOMS_NIGHTMARE = true;
     }, server -> {
+        MobUtils.PHANTOMS_NIGHTMARE = false;
     });
 
     public static final Sleeper RUN = new Sleeper("Get the fuck out! They are invisible!", server -> {

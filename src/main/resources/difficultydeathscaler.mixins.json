@@ -10,7 +10,8 @@
     "AnnoyingMobEntity",
     "AnnoyingSkeleton",
     "AnnoyingZombie",
-    "PlayerManagerMixin"
+    "PlayerManagerMixin",
+    "StrongerDragon"
   ],
   "injectors": {
     "defaultRequire": 1

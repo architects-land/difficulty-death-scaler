@@ -130,9 +130,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         });
 
         UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (!(entity instanceof LivingEntity)) {
-                return ActionResult.PASS;
-            }
+            if (!(entity instanceof LivingEntity)) return ActionResult.PASS;
             return BossManager.handleBuff(player, world, hand, (LivingEntity) entity);
         });
 

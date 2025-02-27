@@ -19,6 +19,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,6 +83,11 @@ public class BossManager {
         if (world.getRegistryKey().getValue() != World.END.getValue()) return;
         dragonBuff = new DragonBuff(dragon);
         world.getPlayers().forEach(player -> playerEntersEnd(player, world));
+    }
+
+    public static void onDifficultyUpdate(GlobalDifficultyManager difficultyManager) {
+        if (dragonBuff == null || !dragonBuff.isDragonAlive()) return;
+        dragonBuff.updateDragonHealth(difficultyManager.getNumberOfDeath(), true);
     }
 
     private static void dragonDies() {

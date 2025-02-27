@@ -34,15 +34,19 @@ public class DragonBuff {
         players.add(player);
 
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath();
+        updateDragonHealth(difficulty, false);
+    }
+
+    public void updateDragonHealth(int difficulty, boolean bypassCheck) {
         final var nh = adjustedNewHealth(players.size(), difficulty); // new health
-        if (nh - oldHealth < 0) {
+        if (!bypassCheck && nh - oldHealth < 0) {
             DifficultyDeathScaler.LOGGER.warn("Dragon's health is lower: {} (now) vs {} (before)", nh, oldHealth);
             return;
         }
         final var val = ((float) nh / BASE) - 1;
         buff(enderDragon, val);
         // heal the dragon the difference
-        enderDragon.heal(nh - oldHealth);
+        enderDragon.heal(Math.abs(nh - oldHealth));
         oldHealth = nh;
         DifficultyDeathScaler.LOGGER.info("Dragon's health: {}", nh);
     }

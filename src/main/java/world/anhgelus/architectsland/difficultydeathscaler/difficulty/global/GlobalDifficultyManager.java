@@ -14,6 +14,7 @@ import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
@@ -191,6 +192,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
             });
             playSoundUpdate(updateType, p);
         });
+
+        BossManager.onDifficultyUpdate(this);
 
         if (updateType != UpdateType.SILENT)
             pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);

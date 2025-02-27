@@ -25,10 +25,11 @@ import java.util.List;
 public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12 * 60 * 60; // 12 hours
     public static int PIGLIN_BRUTES_BOOST = 0;
-    public static EntityModifies CUSTOM_SPAWN_EFFECTS;
+    public static EntityModifies CUSTOM_SPAWN_EFFECTS = (entity) -> {
+    };
 
     @FunctionalInterface
-    public interface EntityModifies{
+    public interface EntityModifies {
         void modify(LivingEntity entity);
     }
 
@@ -318,6 +319,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         final var sb = new StringBuilder();
         sb.append("GlobalDifficultyManager(number of death=").append(numberOfDeath)
                 .append(", total of death=").append(totalOfDeath)
+                .append(", piglin brutes boost=").append(PIGLIN_BRUTES_BOOST)
                 .append(") {better skeletons=").append(BETTER_SKELETON)
                 .append(", better zombies=").append(BETTER_ZOMBIES)
                 .append(", better creepers=").append(BETTER_CREEPERS)

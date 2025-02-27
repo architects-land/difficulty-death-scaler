@@ -11,7 +11,8 @@
     "AnnoyingMobEntity",
     "AnnoyingSkeleton",
     "AnnoyingZombie",
-    "PlayerManagerMixin"
+    "PlayerManagerMixin",
+    "WorldTimerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

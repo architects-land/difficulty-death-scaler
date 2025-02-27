@@ -12,9 +12,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
-
-import java.util.Timer;
-import java.util.TimerTask;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.TimerAccess;
 
 public enum Sleepers {
     LONG_NIGHT("Polar night.", server -> {
@@ -31,7 +29,9 @@ public enum Sleepers {
     }, server -> {
         GlobalDifficultyManager.PIGLIN_BRUTES_BOOST -= 30;
     }),
-    PHANTOMS_NIGHTMARE("It never ends.", server -> {}, server -> {}),
+    PHANTOMS_NIGHTMARE("It never ends.", server -> {
+    }, server -> {
+    }),
     RUN("Get the fuck out!", server -> {
         final var since = System.currentTimeMillis() / 50;
         MobUtils.HOSTILE_MOBS_BURN = false;
@@ -42,16 +42,19 @@ public enum Sleepers {
             if (Getters.RANDOM.nextFloat() * 100 > 90) effect = StatusEffects.RESISTANCE;
             else effect = StatusEffects.INVISIBILITY;
 
-            final var diff = (int) (20*60*20 - now + since);
+            final var diff = (int) (20 * 60 * 20 - now + since);
             if (diff < 0) throw new IllegalStateException("Difference in event RUN is below zero");
 
             living.addStatusEffect(new StatusEffectInstance(effect, diff, 2, false, false));
         };
     }, server -> {
-        GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {};
+        GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {
+        };
         MobUtils.HOSTILE_MOBS_BURN = true;
     }),
-    ANVIL_RAIN("Heavy rain.", server -> {}, server -> {});
+    ANVIL_RAIN("Heavy rain.", server -> {
+    }, server -> {
+    });
 
     public interface On {
         void on(MinecraftServer server);
@@ -62,8 +65,6 @@ public enum Sleepers {
     public final On execStart;
     public final On execStop;
 
-    private static final Timer timer = new Timer();
-
     private static boolean canSleep;
     private static long lastSleep;
 
@@ -73,6 +74,7 @@ public enum Sleepers {
         this.execStart = execStart;
         this.execStop = execStop;
     }
+
     Sleepers(String description, On execStart, On execStop) {
         this.description = description;
         this.skipNight = true;
@@ -89,13 +91,8 @@ public enum Sleepers {
             runStart(server);
             return;
         }
-        final long when = (long) Math.floor(3*Getters.RANDOM.nextFloat()+2); // between 2 and 5
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                runStart(server);
-            }
-        }, when*60*1000);
+        final long when = (long) Math.floor(3 * Getters.RANDOM.nextFloat() + 2); // between 2 and 5
+        TimerAccess.getTimerFromOverworld(server).dds_setTimer(when * 60 * 20, () -> runStart(server));
     }
 
     private void runStart(MinecraftServer server) {
@@ -104,13 +101,10 @@ public enum Sleepers {
         server.getPlayerManager().broadcast(Text.of(description), false);
         execStart.on(server);
         // schedule stop 20 minutes later
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                execStop.on(server);
-                canSleep = true;
-            }
-        }, 20*60*1000);
+        TimerAccess.getTimerFromOverworld(server).dds_setTimer(20 * 60 * 20, () -> {
+            execStop.on(server);
+            canSleep = true;
+        });
     }
 
     public static boolean tryEmitNewEvent(MinecraftServer server) {
@@ -121,7 +115,7 @@ public enum Sleepers {
             return false;
         }
         final var time = world.getTime();
-        if (time - lastSleep < 10*60*20) return false;
+//        if (time - lastSleep < 10 * 60 * 20) return false;
         lastSleep = time;
         // emitting random event
         final var rules = server.getGameRules();
@@ -129,7 +123,7 @@ public enum Sleepers {
             DifficultyDeathScaler.LOGGER.warn("Impossible to get gamerules");
             return false;
         }
-        final var val = Sleepers.values();
+        final var val = values();
         var ev = val[Getters.RANDOM.nextInt(val.length)];
         while (!rules.getBoolean(GameRules.DO_INSOMNIA) && ev == Sleepers.PHANTOMS_NIGHTMARE) {
             ev = val[Getters.RANDOM.nextInt(val.length)];
@@ -143,10 +137,6 @@ public enum Sleepers {
     }
 
     public static int percentageToEmit(int level) {
-        return (int) Math.floor(10 / (0.95 + (double) (level * level) /200));
-    }
-
-    public static void stop() {
-        timer.cancel();
+        return (int) Math.floor(10 / (0.95 + (double) (level * level) / 200));
     }
 }

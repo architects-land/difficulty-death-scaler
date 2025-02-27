@@ -85,7 +85,6 @@ public class DifficultyDeathScaler implements ModInitializer {
                 manager.stop();
             });
             bountyMap.forEach((player, bounty) -> bounty.stop());
-            Sleepers.stop();
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
@@ -141,9 +140,11 @@ public class DifficultyDeathScaler implements ModInitializer {
             difficultyManager.onEntitySpawn((HostileEntity) entity);
         });
 
-        EntitySleepEvents.START_SLEEPING.register((entity, world) -> {
+        EntitySleepEvents.START_SLEEPING.register((entity, pos) -> {
             // if the number is too high, return
-            if (Getters.RANDOM.nextFloat()*100 > Sleepers.percentageToEmit(difficultyManager.getNumberOfDeath())) return;
+            if (Getters.RANDOM.nextFloat() * 100 > Sleepers.percentageToEmit(difficultyManager.getNumberOfDeath()))
+                return;
+            LOGGER.info("sleep event proba");
             // try starting a new event
             final var server = entity.getServer();
             if (server == null) {

@@ -6,8 +6,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
 public abstract class DifficultyTimer {
-    protected long initialDelay = 0;
-    protected long timerStart = System.currentTimeMillis() / 1000;
+    private long initialDelay = 0;
 
     protected TimerAccess timer;
 
@@ -26,7 +25,6 @@ public abstract class DifficultyTimer {
             try {
                 tt = new TickTask(task, delay * 20L - initialDelay, repeatEach * 20L);
                 timer.dds_runTask(tt);
-                timerStart -= initialDelay / 20;
             } catch (IllegalArgumentException e) {
                 DifficultyDeathScaler.LOGGER.error("An exception occurred while launching the first task", e);
                 DifficultyDeathScaler.LOGGER.warn("Resetting delay to 0");
@@ -62,10 +60,6 @@ public abstract class DifficultyTimer {
         sb.append(seconds).append(" seconds");
 
         return sb.toString();
-    }
-
-    public static long delay(long timerStart) {
-        return System.currentTimeMillis() / 1000 - timerStart;
     }
 
     protected static String formatSecondsBeforeRun(TimerAccess.TickTask task) {

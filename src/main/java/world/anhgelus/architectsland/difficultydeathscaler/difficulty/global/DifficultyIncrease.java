@@ -31,7 +31,6 @@ public class DifficultyIncrease extends DifficultyTimer {
         if (enabled) increaseTask = executeTask(task, increaseTask, SECONDS_EACH_INCREASE);
         else increaseTask = executeTask(task, increaseTask, SECONDS_BEFORE_INCREASE, SECONDS_EACH_INCREASE);
         enabled = false;
-        timerStart = System.currentTimeMillis() / 1000;
     }
 
     public boolean isEnabled() {

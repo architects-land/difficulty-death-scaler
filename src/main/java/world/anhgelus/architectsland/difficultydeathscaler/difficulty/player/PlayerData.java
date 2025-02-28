@@ -7,4 +7,5 @@ public class PlayerData {
     public int totalOfDeath = 0;
     public long[] deathDayDelay = new long[]{};
     public long bannedSince = -1;
+    public long secondsLowerDifficulty = 0;
 }

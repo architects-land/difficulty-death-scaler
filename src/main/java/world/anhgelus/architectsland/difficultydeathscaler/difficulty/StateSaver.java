@@ -9,7 +9,9 @@ import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerData;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class StateSaver extends PersistentState {
     public Map<UUID, PlayerData> players = new HashMap<>();
@@ -19,6 +21,7 @@ public class StateSaver extends PersistentState {
     public long timeBeforeIncrease = 0;
     public boolean increaseEnabled = false;
     public int totalOfDeath = 0;
+    public long secondsLowerDifficulty = 0;
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
@@ -32,6 +35,7 @@ public class StateSaver extends PersistentState {
             playerNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
             playerNbt.putInt("totalOfDeath", playerData.totalOfDeath);
             playerNbt.putLong("bannedSince", playerData.bannedSince);
+            playerNbt.putLong("secondsLowerDifficulty", playerData.secondsLowerDifficulty);
 
             playersNbt.put(uuid.toString(), playerNbt);
         });
@@ -41,6 +45,7 @@ public class StateSaver extends PersistentState {
         nbt.putLong("timeBeforeIncrease", timeBeforeIncrease);
         nbt.putBoolean("increaseEnabled", increaseEnabled);
         nbt.putInt("totalOfDeath", totalOfDeath);
+        nbt.putLong("secondsLowerDifficulty", secondsLowerDifficulty);
 
         return nbt;
     }
@@ -59,6 +64,8 @@ public class StateSaver extends PersistentState {
             playerData.deathDayDelay = compound.getLongArray("deathDayDelay");
             playerData.totalOfDeath = compound.getInt("totalOfDeath");
             if (compound.contains("bannedSince")) playerData.bannedSince = compound.getLong("bannedSince");
+            if (compound.contains("secondsLowerDifficulty"))
+                playerData.secondsLowerDifficulty = compound.getLong("secondsLowerDifficulty");
 
             state.players.put(UUID.fromString(key), playerData);
         });
@@ -67,6 +74,7 @@ public class StateSaver extends PersistentState {
         state.timeBeforeIncrease = tag.getLong("timeBeforeIncrease");
         state.increaseEnabled = tag.getBoolean("increaseEnabled");
         state.totalOfDeath = tag.getInt("totalOfDeath");
+        state.secondsLowerDifficulty = tag.getInt("secondsLowerDifficulty");
 
         return state;
     }

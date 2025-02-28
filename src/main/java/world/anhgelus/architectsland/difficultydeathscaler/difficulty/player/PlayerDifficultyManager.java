@@ -121,6 +121,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         totalOfDeath = data.totalOfDeath;
         bannedSince = data.bannedSince;
         tempBan = bannedSince != -1;
+        secondsLowerDifficulty = data.secondsLowerDifficulty;
         for (final var ticksDelay : data.deathDayDelay) {
             try {
                 scheduleDeathDayTask(ticksDelay);
@@ -258,6 +259,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
             starts[i] = runningDeathDay.get(i).getTickingBeforeRun();
         }
         state.deathDayDelay = starts;
+        state.secondsLowerDifficulty = secondsLowerDifficulty;
     }
 
     public void applyModifiers() {

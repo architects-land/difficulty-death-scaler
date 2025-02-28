@@ -26,6 +26,9 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     protected int numberOfDeath;
 
+    protected long secondsLowerDifficulty;
+    protected TimerAccess.TickTask secondsLowerDifficultyCounterTask;
+
     protected DifficultyManager(MinecraftServer server, Step[] steps, long secondsBeforeDecreased) {
         timer = TimerAccess.getTimerFromOverworld(server);
         this.server = server;
@@ -150,15 +153,19 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     public void updateTimerTask() {
         if (reducerTask != null && reducerTask.isRunning()) reducerTask.cancel();
-        if (numberOfDeath == 0) return;
-        timerStart = System.currentTimeMillis() / 1000;
+        if (numberOfDeath == 0) {
+            secondsLowerDifficulty = 0;
+            secondsLowerDifficultyCounterTask = new TickTask(() -> {
+                if (numberOfDeath > 0 && secondsLowerDifficultyCounterTask.isRunning())
+                    secondsLowerDifficultyCounterTask.cancel();
+                secondsLowerDifficulty++;
+            }, 20, 20);
+            timer.dds_runTask(secondsLowerDifficultyCounterTask);
+            return;
+        }
         reducerTask = executeTask(() -> {
-            timerStart = System.currentTimeMillis() / 1000;
             decreaseDeath();
-            if (numberOfDeath == 0) {
-                reducerTask.cancel();
-                timerStart = -1;
-            }
+            if (numberOfDeath == 0) reducerTask.cancel();
         }, reducerTask, secondsBeforeDecreased);
     }
 
@@ -167,6 +174,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
         // Prevents for example the difficulty decrease message when killing a boss if the difficulty doesn't decrease.
         if (numberOfDeath < steps[1].level()) {
             numberOfDeath = 0;
+            updateTimerTask();
             return;
         }
 
@@ -286,7 +294,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
             sb.append("§r to make the difficulty decrease.");
         } else if (numberOfDeath == steps[1].level()) {
             sb.append("You were on the lowest difficulty for §6")
-                    .append(formatSeconds(System.currentTimeMillis() / 1000 - timerStart))
+                    .append(formatSeconds(secondsLowerDifficulty))
                     .append("§r, but you had to die and ruin everything, hadn't you?");
         } else {
             sb.append("If ").append(beginning).append(" for §6")

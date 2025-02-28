@@ -19,7 +19,7 @@ public class WorldTimerAccess implements TimerAccess {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        tasks.forEach(TickTask::tick);
+        tasks.stream().filter(t -> !t.isCancelled()).forEach(TickTask::tick);
     }
 
     @Override

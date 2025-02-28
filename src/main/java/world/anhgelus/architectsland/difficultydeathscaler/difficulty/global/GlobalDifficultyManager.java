@@ -22,9 +22,9 @@ import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 import java.util.List;
 
 public class GlobalDifficultyManager extends DifficultyManager {
-    public static final int SECONDS_BEFORE_DECREASED = 12 * 60 * 60; // 12 hours
+    public static final int SECONDS_BEFORE_DECREASED = 12; // 12 hours
 
-    private final DifficultyIncrease increaser; // 12 hours
+    private final DifficultyIncrease increaser;
 
     public static class HealthModifier extends PlayerHealthModifier {
         public static final Identifier ID = Identifier.of(PREFIX + "global_health_modifier");

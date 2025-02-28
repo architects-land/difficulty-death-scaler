@@ -8,7 +8,7 @@ public class TickTask implements TimerAccess.TickTask {
 
     public final long ticksDelay;
     public final long ticksRepeat;
-    public final boolean repeat;
+    public final boolean repeating;
     public final TimerAccess.Task task;
 
     private long currentTicking;
@@ -18,13 +18,13 @@ public class TickTask implements TimerAccess.TickTask {
      *
      * @param task        Task to run after the delay or the repeat time
      * @param ticksDelay  Delay before the first task's run
-     * @param ticksRepeat Repeat each tick
+     * @param ticksRepeat Repeat each tick (if the repeat is <= 0, it will repeat each tick)
      */
     public TickTask(TimerAccess.Task task, long ticksDelay, long ticksRepeat) {
         this.ticksDelay = ticksDelay;
         this.ticksRepeat = ticksRepeat;
         this.task = task;
-        repeat = true;
+        repeating = true;
         currentTicking = ticksDelay;
     }
 
@@ -38,7 +38,7 @@ public class TickTask implements TimerAccess.TickTask {
         this.ticksDelay = ticksDelay;
         this.ticksRepeat = -1;
         this.task = task;
-        repeat = false;
+        repeating = false;
         currentTicking = ticksDelay;
     }
 
@@ -46,9 +46,9 @@ public class TickTask implements TimerAccess.TickTask {
      * Tick the task
      */
     public void tick() {
-        if (--currentTicking != 0) return;
+        if (--currentTicking > 0) return;
         task.run();
-        if (repeat) {
+        if (repeating) {
             currentTicking = ticksRepeat;
         } else {
             cancel();

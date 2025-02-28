@@ -148,17 +148,6 @@ public abstract class DifficultyManager extends DifficultyTimer {
     public void updateTimerTask() {
         if (reducerTask != null) reducerTask.cancel();
         if (numberOfDeath == 0) return;
-        final var task = new TimerTask() {
-            @Override
-            public void run() {
-                timerStart = System.currentTimeMillis() / 1000;
-                decreaseDeath();
-                if (numberOfDeath == 0) {
-                    reducerTask.cancel();
-                    timerStart = -1;
-                }
-            }
-        };
         timerStart = System.currentTimeMillis() / 1000;
         reducerTask = executeTask(() -> {
             timerStart = System.currentTimeMillis() / 1000;

@@ -28,7 +28,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     public @Nullable ServerPlayerEntity player;
     public @Nullable UUID uuid = null;
 
-    public static final int SECONDS_BEFORE_DECREASED = 24 * 60 * 60;
+    public static final int SECONDS_BEFORE_DECREASED = 24;
 
     public static class HealthModifier extends PlayerHealthModifier {
         public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
@@ -140,12 +140,12 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     @Override
     protected void onUpdate(UpdateType updateType, Updater updater) {
+        updateModifiersValue(updater);
+
         if (player == null) {
             DifficultyDeathScaler.LOGGER.warn("Player in {} is null", this);
             return;
         }
-
-        updateModifiersValue(updater);
 
         player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
@@ -158,7 +158,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         deathDay++;
 
         if (player == null) {
-            DifficultyDeathScaler.LOGGER.warn("Updating death of null player. UpdateType {}", updateType);
+            DifficultyDeathScaler.LOGGER.error("Updating death of null player. UpdateType {}", updateType);
             throw new IllegalStateException("Player is null");
         }
         if (player.getWorld().isClient()) return;
@@ -178,16 +178,16 @@ public class PlayerDifficultyManager extends DifficultyManager {
         modifiers.forEach(m -> {
             if (m instanceof final HealthModifier mod) {
                 healthModifier = mod.getValue();
-                mod.apply(player);
+                if (player != null) mod.apply(player);
             }/* else if (m instanceof final LuckModifier mod) {
                 luckModifier = mod.getValue();
                 mod.apply(player);
             } */ else if (m instanceof final BlockBreakSpeedModifier mod) {
                 blockBreakSpeedModifier = mod.getValue();
-                mod.apply(player);
+                if (player != null) mod.apply(player);
             } else if (m instanceof final MovementSpeedModifier mod) {
                 movementSpeedModifier = mod.getValue();
-                mod.apply(player);
+                if (player != null) mod.apply(player);
             }
         });
     }

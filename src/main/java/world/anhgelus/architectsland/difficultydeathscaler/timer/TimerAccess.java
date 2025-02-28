@@ -20,7 +20,7 @@ public interface TimerAccess {
          */
         long cancel();
 
-        boolean isCancelled();
+        boolean isRunning();
 
         /**
          * @return the number of ticks before run of the task (if the task is cancelled, returns -1)

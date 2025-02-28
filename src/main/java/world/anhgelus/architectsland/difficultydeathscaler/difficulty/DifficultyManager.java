@@ -17,7 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public abstract class DifficultyManager extends DifficultyTimer {
-    private TickTask reducerTask;
+    protected TickTask reducerTask;
 
     protected final long secondsBeforeDecreased;
 
@@ -149,7 +149,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     public void updateTimerTask() {
-        if (reducerTask != null && !reducerTask.isCancelled()) reducerTask.cancel();
+        if (reducerTask != null && reducerTask.isRunning()) reducerTask.cancel();
         if (numberOfDeath == 0) return;
         timerStart = System.currentTimeMillis() / 1000;
         reducerTask = executeTask(() -> {

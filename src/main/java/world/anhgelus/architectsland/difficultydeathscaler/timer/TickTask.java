@@ -58,8 +58,8 @@ public class TickTask implements TimerAccess.TickTask {
         return currentTicking;
     }
 
-    public boolean isCancelled() {
-        return cancelled;
+    public boolean isRunning() {
+        return !cancelled;
     }
 
     @Override

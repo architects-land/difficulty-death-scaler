@@ -19,7 +19,7 @@ public class WorldTimerAccess implements TimerAccess {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        tasks.stream().filter(t -> !t.isCancelled()).forEach(TickTask::tick);
+        tasks.stream().filter(TickTask::isRunning).forEach(TickTask::tick);
     }
 
     @Override
@@ -29,11 +29,11 @@ public class WorldTimerAccess implements TimerAccess {
 
     @Override
     public void dds_cancel() {
-        tasks.stream().filter(t -> !t.isCancelled()).forEach(TickTask::cancel);
+        tasks.stream().filter(TickTask::isRunning).forEach(TickTask::cancel);
     }
 
     @Override
     public List<TickTask> dds_getTasks() {
-        return tasks.stream().filter(t -> !t.isCancelled()).toList();
+        return tasks.stream().filter(TickTask::isRunning).toList();
     }
 }

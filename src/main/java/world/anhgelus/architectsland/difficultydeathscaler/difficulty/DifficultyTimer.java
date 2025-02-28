@@ -24,9 +24,9 @@ public abstract class DifficultyTimer {
         if (pastTask == null && initialDelay != 0) {
             TickTask tt;
             try {
-                tt = new TickTask(task, (delay - initialDelay) * 20L, repeatEach * 20L);
+                tt = new TickTask(task, delay * 20L - initialDelay, repeatEach * 20L);
                 timer.dds_runTask(tt);
-                timerStart -= initialDelay;
+                timerStart -= initialDelay / 20;
             } catch (IllegalArgumentException e) {
                 DifficultyDeathScaler.LOGGER.error("An exception occurred while launching the first task", e);
                 DifficultyDeathScaler.LOGGER.warn("Resetting delay to 0");
@@ -62,10 +62,6 @@ public abstract class DifficultyTimer {
         sb.append(seconds).append(" seconds");
 
         return sb.toString();
-    }
-
-    public long delay() {
-        return delay(timerStart);
     }
 
     public static long delay(long timerStart) {

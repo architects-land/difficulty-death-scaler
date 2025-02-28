@@ -92,7 +92,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
     private int deathDay;
     private boolean tempBan;
     private long bannedSince = -1;
-    private final List<Long> deathDayStart = new ArrayList<>();
     private final List<TickTask> deathDayTasks = new ArrayList<>();
 
     private int totalOfDeath = 0;
@@ -122,10 +121,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
         totalOfDeath = data.totalOfDeath;
         bannedSince = data.bannedSince;
         tempBan = bannedSince != -1;
-        for (final var delay : data.deathDayDelay) {
+        for (final var ticksDelay : data.deathDayDelay) {
             try {
-                scheduleDeathDayTask(delay);
-                deathDayStart.add(delay);
+                scheduleDeathDayTask(ticksDelay);
             } catch (IllegalArgumentException e) {
                 DifficultyDeathScaler.LOGGER.error("An error occurred while loading data", e);
                 DifficultyDeathScaler.LOGGER.warn("Removing one day death");
@@ -248,13 +246,16 @@ public class PlayerDifficultyManager extends DifficultyManager {
             state = StateSaver.getPlayerState(player);
         }
         state.deaths = numberOfDeath;
-        state.timeBeforeReduce = delay();
+        if (reducerTask != null && reducerTask.isRunning())
+            state.timeBeforeReduce = reducerTask.getTickingBeforeRun();
+        else state.timeBeforeReduce = 0;
         state.deathDay = deathDay;
         state.totalOfDeath = totalOfDeath;
         state.bannedSince = bannedSince;
-        var starts = new long[deathDayStart.size()];
-        for (int i = 0; i < deathDayStart.size(); i++) {
-            starts[i] = deathDayStart.get(i);
+        final var runningDeathDay = deathDayTasks.stream().filter(TickTask::isRunning).toList();
+        var starts = new long[runningDeathDay.size()];
+        for (int i = 0; i < runningDeathDay.size(); i++) {
+            starts[i] = runningDeathDay.get(i).getTickingBeforeRun();
         }
         state.deathDayDelay = starts;
     }
@@ -287,25 +288,19 @@ public class PlayerDifficultyManager extends DifficultyManager {
         scheduleDeathDayTask(0);
     }
 
-    private void scheduleDeathDayTask(long delayTime) {
-        if (delayTime == 0) {
-            deathDayStart.add(delay(System.currentTimeMillis() / 1000));
-        } else {
-            deathDayStart.add(delayTime);
-        }
+    private void scheduleDeathDayTask(long ticksDelay) {
         final var task = new TickTask(() -> {
             if (deathDay != 0) {
                 deathDay--;
-                deathDayStart.removeFirst();
+                deathDayTasks.removeFirst();
             } else DifficultyDeathScaler.LOGGER.warn("Death day is already equal to 0");
-        }, (24 * 60 * 60 - delayTime) * 20L);
+        }, (24 * 60 * 60) * 20L - ticksDelay);
         timer.dds_runTask(task);
         deathDayTasks.add(task);
     }
 
     private void resetDeathDay() {
         deathDay = 0;
-        deathDayStart.clear();
         deathDayTasks.forEach(TickTask::cancel);
         deathDayTasks.clear();
     }

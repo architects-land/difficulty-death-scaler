@@ -7,18 +7,16 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalData;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerData;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class StateSaver extends PersistentState {
     public Map<UUID, PlayerData> players = new HashMap<>();
-
-    public int deaths = 0;
-    public long timeBeforeReduce = 0;
-    public long timeBeforeIncrease = 0;
-    public boolean increaseEnabled = false;
-    public int totalOfDeath = 0;
+    public GlobalData difficulty;
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
@@ -32,21 +30,24 @@ public class StateSaver extends PersistentState {
             playerNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
             playerNbt.putInt("totalOfDeath", playerData.totalOfDeath);
             playerNbt.putLong("bannedSince", playerData.bannedSince);
+            playerNbt.putLong("secondsLowerDifficulty", playerData.secondsLowerDifficulty);
 
             playersNbt.put(uuid.toString(), playerNbt);
         });
         nbt.put("players", playersNbt);
-        nbt.putInt("deaths", deaths);
-        nbt.putLong("timeBeforeReduce", timeBeforeReduce);
-        nbt.putLong("timeBeforeIncrease", timeBeforeIncrease);
-        nbt.putBoolean("increaseEnabled", increaseEnabled);
-        nbt.putInt("totalOfDeath", totalOfDeath);
+        nbt.putInt("deaths", difficulty.deaths);
+        nbt.putLong("timeBeforeReduce", difficulty.timeBeforeReduce);
+        nbt.putLong("timeBeforeIncrease", difficulty.timeBeforeIncrease);
+        nbt.putBoolean("increaseEnabled", difficulty.increaseEnabled);
+        nbt.putInt("totalOfDeath", difficulty.totalOfDeath);
+        nbt.putLong("secondsLowerDifficulty", difficulty.secondsLowerDifficulty);
 
         return nbt;
     }
 
     public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         final var state = new StateSaver();
+        state.difficulty = new GlobalData();
 
         final var playersNbt = tag.getCompound("players");
         playersNbt.getKeys().forEach(key -> {
@@ -59,14 +60,17 @@ public class StateSaver extends PersistentState {
             playerData.deathDayDelay = compound.getLongArray("deathDayDelay");
             playerData.totalOfDeath = compound.getInt("totalOfDeath");
             if (compound.contains("bannedSince")) playerData.bannedSince = compound.getLong("bannedSince");
+            if (compound.contains("secondsLowerDifficulty"))
+                playerData.secondsLowerDifficulty = compound.getLong("secondsLowerDifficulty");
 
             state.players.put(UUID.fromString(key), playerData);
         });
-        state.deaths = tag.getInt("deaths");
-        state.timeBeforeReduce = tag.getLong("timeBeforeReduce");
-        state.timeBeforeIncrease = tag.getLong("timeBeforeIncrease");
-        state.increaseEnabled = tag.getBoolean("increaseEnabled");
-        state.totalOfDeath = tag.getInt("totalOfDeath");
+        state.difficulty.deaths = tag.getInt("deaths");
+        state.difficulty.timeBeforeReduce = tag.getLong("timeBeforeReduce");
+        state.difficulty.timeBeforeIncrease = tag.getLong("timeBeforeIncrease");
+        state.difficulty.increaseEnabled = tag.getBoolean("increaseEnabled");
+        state.difficulty.totalOfDeath = tag.getInt("totalOfDeath");
+        state.difficulty.secondsLowerDifficulty = tag.getInt("secondsLowerDifficulty");
 
         return state;
     }
@@ -85,6 +89,8 @@ public class StateSaver extends PersistentState {
         final var state = persistentStateManager.getOrCreate(type, DifficultyDeathScaler.MOD_ID);
 
         state.markDirty();
+
+        if (state.difficulty == null) state.difficulty = new GlobalData();
 
         return state;
     }

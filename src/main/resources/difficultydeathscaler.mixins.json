@@ -13,6 +13,7 @@
     "AnnoyingZombie",
     "PhantomsSpawnerMixin",
     "PlayerManagerMixin",
+    "WorldTimerAccess",
     "WorldTimerMixin"
   ],
   "injectors": {

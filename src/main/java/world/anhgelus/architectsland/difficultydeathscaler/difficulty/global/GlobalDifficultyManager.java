@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
@@ -33,7 +34,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         void modify(LivingEntity entity);
     }
 
-    private final DifficultyIncrease increaser; // 12 hours
+    private final DifficultyIncrease increaser;
 
     public static class HealthModifier extends PlayerHealthModifier {
         public static final Identifier ID = Identifier.of(PREFIX + "global_health_modifier");
@@ -169,21 +170,18 @@ public class GlobalDifficultyManager extends DifficultyManager {
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
 
+        // get state
         DifficultyDeathScaler.LOGGER.info("Loading global difficulty data");
         final var state = StateSaver.getServerState(server);
-        delayFirstTask(state.timeBeforeReduce);
-        increaser = new DifficultyIncrease(this, timer, state.timeBeforeIncrease, state.increaseEnabled);
-        setNumberOfDeath(state.deaths, true);
-        totalOfDeath = state.totalOfDeath;
-
+        // load data
+        increaser = new DifficultyIncrease(this, timer, state.difficulty.timeBeforeIncrease, state.difficulty.increaseEnabled);
+        load(state.difficulty);
         // update difficulty after restart
         server.setDifficulty(getUpdater().getDifficulty(), true);
-
-        updateModifiersValue(getModifiers(numberOfDeath));
     }
 
     @Override
-    protected void onUpdate(UpdateType updateType, Updater updater) {
+    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
         final var difficulty = updater.getDifficulty();
         server.setDifficulty(difficulty, true);
 
@@ -287,15 +285,15 @@ public class GlobalDifficultyManager extends DifficultyManager {
         }
     }
 
-    @Override
     public void save() {
+        // get state
         DifficultyDeathScaler.LOGGER.info("Saving global difficulty data");
         final var state = StateSaver.getServerState(server);
-        state.deaths = numberOfDeath;
-        state.timeBeforeReduce = delay();
-        state.timeBeforeIncrease = increaser.delay();
-        state.increaseEnabled = increaser.isEnabled();
-        state.totalOfDeath = totalOfDeath;
+        // save state
+        save(state.difficulty);
+
+        state.difficulty.timeBeforeIncrease = increaser.getTickingBeforeRun();
+        state.difficulty.increaseEnabled = increaser.isEnabled();
     }
 
     public int getTotalOfDeath() {

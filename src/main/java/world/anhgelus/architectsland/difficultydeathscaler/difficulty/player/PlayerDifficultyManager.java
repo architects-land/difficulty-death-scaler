@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.BlockBreakSpeedModifier;
@@ -99,7 +100,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         this.player = player;
         this.globalManager = globalManager;
 
-        DifficultyDeathScaler.LOGGER.info("Loading player {} difficulty data", player.getUuid());
+        DifficultyDeathScaler.LOGGER.info("Loading player ({}) difficulty data", player.getUuid());
         load(StateSaver.getPlayerState(player));
     }
 
@@ -109,7 +110,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         this.uuid = uuid;
         this.globalManager = globalManager;
 
-        DifficultyDeathScaler.LOGGER.info("Creating player difficulty manager with data");
+        DifficultyDeathScaler.LOGGER.info("Creating player ({}) difficulty manager with data", uuid);
         load(data);
     }
 
@@ -131,8 +132,10 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
 
     @Override
-    protected void onUpdate(UpdateType updateType, Updater updater) {
+    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
         updateModifiersValue(updater);
+
+        if (updateType == UpdateType.SILENT) return;
 
         if (player == null) {
             DifficultyDeathScaler.LOGGER.warn("Player in {} is null", this);
@@ -145,7 +148,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     @Override
-    protected void onDeath(UpdateType updateType, Updater updater) {
+    protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
         if (updateType == UpdateType.SET || updateType == UpdateType.SILENT) return;
         deathDay++;
 

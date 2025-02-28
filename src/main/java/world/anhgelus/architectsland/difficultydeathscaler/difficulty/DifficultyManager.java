@@ -12,8 +12,8 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.M
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class DifficultyManager extends DifficultyTimer {
     protected TickTask reducerTask;
@@ -65,7 +65,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     @FunctionalInterface
     public interface Reached {
-        void reached(MinecraftServer server, GameRules gamerules, Updater updater);
+        void reached(MinecraftServer server, GameRules gamerules, DifficultyUpdater updater);
     }
 
     public static final class Step extends Pair<Integer, Reached> {
@@ -77,47 +77,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
             return getLeft();
         }
 
-        public void reached(MinecraftServer server, GameRules rules, Updater updater) {
+        public void reached(MinecraftServer server, GameRules rules, DifficultyUpdater updater) {
             getRight().reached(server, rules, updater);
-        }
-    }
-
-    public static final class Updater {
-        private int difficultyLevel = 1;
-
-        private final Map<Class<? extends Modifier<?>>, Modifier<?>> map = new HashMap<>();
-
-        public void updateDifficulty(int level) {
-            if (level > difficultyLevel) {
-                difficultyLevel = level;
-            }
-        }
-
-        public Modifier<?> getModifier(Class<? extends Modifier<?>> clazz) {
-            var val = map.get(clazz);
-            if (val != null) return val;
-            try {
-                val = clazz.getConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-            map.put(clazz, val);
-            return val;
-        }
-
-        public List<Modifier<?>> getModifiers() {
-            return new ArrayList<>(map.values());
-        }
-
-        public net.minecraft.world.Difficulty getDifficulty() {
-            return switch (difficultyLevel) {
-                case 0 -> net.minecraft.world.Difficulty.PEACEFUL;
-                case 1 -> net.minecraft.world.Difficulty.EASY;
-                case 2 -> net.minecraft.world.Difficulty.NORMAL;
-                case 3 -> net.minecraft.world.Difficulty.HARD;
-                default -> throw new IllegalArgumentException("Difficulty level out of range: " + difficultyLevel);
-            };
         }
     }
 
@@ -198,13 +159,13 @@ public abstract class DifficultyManager extends DifficultyTimer {
         onUpdate(updateType, updater);
     }
 
-    protected Updater getUpdater() {
-        final var updater = new Updater();
+    protected DifficultyUpdater getUpdater() {
+        final var updater = new DifficultyUpdater();
         getUpdatedSteps(updater);
         return updater;
     }
 
-    protected void getUpdatedSteps(Updater updater) {
+    protected void getUpdatedSteps(DifficultyUpdater updater) {
         final var rules = server.getGameRules();
 
         var i = 0;
@@ -224,9 +185,9 @@ public abstract class DifficultyManager extends DifficultyTimer {
         return generateDifficultyUpdate(null, difficulty);
     }
 
-    protected abstract void onUpdate(UpdateType updateType, Updater updater);
+    protected abstract void onUpdate(UpdateType updateType, DifficultyUpdater updater);
 
-    protected void onDeath(UpdateType updateType, Updater updater) {
+    protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
     }
 
     /**
@@ -257,7 +218,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     protected List<Modifier<?>> getModifiers(int level) {
-        final var updater = new Updater();
+        final var updater = new DifficultyUpdater();
         for (final Step step : steps) {
             if (step.level() <= level) step.reached(server, server.getGameRules(), updater);
             else break;
@@ -265,7 +226,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
         return updater.getModifiers();
     }
 
-    protected void updateModifiersValue(Updater updater) {
+    protected void updateModifiersValue(DifficultyUpdater updater) {
         updateModifiersValue(updater.getModifiers());
     }
 

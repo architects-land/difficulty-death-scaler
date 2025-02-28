@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
@@ -171,7 +172,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     }
 
     @Override
-    protected void onUpdate(UpdateType updateType, Updater updater) {
+    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
         final var difficulty = updater.getDifficulty();
         server.setDifficulty(difficulty, true);
 

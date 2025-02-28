@@ -6,8 +6,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.TimerAccess;
 
 public class Sleeper {
     public interface On {
@@ -49,7 +50,7 @@ public class Sleeper {
             return;
         }
         final long when = (long) Math.floor(3 * Getters.RANDOM.nextFloat() + 2); // between 2 and 5
-        TimerAccess.getTimerFromOverworld(server).dds_setTimer(1 * 60 * 20, () -> runStart(server));
+        TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> runStart(server), 1 * 60 * 20));
     }
 
     private void runStart(MinecraftServer server) {
@@ -58,11 +59,11 @@ public class Sleeper {
         server.getPlayerManager().broadcast(Text.of(description), false);
         execStart.on(server);
         // schedules stop
-        TimerAccess.getTimerFromOverworld(server).dds_setTimer(EVENT_DURATION, () -> {
+        TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> {
             DifficultyDeathScaler.LOGGER.info("finished");
             execStop.on(server);
             canSleep = true;
-        });
+        }, EVENT_DURATION));
     }
 
     public static boolean tryEmitNewEvent(MinecraftServer server) {

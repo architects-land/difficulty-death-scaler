@@ -160,17 +160,14 @@ public class GlobalDifficultyManager extends DifficultyManager {
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
 
+        // get state
         DifficultyDeathScaler.LOGGER.info("Loading global difficulty data");
         final var state = StateSaver.getServerState(server);
-        totalOfDeath = state.totalOfDeath;
-        secondsLowerDifficulty = state.secondsLowerDifficulty;
-        delayFirstTask(state.timeBeforeReduce);
-        increaser = new DifficultyIncrease(this, timer, state.timeBeforeIncrease, state.increaseEnabled);
-        setNumberOfDeath(state.deaths, true);
+        // load data
+        increaser = new DifficultyIncrease(this, timer, state.difficulty.timeBeforeIncrease, state.difficulty.increaseEnabled);
+        load(state.difficulty);
         // update difficulty after restart
         server.setDifficulty(getUpdater().getDifficulty(), true);
-
-        updateModifiersValue(getModifiers(numberOfDeath));
     }
 
     @Override
@@ -273,18 +270,15 @@ public class GlobalDifficultyManager extends DifficultyManager {
             });
     }
 
-    @Override
     public void save() {
+        // get state
         DifficultyDeathScaler.LOGGER.info("Saving global difficulty data");
         final var state = StateSaver.getServerState(server);
-        state.deaths = numberOfDeath;
-        if (reducerTask != null && reducerTask.isRunning())
-            state.timeBeforeReduce = reducerTask.getTickingBeforeRun();
-        else state.timeBeforeReduce = 0;
-        state.totalOfDeath = totalOfDeath;
-        state.timeBeforeIncrease = increaser.getTickingBeforeRun();
-        state.increaseEnabled = increaser.isEnabled();
-        state.secondsLowerDifficulty = secondsLowerDifficulty;
+        // save state
+        save(state.difficulty);
+
+        state.difficulty.timeBeforeIncrease = increaser.getTickingBeforeRun();
+        state.difficulty.increaseEnabled = increaser.isEnabled();
     }
 
     public int getTotalOfDeath() {

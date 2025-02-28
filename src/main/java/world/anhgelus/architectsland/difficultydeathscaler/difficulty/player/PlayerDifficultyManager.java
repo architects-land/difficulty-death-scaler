@@ -94,15 +94,13 @@ public class PlayerDifficultyManager extends DifficultyManager {
     private long bannedSince = -1;
     private final List<TickTask> deathDayTasks = new ArrayList<>();
 
-    private int totalOfDeath = 0;
-
     public PlayerDifficultyManager(MinecraftServer server, GlobalDifficultyManager globalManager, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
         this.player = player;
         this.globalManager = globalManager;
 
         DifficultyDeathScaler.LOGGER.info("Loading player {} difficulty data", player.getUuid());
-        loadData(StateSaver.getPlayerState(player));
+        load(StateSaver.getPlayerState(player));
     }
 
     public PlayerDifficultyManager(MinecraftServer server, GlobalDifficultyManager globalManager, @NotNull UUID uuid, PlayerData data) {
@@ -112,16 +110,14 @@ public class PlayerDifficultyManager extends DifficultyManager {
         this.globalManager = globalManager;
 
         DifficultyDeathScaler.LOGGER.info("Creating player difficulty manager with data");
-        loadData(data);
+        load(data);
     }
 
-    private void loadData(PlayerData data) {
-        numberOfDeath = data.deaths;
+    private void load(PlayerData data) {
+        super.load(data);
         deathDay = data.deathDay;
-        totalOfDeath = data.totalOfDeath;
         bannedSince = data.bannedSince;
         tempBan = bannedSince != -1;
-        secondsLowerDifficulty = data.secondsLowerDifficulty;
         for (final var ticksDelay : data.deathDayDelay) {
             try {
                 scheduleDeathDayTask(ticksDelay);
@@ -131,9 +127,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 deathDay--;
             }
         }
-        delayFirstTask(data.timeBeforeReduce);
-        updateTimerTask();
-        updateModifiersValue(getModifiers(numberOfDeath));
     }
 
 
@@ -153,7 +146,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     @Override
     protected void onDeath(UpdateType updateType, Updater updater) {
-        if (updateType == UpdateType.SET) return;
+        if (updateType == UpdateType.SET || updateType == UpdateType.SILENT) return;
         deathDay++;
 
         if (player == null) {
@@ -235,9 +228,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
         applyModifiers();
     }
 
-    @Override
     public void save() {
         assert player != null || uuid != null;
+        // get state
         PlayerData state;
         if (player == null) {
             DifficultyDeathScaler.LOGGER.info("Saving player with uuid {} difficulty data", uuid);
@@ -246,20 +239,18 @@ public class PlayerDifficultyManager extends DifficultyManager {
             DifficultyDeathScaler.LOGGER.info("Saving player ({}) difficulty data", player.getUuid());
             state = StateSaver.getPlayerState(player);
         }
-        state.deaths = numberOfDeath;
-        if (reducerTask != null && reducerTask.isRunning())
-            state.timeBeforeReduce = reducerTask.getTickingBeforeRun();
-        else state.timeBeforeReduce = 0;
+        // save state
+        save(state);
+
         state.deathDay = deathDay;
-        state.totalOfDeath = totalOfDeath;
         state.bannedSince = bannedSince;
+
         final var runningDeathDay = deathDayTasks.stream().filter(TickTask::isRunning).toList();
         var starts = new long[runningDeathDay.size()];
         for (int i = 0; i < runningDeathDay.size(); i++) {
             starts[i] = runningDeathDay.get(i).getTickingBeforeRun();
         }
         state.deathDayDelay = starts;
-        state.secondsLowerDifficulty = secondsLowerDifficulty;
     }
 
     public void applyModifiers() {
@@ -287,7 +278,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     private void scheduleDeathDayTask() {
-        scheduleDeathDayTask(0);
+        scheduleDeathDayTask((24 * 60 * 60) * 20L);
     }
 
     private void scheduleDeathDayTask(long ticksDelay) {
@@ -296,7 +287,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 deathDay--;
                 deathDayTasks.removeFirst();
             } else DifficultyDeathScaler.LOGGER.warn("Death day is already equal to 0");
-        }, (24 * 60 * 60) * 20L - ticksDelay);
+        }, ticksDelay);
         timer.dds_runTask(task);
         deathDayTasks.add(task);
     }

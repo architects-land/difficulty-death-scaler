@@ -8,7 +8,6 @@ import net.minecraft.util.Pair;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
@@ -25,6 +24,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     protected final MinecraftServer server;
 
     protected int numberOfDeath;
+    protected int totalOfDeath = 0;
 
     protected long secondsLowerDifficulty;
     protected TimerAccess.TickTask secondsLowerDifficultyCounterTask;
@@ -129,10 +129,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
      */
     public void setNumberOfDeath(int n, boolean silent) {
         numberOfDeath = n;
-        DifficultyDeathScaler.LOGGER.info("before update death: {}", this);
         if (silent) updateDeath(UpdateType.SILENT);
         else updateDeath(UpdateType.SET);
-        DifficultyDeathScaler.LOGGER.info("before update timer task: {}", this);
         updateTimerTask();
     }
 
@@ -242,7 +240,21 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     public abstract void applyModifiers(ServerPlayerEntity player);
 
-    public abstract void save();
+    protected void load(DifficultyData data) {
+        totalOfDeath = data.totalOfDeath;
+        secondsLowerDifficulty = data.secondsLowerDifficulty;
+        delayFirstTask(data.timeBeforeReduce);
+        setNumberOfDeath(data.deaths, true);
+    }
+
+    protected void save(DifficultyData data) {
+        data.deaths = numberOfDeath;
+        data.totalOfDeath = totalOfDeath;
+        data.secondsLowerDifficulty = secondsLowerDifficulty;
+        if (reducerTask != null && reducerTask.isRunning())
+            data.timeBeforeReduce = reducerTask.getTickingBeforeRun();
+        else data.timeBeforeReduce = 0;
+    }
 
     protected List<Modifier<?>> getModifiers(int level) {
         final var updater = new Updater();

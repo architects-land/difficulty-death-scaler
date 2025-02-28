@@ -8,6 +8,7 @@ import net.minecraft.util.Pair;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
@@ -125,8 +126,10 @@ public abstract class DifficultyManager extends DifficultyTimer {
      */
     public void setNumberOfDeath(int n, boolean silent) {
         numberOfDeath = n;
+        DifficultyDeathScaler.LOGGER.info("before update death: {}", this);
         if (silent) updateDeath(UpdateType.SILENT);
         else updateDeath(UpdateType.SET);
+        DifficultyDeathScaler.LOGGER.info("before update timer task: {}", this);
         updateTimerTask();
     }
 
@@ -146,7 +149,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     public void updateTimerTask() {
-        if (reducerTask != null) reducerTask.cancel();
+        if (reducerTask != null && !reducerTask.isCancelled()) reducerTask.cancel();
         if (numberOfDeath == 0) return;
         timerStart = System.currentTimeMillis() / 1000;
         reducerTask = executeTask(() -> {

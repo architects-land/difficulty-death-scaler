@@ -277,16 +277,17 @@ public abstract class DifficultyManager extends DifficultyTimer {
         } else if (updateType == UpdateType.AUTOMATIC_INCREASE) {
             sb.append("The difficulty is increasing automatically!");
         } else if (updateType != UpdateType.INCREASE) {
-            sb.append("You only need to survive for §6")
-                    .append(formatSeconds(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
-                    .append("§r to make the difficulty decrease.");
-        } else if (numberOfDeath < steps[2].level()) {
+            sb.append("You only need to survive for §6");
+            if (updateType == UpdateType.SET) sb.append(formatSeconds(secondsBeforeDecreased));
+            else sb.append(formatSecondsBeforeRun(reducerTask));
+            sb.append("§r to make the difficulty decrease.");
+        } else if (numberOfDeath == steps[1].level()) {
             sb.append("You were on the lowest difficulty for §6")
                     .append(formatSeconds(System.currentTimeMillis() / 1000 - timerStart))
                     .append("§r, but you had to die and ruin everything, hadn't you?");
         } else {
             sb.append("If ").append(beginning).append(" for §6")
-                    .append(formatSeconds(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
+                    .append(formatSecondsBeforeRun(reducerTask))
                     .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
         }
         sb.append("\n§8=============================================§r");

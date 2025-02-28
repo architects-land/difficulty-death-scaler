@@ -42,9 +42,6 @@ public class TickTask implements TimerAccess.TickTask {
         currentTicking = ticksDelay;
     }
 
-    /**
-     * Tick the task
-     */
     public void tick() {
         if (--currentTicking > 0) return;
         task.run();
@@ -55,12 +52,6 @@ public class TickTask implements TimerAccess.TickTask {
         }
     }
 
-    /**
-     * Cancel the task
-     *
-     * @return the remaining ticks before the run of the Task
-     * @throws IllegalStateException if the task is already cancelled
-     */
     public long cancel() {
         if (cancelled) throw new IllegalStateException("Task already cancelled");
         cancelled = true;
@@ -69,5 +60,11 @@ public class TickTask implements TimerAccess.TickTask {
 
     public boolean isCancelled() {
         return cancelled;
+    }
+
+    @Override
+    public long getTickingBeforeRun() {
+        if (cancelled) return -1;
+        return currentTicking;
     }
 }

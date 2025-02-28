@@ -7,11 +7,25 @@ import java.util.List;
 
 public interface TimerAccess {
     interface TickTask {
+        /**
+         * Tick the task
+         */
         void tick();
 
+        /**
+         * Cancel the task
+         *
+         * @return the remaining ticks before the run of the Task
+         * @throws IllegalStateException if the task is already cancelled
+         */
         long cancel();
 
         boolean isCancelled();
+
+        /**
+         * @return the number of ticks before run of the task (if the task is cancelled, returns -1)
+         */
+        long getTickingBeforeRun();
     }
 
     /**

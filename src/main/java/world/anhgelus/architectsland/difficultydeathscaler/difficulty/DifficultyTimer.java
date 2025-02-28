@@ -68,7 +68,11 @@ public abstract class DifficultyTimer {
         return delay(timerStart);
     }
 
-    public long delay(long timerStart) {
+    public static long delay(long timerStart) {
         return System.currentTimeMillis() / 1000 - timerStart;
+    }
+
+    protected static String formatSecondsBeforeRun(TimerAccess.TickTask task) {
+        return formatSeconds(task.getTickingBeforeRun() / 20);
     }
 }

@@ -37,7 +37,6 @@ public class DifficultyDeathScaler implements ModInitializer {
     public static final String GAMERULE_PREFIX = "dds";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     private GlobalDifficultyManager difficultyManager;
-    private PassiveDifficulty passiveDifficulty;
 
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_TEMP_BAN = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":enableTempBan",
@@ -70,7 +69,6 @@ public class DifficultyDeathScaler implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             difficultyManager = new GlobalDifficultyManager(server);
             loadAllPlayerManagers(server);
-            passiveDifficulty = new PassiveDifficulty(server);
 
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
@@ -139,7 +137,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (!(entity instanceof final HostileEntity hostile)) return;
             difficultyManager.onEntitySpawn(hostile);
-            passiveDifficulty.onEntitySpawn(hostile);
+            PassiveDifficulty.onEntitySpawn(hostile);
         });
     }
 

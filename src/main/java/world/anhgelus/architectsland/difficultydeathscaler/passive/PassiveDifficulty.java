@@ -18,9 +18,9 @@ public class PassiveDifficulty {
     }
 
     private static int difficultyLevel(HostileEntity entity) {
-        final var dis = MathHelper.floor(entity.getPos().distanceTo(new Vec3d(0, 0, 62)));
+        final var dis = entity.getPos().distanceTo(new Vec3d(0, 0, 62));
         final var timePassed = MathHelper.floor((double) entity.getWorld().getTime() / 20000);
-        return MathHelper.floorDiv(dis * dis, 10000000) +
+        return MathHelper.floor((dis / 10000) * (dis / 1000)) +
                 MathHelper.floorDiv(timePassed * timePassed, 1000);
     }
 }

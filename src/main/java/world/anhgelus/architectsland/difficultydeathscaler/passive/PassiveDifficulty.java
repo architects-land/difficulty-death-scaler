@@ -20,7 +20,10 @@ public class PassiveDifficulty {
     private static int difficultyLevel(HostileEntity entity) {
         final var dis = entity.getPos().distanceTo(new Vec3d(0, 0, 62));
         final var timePassed = MathHelper.floor((double) entity.getWorld().getTime() / 20000);
-        return MathHelper.floor((dis / 10000) * (dis / 1000)) +
-                MathHelper.floorDiv(timePassed * timePassed, 1000);
+        return Math.min(
+                MathHelper.floor((dis / 10000) * (dis / 1000)) +
+                        MathHelper.floorDiv(timePassed * timePassed, 1000),
+                20
+        );
     }
 }

@@ -9,12 +9,14 @@ import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class DifficultyManager extends DifficultyTimer {
-    private TimerTask reducerTask;
+    protected TickTask reducerTask;
 
     protected final long secondsBeforeDecreased;
 
@@ -22,9 +24,13 @@ public abstract class DifficultyManager extends DifficultyTimer {
     protected final MinecraftServer server;
 
     protected int numberOfDeath;
+    protected int totalOfDeath = 0;
+
+    protected long secondsLowerDifficulty;
+    protected TimerAccess.TickTask secondsLowerDifficultyCounterTask;
 
     protected DifficultyManager(MinecraftServer server, Step[] steps, long secondsBeforeDecreased) {
-        timer = new Timer();
+        timer = TimerAccess.getTimerFromOverworld(server);
         this.server = server;
         this.steps = steps;
         numberOfDeath = 0;
@@ -59,7 +65,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     @FunctionalInterface
     public interface Reached {
-        void reached(MinecraftServer server, GameRules gamerules, Updater updater);
+        void reached(MinecraftServer server, GameRules gamerules, DifficultyUpdater updater);
     }
 
     public static final class Step extends Pair<Integer, Reached> {
@@ -71,53 +77,15 @@ public abstract class DifficultyManager extends DifficultyTimer {
             return getLeft();
         }
 
-        public void reached(MinecraftServer server, GameRules rules, Updater updater) {
+        public void reached(MinecraftServer server, GameRules rules, DifficultyUpdater updater) {
             getRight().reached(server, rules, updater);
-        }
-    }
-
-    public static final class Updater {
-        private int difficultyLevel = 1;
-
-        private final Map<Class<? extends Modifier<?>>, Modifier<?>> map = new HashMap<>();
-
-        public void updateDifficulty(int level) {
-            if (level > difficultyLevel) {
-                difficultyLevel = level;
-            }
-        }
-
-        public Modifier<?> getModifier(Class<? extends Modifier<?>> clazz) {
-            var val = map.get(clazz);
-            if (val != null) return val;
-            try {
-                val = clazz.getConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-            map.put(clazz, val);
-            return val;
-        }
-
-        public List<Modifier<?>> getModifiers() {
-            return new ArrayList<>(map.values());
-        }
-
-        public net.minecraft.world.Difficulty getDifficulty() {
-            return switch (difficultyLevel) {
-                case 0 -> net.minecraft.world.Difficulty.PEACEFUL;
-                case 1 -> net.minecraft.world.Difficulty.EASY;
-                case 2 -> net.minecraft.world.Difficulty.NORMAL;
-                case 3 -> net.minecraft.world.Difficulty.HARD;
-                default -> throw new IllegalArgumentException("Difficulty level out of range: " + difficultyLevel);
-            };
         }
     }
 
     /**
      * Set the number of death
-     * @param n number of death
+     *
+     * @param n      number of death
      * @param silent if the update is silent
      */
     public void setNumberOfDeath(int n, boolean silent) {
@@ -143,22 +111,21 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     public void updateTimerTask() {
-        if (reducerTask != null) reducerTask.cancel();
-        if (numberOfDeath == 0) return;
-        final var task = new TimerTask() {
-            @Override
-            public void run() {
-                timerStart = System.currentTimeMillis() / 1000;
-                decreaseDeath();
-                if (numberOfDeath == 0) {
-                    reducerTask.cancel();
-                    timerStart = -1;
-                }
-            }
-        };
-        timerStart = System.currentTimeMillis() / 1000;
-        executeTask(task, reducerTask, secondsBeforeDecreased);
-        reducerTask = task;
+        if (reducerTask != null && reducerTask.isRunning()) reducerTask.cancel();
+        if (numberOfDeath == 0) {
+            secondsLowerDifficulty = 0;
+            secondsLowerDifficultyCounterTask = new TickTask(() -> {
+                if (numberOfDeath > 0 && secondsLowerDifficultyCounterTask.isRunning())
+                    secondsLowerDifficultyCounterTask.cancel();
+                secondsLowerDifficulty++;
+            }, 20, 20);
+            timer.dds_runTask(secondsLowerDifficultyCounterTask);
+            return;
+        }
+        reducerTask = executeTask(() -> {
+            decreaseDeath();
+            if (numberOfDeath == 0) reducerTask.cancel();
+        }, reducerTask, secondsBeforeDecreased);
     }
 
     public void decreaseDeath() {
@@ -166,12 +133,13 @@ public abstract class DifficultyManager extends DifficultyTimer {
         // Prevents for example the difficulty decrease message when killing a boss if the difficulty doesn't decrease.
         if (numberOfDeath < steps[1].level()) {
             numberOfDeath = 0;
+            updateTimerTask();
             return;
         }
 
         for (int i = steps.length - 1; i > 0; i--) {
             if (numberOfDeath >= steps[i].level()) {
-                numberOfDeath = steps[i-1].level();
+                numberOfDeath = steps[i - 1].level();
                 break;
             }
         }
@@ -191,13 +159,13 @@ public abstract class DifficultyManager extends DifficultyTimer {
         onUpdate(updateType, updater);
     }
 
-    protected Updater getUpdater() {
-        final var updater = new Updater();
+    protected DifficultyUpdater getUpdater() {
+        final var updater = new DifficultyUpdater();
         getUpdatedSteps(updater);
         return updater;
     }
 
-    protected void getUpdatedSteps(Updater updater) {
+    protected void getUpdatedSteps(DifficultyUpdater updater) {
         final var rules = server.getGameRules();
 
         var i = 0;
@@ -217,12 +185,14 @@ public abstract class DifficultyManager extends DifficultyTimer {
         return generateDifficultyUpdate(null, difficulty);
     }
 
-    protected abstract void onUpdate(UpdateType updateType, Updater updater);
+    protected abstract void onUpdate(UpdateType updateType, DifficultyUpdater updater);
 
-    protected void onDeath(UpdateType updateType, Updater updater) {}
+    protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
+    }
 
     /**
      * Generate difficulty update
+     *
      * @param updateType Type of update (if null, it's a get and not an update)
      * @param difficulty Difficulty of the game
      * @return Message to print
@@ -231,10 +201,24 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     public abstract void applyModifiers(ServerPlayerEntity player);
 
-    public abstract void save();
+    protected void load(DifficultyData data) {
+        totalOfDeath = data.totalOfDeath;
+        secondsLowerDifficulty = data.secondsLowerDifficulty;
+        delayFirstTask(data.timeBeforeReduce);
+        setNumberOfDeath(data.deaths, true);
+    }
+
+    protected void save(DifficultyData data) {
+        data.deaths = numberOfDeath;
+        data.totalOfDeath = totalOfDeath;
+        data.secondsLowerDifficulty = secondsLowerDifficulty;
+        if (reducerTask != null && reducerTask.isRunning())
+            data.timeBeforeReduce = reducerTask.getTickingBeforeRun();
+        else data.timeBeforeReduce = 0;
+    }
 
     protected List<Modifier<?>> getModifiers(int level) {
-        final var updater = new Updater();
+        final var updater = new DifficultyUpdater();
         for (final Step step : steps) {
             if (step.level() <= level) step.reached(server, server.getGameRules(), updater);
             else break;
@@ -242,7 +226,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
         return updater.getModifiers();
     }
 
-    protected void updateModifiersValue(Updater updater) {
+    protected void updateModifiersValue(DifficultyUpdater updater) {
         updateModifiersValue(updater.getModifiers());
     }
 
@@ -250,7 +234,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     protected String generateHeaderUpdate(@Nullable UpdateType updateType) {
         final var sb = new StringBuilder();
-        if (updateType == null) sb.append( "§8============== §rCurrent difficulty: §8==============§r");
+        if (updateType == null) sb.append("§8============== §rCurrent difficulty: §8==============§r");
         else {
             switch (updateType) {
                 case INCREASE -> sb.append("§8============== §rDifficulty increase! §8==============§r");
@@ -272,22 +256,23 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
         if (updateType == UpdateType.DECREASE) {
             sb.append("You only need to survive for §6")
-                .append(formatSeconds(secondsBeforeDecreased))
-                .append("§r to make the difficulty decrease again.");
+                    .append(formatSeconds(secondsBeforeDecreased))
+                    .append("§r to make the difficulty decrease again.");
         } else if (updateType == UpdateType.AUTOMATIC_INCREASE) {
             sb.append("The difficulty is increasing automatically!");
         } else if (updateType != UpdateType.INCREASE) {
-            sb.append("You only need to survive for §6")
-                .append(formatSeconds(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
-                .append("§r to make the difficulty decrease.");
-        } else if (numberOfDeath < steps[2].level()) {
+            sb.append("You only need to survive for §6");
+            if (updateType == UpdateType.SET) sb.append(formatSeconds(secondsBeforeDecreased));
+            else sb.append(formatSecondsBeforeRun(reducerTask));
+            sb.append("§r to make the difficulty decrease.");
+        } else if (numberOfDeath == steps[1].level()) {
             sb.append("You were on the lowest difficulty for §6")
-                .append(formatSeconds(System.currentTimeMillis() / 1000 - timerStart))
-                .append("§r, but you had to die and ruin everything, hadn't you?");
+                    .append(formatSeconds(secondsLowerDifficulty))
+                    .append("§r, but you had to die and ruin everything, hadn't you?");
         } else {
             sb.append("If ").append(beginning).append(" for §6")
-                .append(formatSeconds(secondsBeforeDecreased - System.currentTimeMillis() / 1000 + timerStart))
-                .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+                    .append(formatSecondsBeforeRun(reducerTask))
+                    .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
         }
         sb.append("\n§8=============================================§r");
         return sb.toString();

@@ -78,12 +78,9 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             difficultyManager.save();
-            difficultyManager.stop();
             playerDifficultyManagerMap.forEach((player, manager) -> {
                 manager.save();
-                manager.stop();
             });
-            bountyMap.forEach((player, bounty) -> bounty.stop());
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
@@ -117,7 +114,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
             difficultyManager.applyModifiers(handler.player);
 
-            final var bounty = Bounty.newBounty(difficultyManager, playerDifficulty);
+            final var bounty = Bounty.newBounty(server, difficultyManager, playerDifficulty);
             if (bounty != null) bountyMap.put(handler.player.getUuid(), bounty);
         });
 

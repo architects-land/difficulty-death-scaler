@@ -17,14 +17,19 @@ public class WorldTimerAccess implements TimerAccess {
     @Unique
     private final List<TimerAccess.TickTask> tasks = new ArrayList<>();
 
+    @Unique
+    private final List<TimerAccess.TickTask> tasksToAdd = new ArrayList<>();
+
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         tasks.stream().filter(TickTask::isRunning).forEach(TickTask::tick);
+        tasks.addAll(tasksToAdd);
+        tasksToAdd.clear();
     }
 
     @Override
     public void dds_runTask(TimerAccess.TickTask task) {
-        tasks.add(task);
+        tasksToAdd.add(task);
     }
 
     @Override

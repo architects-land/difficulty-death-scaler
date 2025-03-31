@@ -36,12 +36,17 @@ public class DifficultyDeathScaler implements ModInitializer {
     public static final String MOD_ID = "difficulty-death-scaler";
     public static final String GAMERULE_PREFIX = "dds";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    private GlobalDifficultyManager difficultyManager;
-
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_TEMP_BAN = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":enableTempBan",
             GameRules.Category.MISC,
             GameRuleFactory.createBooleanRule(true)
+    );
+    public static final GameRules.Key<GameRules.BooleanRule> ENABLE_PASSIVE_DIFFICULTY = GameRuleRegistry.register(
+            GAMERULE_PREFIX + ":enablePassiveDifficulty",
+            GameRules.Category.MISC,
+            GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+                PassiveDifficulty.ENABLED = rule.get();
+            })
     );
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":deathBeforeTempBan",
@@ -53,9 +58,9 @@ public class DifficultyDeathScaler implements ModInitializer {
             GameRules.Category.MISC,
             GameRuleFactory.createIntRule(12)
     );
-
     private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
     private final Map<UUID, Bounty> bountyMap = new HashMap<>();
+    private GlobalDifficultyManager difficultyManager;
 
     @Override
     public void onInitialize() {

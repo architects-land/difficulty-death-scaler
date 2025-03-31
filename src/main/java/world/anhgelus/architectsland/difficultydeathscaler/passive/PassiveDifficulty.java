@@ -7,8 +7,10 @@ import world.anhgelus.architectsland.difficultydeathscaler.passive.modifier.*;
 
 public class PassiveDifficulty {
     public static final int LEVEL_MAX = 20;
+    public static boolean ENABLED = true;
 
     public static void onEntitySpawn(HostileEntity entity) {
+        if (!ENABLED) return;
         final var level = difficultyLevel(entity);
         PassiveArmorModifier.apply(entity, adjustLevelMax(level, 15)); // is add
         PassiveBurningTimeModifier.apply(entity, adjustLevelMax(0, -0.75)); // is percentage

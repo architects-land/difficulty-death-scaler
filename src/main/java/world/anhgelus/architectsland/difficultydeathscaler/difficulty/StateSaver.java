@@ -5,7 +5,6 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.PersistentState;
-import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalData;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerData;
@@ -15,35 +14,13 @@ import java.util.Map;
 import java.util.UUID;
 
 public class StateSaver extends PersistentState {
+    private static final Type<StateSaver> type = new Type<>(
+            StateSaver::new,
+            StateSaver::createFromNbt,
+            null
+    );
     public Map<UUID, PlayerData> players = new HashMap<>();
     public GlobalData difficulty;
-
-    @Override
-    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        final var playersNbt = new NbtCompound();
-        players.forEach((uuid, playerData) -> {
-            NbtCompound playerNbt = new NbtCompound();
-
-            playerNbt.putInt("deaths", playerData.deaths);
-            playerNbt.putLong("timeBeforeReduce", playerData.timeBeforeReduce);
-            playerNbt.putInt("deathDay", playerData.deathDay);
-            playerNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
-            playerNbt.putInt("totalOfDeath", playerData.totalOfDeath);
-            playerNbt.putLong("bannedSince", playerData.bannedSince);
-            playerNbt.putLong("secondsLowerDifficulty", playerData.secondsLowerDifficulty);
-
-            playersNbt.put(uuid.toString(), playerNbt);
-        });
-        nbt.put("players", playersNbt);
-        nbt.putInt("deaths", difficulty.deaths);
-        nbt.putLong("timeBeforeReduce", difficulty.timeBeforeReduce);
-        nbt.putLong("timeBeforeIncrease", difficulty.timeBeforeIncrease);
-        nbt.putBoolean("increaseEnabled", difficulty.increaseEnabled);
-        nbt.putInt("totalOfDeath", difficulty.totalOfDeath);
-        nbt.putLong("secondsLowerDifficulty", difficulty.secondsLowerDifficulty);
-
-        return nbt;
-    }
 
     public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         final var state = new StateSaver();
@@ -75,15 +52,8 @@ public class StateSaver extends PersistentState {
         return state;
     }
 
-    private static final Type<StateSaver> type = new Type<>(
-            StateSaver::new,
-            StateSaver::createFromNbt,
-            null
-    );
-
     public static StateSaver getServerState(MinecraftServer server) {
-        final var world = server.getWorld(World.OVERWORLD);
-        assert world != null;
+        final var world = server.getOverworld();
         final var persistentStateManager = world.getPersistentStateManager();
 
         final var state = persistentStateManager.getOrCreate(type, DifficultyDeathScaler.MOD_ID);
@@ -102,5 +72,32 @@ public class StateSaver extends PersistentState {
     public static PlayerData getPlayerState(MinecraftServer server, UUID uuid) {
         final var state = getServerState(server);
         return state.players.computeIfAbsent(uuid, u -> new PlayerData());
+    }
+
+    @Override
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        final var playersNbt = new NbtCompound();
+        players.forEach((uuid, playerData) -> {
+            NbtCompound playerNbt = new NbtCompound();
+
+            playerNbt.putInt("deaths", playerData.deaths);
+            playerNbt.putLong("timeBeforeReduce", playerData.timeBeforeReduce);
+            playerNbt.putInt("deathDay", playerData.deathDay);
+            playerNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
+            playerNbt.putInt("totalOfDeath", playerData.totalOfDeath);
+            playerNbt.putLong("bannedSince", playerData.bannedSince);
+            playerNbt.putLong("secondsLowerDifficulty", playerData.secondsLowerDifficulty);
+
+            playersNbt.put(uuid.toString(), playerNbt);
+        });
+        nbt.put("players", playersNbt);
+        nbt.putInt("deaths", difficulty.deaths);
+        nbt.putLong("timeBeforeReduce", difficulty.timeBeforeReduce);
+        nbt.putLong("timeBeforeIncrease", difficulty.timeBeforeIncrease);
+        nbt.putBoolean("increaseEnabled", difficulty.increaseEnabled);
+        nbt.putInt("totalOfDeath", difficulty.totalOfDeath);
+        nbt.putLong("secondsLowerDifficulty", difficulty.secondsLowerDifficulty);
+
+        return nbt;
     }
 }

@@ -6,15 +6,17 @@ import net.minecraft.util.math.Vec3d;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.modifier.*;
 
 public class PassiveDifficulty {
+    public static final int LEVEL_MAX = 20;
+
     public static void onEntitySpawn(HostileEntity entity) {
         final var level = difficultyLevel(entity);
-        PassiveArmorModifier.apply(entity, 0); // is add
-        PassiveBurningTimeModifier.apply(entity, 0); // is add
-        PassiveDamageModifier.apply(entity, 0); // is percentage
-        PassiveHealthModifier.apply(entity, 0); // is percentage
-        PassiveKnockbackResistanceModifier.apply(entity, 0); // is add
-        PassiveMovementEfficiencyModifier.apply(entity, 0); // is add
-        PassiveSpeedModifier.apply(entity, 0); // is percentage
+        PassiveArmorModifier.apply(entity, adjustLevelMax(level, 15)); // is add
+        PassiveBurningTimeModifier.apply(entity, adjustLevelMax(0, -0.75)); // is percentage
+        PassiveDamageModifier.apply(entity, adjustLevelMax(level, 1)); // is percentage
+        PassiveHealthModifier.apply(entity, adjustLevelMax(level, 1)); // is percentage
+        PassiveKnockbackResistanceModifier.apply(entity, adjustLevelMax(level, 0.6)); // is add
+        PassiveMovementEfficiencyModifier.apply(entity, adjustLevelMax(level, 0.5)); // is add
+        PassiveSpeedModifier.apply(entity, adjustLevelMax(level, 0.3)); // is percentage
     }
 
     private static int difficultyLevel(HostileEntity entity) {
@@ -23,7 +25,15 @@ public class PassiveDifficulty {
         return Math.min(
                 MathHelper.floor((dis / 10000) * (dis / 1000)) +
                         MathHelper.floorDiv(timePassed * timePassed, 1000),
-                20
+                LEVEL_MAX
         );
+    }
+
+    private static double adjustLevelMax(int level, int max) {
+        return adjustLevelMax(level, (double) max);
+    }
+
+    private static double adjustLevelMax(int level, double max) {
+        return (level * max) / LEVEL_MAX;
     }
 }

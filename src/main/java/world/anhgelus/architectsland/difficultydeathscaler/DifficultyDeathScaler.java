@@ -40,6 +40,13 @@ public class DifficultyDeathScaler implements ModInitializer {
             GameRules.Category.MISC,
             GameRuleFactory.createBooleanRule(true)
     );
+    public static final GameRules.Key<GameRules.BooleanRule> ENABLE_BOUNTY = GameRuleRegistry.register(
+            GAMERULE_PREFIX + ":enableBounty",
+            GameRules.Category.MISC,
+            GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+                Bounty.ENABLED = rule.get();
+            })
+    );
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":deathBeforeTempBan",
             GameRules.Category.MISC,

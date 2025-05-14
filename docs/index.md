@@ -4,22 +4,22 @@ layout: home
 
 hero:
   name: "Difficulty Death Scaler"
-  text: "Docs of Difficulty Death Scaler"
-  tagline: My great project tagline
+  text: "Official wiki"
+  tagline: Each time you die, the game becomes harder 
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: Presentation 
+      link: /presentation
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: Installation 
+      link: /installation
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: Designed for SMP
+    details: Difficulty Death Scaler was designed for servers like extreme SMP
+  - title: Global difficulty
+    details: When a player dies, everyone suffers. Each death impacts all players 
+  - title: Player difficulty
+    details: Difficulty Death Scaler is punishing every players dying too much
 ---
 

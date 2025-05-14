@@ -11,12 +11,11 @@ import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameRules;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
@@ -25,6 +24,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.listener.PlayerListener;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.PassiveDifficulty;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
@@ -39,7 +39,16 @@ public class DifficultyDeathScaler implements ModInitializer {
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_TEMP_BAN = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":enableTempBan",
             GameRules.Category.MISC,
-            GameRuleFactory.createBooleanRule(true)
+            GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+                PlayerDifficultyManager.ENABLE_TEMP_BAN = rule.get();
+            })
+    );
+    public static final GameRules.Key<GameRules.BooleanRule> ENABLE_BOUNTY = GameRuleRegistry.register(
+            GAMERULE_PREFIX + ":enableBounty",
+            GameRules.Category.MISC,
+            GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+                Bounty.ENABLED = rule.get();
+            })
     );
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_PASSIVE_DIFFICULTY = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":enablePassiveDifficulty",
@@ -51,12 +60,16 @@ public class DifficultyDeathScaler implements ModInitializer {
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":deathBeforeTempBan",
             GameRules.Category.MISC,
-            GameRuleFactory.createIntRule(5)
+            GameRuleFactory.createIntRule(5, (server, rule) -> {
+                PlayerDifficultyManager.DEATH_BEFORE_TEMP_BAN = rule.get();
+            })
     );
     public static final GameRules.Key<GameRules.IntRule> TEMP_BAN_DURATION = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":tempBanDuration",
             GameRules.Category.MISC,
-            GameRuleFactory.createIntRule(12)
+            GameRuleFactory.createIntRule(12, (server, rule) -> {
+                PlayerDifficultyManager.TEMP_BAN_DURATION = rule.get();
+            })
     );
     private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
     private final Map<UUID, Bounty> bountyMap = new HashMap<>();
@@ -78,6 +91,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
             Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);
+            Getters.BOUNTY_GETTER = this::getPlayerBounty;
             Getters.RANDOM = server.getOverworld().getRandom();
         });
 
@@ -89,52 +103,22 @@ public class DifficultyDeathScaler implements ModInitializer {
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
-            if (!(entity instanceof ServerPlayerEntity)) {
+            if (!(entity instanceof ServerPlayerEntity player)) {
                 BossManager.handleKill(entity, difficultyManager);
                 return;
             }
-            difficultyManager.increaseDeath();
-
-            final var bounty = bountyMap.get(entity.getUuid());
-            if (bounty == null || !(damageSource.getAttacker() instanceof final ServerPlayerEntity player)) return;
-            bounty.onKill(getPlayerDifficultyManager(player.server, player));
+            PlayerListener.onKill(player, damageSource);
         });
 
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            difficultyManager.applyModifiers(newPlayer);
-
-            final var playerDifficulty = getPlayerDifficultyManager(newPlayer.server, newPlayer);
-            playerDifficulty.player = newPlayer;
-            playerDifficulty.increaseDeath();
-            playerDifficulty.applyModifiers();
-
-            final var bounty = bountyMap.get(newPlayer.getUuid());
-            if (bounty == null) return;
-            bounty.onDeath();
-        });
+        ServerPlayerEvents.AFTER_RESPAWN.register(PlayerListener::afterRespawn);
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            final var playerDifficulty = getPlayerDifficultyManager(server, handler.player);
-            playerDifficulty.applyModifiers();
-
-            difficultyManager.applyModifiers(handler.player);
-
-            final var bounty = Bounty.newBounty(server, difficultyManager, playerDifficulty);
-            if (bounty != null) bountyMap.put(handler.player.getUuid(), bounty);
+            PlayerListener.onConnection(handler, sender, server, bountyMap);
         });
 
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            final var bounty = bountyMap.get(handler.player.getUuid());
-            if (bounty == null) return;
-            bounty.onDisconnect();
-        });
+        ServerPlayConnectionEvents.DISCONNECT.register(PlayerListener::onDisconnection);
 
-        UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (!(entity instanceof LivingEntity)) {
-                return ActionResult.PASS;
-            }
-            return BossManager.handleBuff(player, world, hand, (LivingEntity) entity);
-        });
+        UseEntityCallback.EVENT.register(PlayerListener::useItemCallback);
 
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (!(entity instanceof final HostileEntity hostile)) return;
@@ -167,6 +151,11 @@ public class DifficultyDeathScaler implements ModInitializer {
         );
         playerDifficultyManagerMap.put(profile.getId(), playerDifficulty);
         return playerDifficulty;
+    }
+
+    @Nullable
+    private Bounty getPlayerBounty(UUID uuid) {
+        return bountyMap.get(uuid);
     }
 
     private void loadAllPlayerManagers(MinecraftServer server) {

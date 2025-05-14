@@ -15,6 +15,8 @@ public class Bounty extends DifficultyTimer {
     public static final double BOUNTY_DEATH_PERCENTAGE = 0.04;
     public static final int BOUNTY_ENABLED_AFTER = 20;
 
+    public static boolean ENABLED = true;
+
     private final GlobalDifficultyManager globalDifficulty;
     private final PlayerDifficultyManager playerDifficulty;
     private ServerPlayerEntity player;
@@ -22,6 +24,7 @@ public class Bounty extends DifficultyTimer {
     private boolean enabled = false;
 
     private Bounty(MinecraftServer server, GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
+        if (!ENABLED) throw new IllegalStateException("Bounty is disabled");
         timer = TimerAccess.getTimerFromOverworld(server);
         this.globalDifficulty = globalDifficulty;
         this.playerDifficulty = playerDifficulty;
@@ -35,6 +38,17 @@ public class Bounty extends DifficultyTimer {
             enabled = true;
             bountyBroadcast();
         }, Math.round(delay * 5 * 60 * 20L)));
+    }
+
+    @Nullable
+    public static Bounty newBounty(MinecraftServer server, GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
+        if (!ENABLED) return null;
+        if (globalDifficulty.getTotalOfDeath() >= BOUNTY_ENABLED_AFTER &&
+                (double) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() <= BOUNTY_DEATH_PERCENTAGE
+        ) {
+            return new Bounty(server, globalDifficulty, playerDifficulty);
+        }
+        return null;
     }
 
     private void bountyBroadcast() {
@@ -118,17 +132,6 @@ public class Bounty extends DifficultyTimer {
         if (player.getServer() == null) return;
         player.getServer().getPlayerManager().broadcast(Text.of(sb.toString()), false);
     }
-
-    @Nullable
-    public static Bounty newBounty(MinecraftServer server, GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
-        if (globalDifficulty.getTotalOfDeath() >= BOUNTY_ENABLED_AFTER &&
-                (double) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() <= BOUNTY_DEATH_PERCENTAGE
-        ) {
-            return new Bounty(server, globalDifficulty, playerDifficulty);
-        }
-        return null;
-    }
-
 
     public String toString() {
         final var sb = new StringBuilder();

@@ -38,7 +38,9 @@ public class DifficultyDeathScaler implements ModInitializer {
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_TEMP_BAN = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":enableTempBan",
             GameRules.Category.MISC,
-            GameRuleFactory.createBooleanRule(true)
+            GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+                PlayerDifficultyManager.ENABLE_TEMP_BAN = rule.get();
+            })
     );
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_BOUNTY = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":enableBounty",
@@ -50,12 +52,16 @@ public class DifficultyDeathScaler implements ModInitializer {
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":deathBeforeTempBan",
             GameRules.Category.MISC,
-            GameRuleFactory.createIntRule(5)
+            GameRuleFactory.createIntRule(5, (server, rule) -> {
+                PlayerDifficultyManager.DEATH_BEFORE_TEMP_BAN = rule.get();
+            })
     );
     public static final GameRules.Key<GameRules.IntRule> TEMP_BAN_DURATION = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":tempBanDuration",
             GameRules.Category.MISC,
-            GameRuleFactory.createIntRule(12)
+            GameRuleFactory.createIntRule(12, (server, rule) -> {
+                PlayerDifficultyManager.TEMP_BAN_DURATION = rule.get();
+            })
     );
     private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
     private final Map<UUID, Bounty> bountyMap = new HashMap<>();

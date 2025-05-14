@@ -21,4 +21,4 @@ Many aspects of these difficulties can be configured via gamerules.
 Check [Configuration](/configuration) for more information.
 
 The mod is providing a command to get information about these difficulties.
-Check [Commands](/commands) for more information.
+Check [Commands](/other/commands) for more information.

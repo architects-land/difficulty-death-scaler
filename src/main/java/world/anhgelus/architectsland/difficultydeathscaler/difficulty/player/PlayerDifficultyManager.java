@@ -12,36 +12,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.BlockBreakSpeedModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.MovementSpeedModifier;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimerTask;
 import java.util.UUID;
 
 public class PlayerDifficultyManager extends DifficultyManager {
-    public @Nullable ServerPlayerEntity player;
-    public @Nullable UUID uuid = null;
-
-    public static final int SECONDS_BEFORE_DECREASED = 24 * 60 * 60;
-
-    public static class HealthModifier extends PlayerHealthModifier {
-        public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
-
-        public HealthModifier() {
-            super(ID);
-        }
-
-        public static void apply(ServerPlayerEntity player, double value) {
-            apply(ID, ATTRIBUTE, OPERATION, player, value);
-        }
-    }
-
+    public static final int SECONDS_BEFORE_DECREASED = 24;
     public static final Step[] STEPS = new Step[]{
             new Step(0, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(0);
@@ -81,29 +66,27 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 updater.getModifier(HealthModifier.class).update(-10);
             }),
     };
-
+    public static boolean ENABLE_TEMP_BAN = true;
+    public static int DEATH_BEFORE_TEMP_BAN = 5;
+    public static int TEMP_BAN_DURATION = 12;
+    private final GlobalDifficultyManager globalManager;
+    private final List<TickTask> deathDayTasks = new ArrayList<>();
+    public @Nullable ServerPlayerEntity player;
+    public @Nullable UUID uuid = null;
     protected double healthModifier = 0;
     //    protected double luckModifier = 0;
     protected double blockBreakSpeedModifier = 0;
     protected double movementSpeedModifier = 0;
-
-    private final GlobalDifficultyManager globalManager;
-
     private int deathDay;
     private boolean tempBan;
     private long bannedSince = -1;
-    private final List<Long> deathDayStart = new ArrayList<>();
-    private final List<TimerTask> deathDayTasks = new ArrayList<>();
-
-    private int totalOfDeath = 0;
-
     public PlayerDifficultyManager(MinecraftServer server, GlobalDifficultyManager globalManager, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
         this.player = player;
         this.globalManager = globalManager;
 
-        DifficultyDeathScaler.LOGGER.info("Loading player {} difficulty data", player.getUuid());
-        loadData(StateSaver.getPlayerState(player));
+        DifficultyDeathScaler.LOGGER.info("Loading player ({}) difficulty data", player.getUuid());
+        load(StateSaver.getPlayerState(player));
     }
 
     public PlayerDifficultyManager(MinecraftServer server, GlobalDifficultyManager globalManager, @NotNull UUID uuid, PlayerData data) {
@@ -112,40 +95,36 @@ public class PlayerDifficultyManager extends DifficultyManager {
         this.uuid = uuid;
         this.globalManager = globalManager;
 
-        DifficultyDeathScaler.LOGGER.info("Creating player difficulty manager with data");
-        loadData(data);
+        DifficultyDeathScaler.LOGGER.info("Creating player ({}) difficulty manager with data", uuid);
+        load(data);
     }
 
-    private void loadData(PlayerData data) {
-        numberOfDeath = data.deaths;
+    private void load(PlayerData data) {
+        super.load(data);
         deathDay = data.deathDay;
-        totalOfDeath = data.totalOfDeath;
         bannedSince = data.bannedSince;
         tempBan = bannedSince != -1;
-        for (final var delay : data.deathDayDelay) {
+        for (final var ticksDelay : data.deathDayDelay) {
             try {
-                scheduleDeathDayTask(delay);
-                deathDayStart.add(delay);
+                scheduleDeathDayTask(ticksDelay);
             } catch (IllegalArgumentException e) {
                 DifficultyDeathScaler.LOGGER.error("An error occurred while loading data", e);
                 DifficultyDeathScaler.LOGGER.warn("Removing one day death");
                 deathDay--;
             }
         }
-        delayFirstTask(data.timeBeforeReduce);
-        updateTimerTask();
-        updateModifiersValue(getModifiers(numberOfDeath));
     }
 
-
     @Override
-    protected void onUpdate(UpdateType updateType, Updater updater) {
+    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
+        updateModifiersValue(updater);
+
+        if (updateType == UpdateType.SILENT) return;
+
         if (player == null) {
             DifficultyDeathScaler.LOGGER.warn("Player in {} is null", this);
             return;
         }
-
-        updateModifiersValue(updater);
 
         player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
@@ -153,12 +132,12 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     @Override
-    protected void onDeath(UpdateType updateType, Updater updater) {
-        if (updateType == UpdateType.SET) return;
+    protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
+        if (updateType == UpdateType.SET || updateType == UpdateType.SILENT) return;
         deathDay++;
 
         if (player == null) {
-            DifficultyDeathScaler.LOGGER.warn("Updating death of null player. UpdateType {}", updateType);
+            DifficultyDeathScaler.LOGGER.error("Updating death of null player. UpdateType {}", updateType);
             throw new IllegalStateException("Player is null");
         }
         if (player.getWorld().isClient()) return;
@@ -178,16 +157,16 @@ public class PlayerDifficultyManager extends DifficultyManager {
         modifiers.forEach(m -> {
             if (m instanceof final HealthModifier mod) {
                 healthModifier = mod.getValue();
-                mod.apply(player);
+                if (player != null) mod.apply(player);
             }/* else if (m instanceof final LuckModifier mod) {
                 luckModifier = mod.getValue();
                 mod.apply(player);
             } */ else if (m instanceof final BlockBreakSpeedModifier mod) {
                 blockBreakSpeedModifier = mod.getValue();
-                mod.apply(player);
+                if (player != null) mod.apply(player);
             } else if (m instanceof final MovementSpeedModifier mod) {
                 movementSpeedModifier = mod.getValue();
-                mod.apply(player);
+                if (player != null) mod.apply(player);
             }
         });
     }
@@ -236,9 +215,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
         applyModifiers();
     }
 
-    @Override
     public void save() {
         assert player != null || uuid != null;
+        // get state
         PlayerData state;
         if (player == null) {
             DifficultyDeathScaler.LOGGER.info("Saving player with uuid {} difficulty data", uuid);
@@ -247,14 +226,16 @@ public class PlayerDifficultyManager extends DifficultyManager {
             DifficultyDeathScaler.LOGGER.info("Saving player ({}) difficulty data", player.getUuid());
             state = StateSaver.getPlayerState(player);
         }
-        state.deaths = numberOfDeath;
-        state.timeBeforeReduce = delay();
+        // save state
+        save(state);
+
         state.deathDay = deathDay;
-        state.totalOfDeath = totalOfDeath;
         state.bannedSince = bannedSince;
-        var starts = new long[deathDayStart.size()];
-        for (int i = 0; i < deathDayStart.size(); i++) {
-            starts[i] = deathDayStart.get(i);
+
+        final var runningDeathDay = deathDayTasks.stream().filter(TickTask::isRunning).toList();
+        var starts = new long[runningDeathDay.size()];
+        for (int i = 0; i < runningDeathDay.size(); i++) {
+            starts[i] = runningDeathDay.get(i).getTickingBeforeRun();
         }
         state.deathDayDelay = starts;
     }
@@ -284,40 +265,30 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     private void scheduleDeathDayTask() {
-        scheduleDeathDayTask(0);
+        scheduleDeathDayTask((24 * 60 * 60) * 20L);
     }
 
-    private void scheduleDeathDayTask(long delayTime) {
-        if (delayTime == 0) {
-            deathDayStart.add(delay(System.currentTimeMillis() / 1000));
-        } else {
-            deathDayStart.add(delayTime);
-        }
-        final var task = new TimerTask() {
-            @Override
-            public void run() {
-                if (deathDay != 0) {
-                    deathDay--;
-                    deathDayStart.removeFirst();
-                } else DifficultyDeathScaler.LOGGER.warn("Death day is already equal to 0");
-            }
-        };
-        timer.schedule(task, (24 * 60 * 60 - delayTime) * 1000L);
+    private void scheduleDeathDayTask(long ticksDelay) {
+        final var task = new TickTask(() -> {
+            if (deathDay != 0) {
+                deathDay--;
+                deathDayTasks.removeFirst();
+            } else DifficultyDeathScaler.LOGGER.warn("Death day is already equal to 0");
+        }, ticksDelay);
+        timer.dds_runTask(task);
         deathDayTasks.add(task);
     }
 
     private void resetDeathDay() {
         deathDay = 0;
-        deathDayStart.clear();
-        deathDayTasks.forEach(TimerTask::cancel);
+        deathDayTasks.forEach(TickTask::cancel);
         deathDayTasks.clear();
     }
 
     public boolean diedTooMuch() {
-        final var rules = server.getGameRules();
-        if (!rules.get(DifficultyDeathScaler.ENABLE_TEMP_BAN).get()) return false;
-        return deathDay >= rules.getInt(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN) ||
-                (tempBan && System.currentTimeMillis() / 1000 - bannedSince < rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get() * 60 * 60L);
+        if (!ENABLE_TEMP_BAN) return false;
+        return deathDay >= DEATH_BEFORE_TEMP_BAN ||
+                (tempBan && System.currentTimeMillis() / 1000 - bannedSince < TEMP_BAN_DURATION);
     }
 
     /**
@@ -325,9 +296,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
      */
     public Text getKickedDiedTooMuchMessage() {
         if (!tempBan) throw new IllegalStateException("Player is not temp banned");
-        final var rules = server.getGameRules();
         final var banTime = System.currentTimeMillis() / 1000 - bannedSince;
-        final var banLength = rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get() * 60 * 60L;
+        final var banLength = TEMP_BAN_DURATION * 60 * 60L;
         return MutableText.of(new PlainTextContent.Literal("You died too much during 24h...\nYou can log back in "))
                 .append(formatSeconds(banLength - banTime))
                 .append(".");
@@ -393,5 +363,17 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 .append(movementSpeedModifier)
                 .append("}");
         return sb.toString();
+    }
+
+    public static class HealthModifier extends PlayerHealthModifier {
+        public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
+
+        public HealthModifier() {
+            super(ID);
+        }
+
+        public static void apply(ServerPlayerEntity player, double value) {
+            apply(ID, ATTRIBUTE, OPERATION, player, value);
+        }
     }
 }

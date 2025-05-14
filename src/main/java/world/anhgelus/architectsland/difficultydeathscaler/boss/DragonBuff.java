@@ -21,6 +21,7 @@ public class DragonBuff {
 
     private final EnderDragonEntity enderDragon;
     private final Set<ServerPlayerEntity> players = new HashSet<>();
+    private int oldHealth;
 
     private int adjustHealth;
 
@@ -30,20 +31,24 @@ public class DragonBuff {
 
     public void playerEntersEnd(ServerPlayerEntity player) {
         if (players.contains(player)) return;
-        final var playersBefore = this.players.size();
         players.add(player);
 
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath();
-        final var oh = adjustedNewHealth(playersBefore, difficulty); // old health
+        updateDragonHealth(difficulty, false);
+    }
+
+    public void updateDragonHealth(int difficulty, boolean bypassCheck) {
         final var nh = adjustedNewHealth(players.size(), difficulty); // new health
-        if (nh - oh < 0) {
-            DifficultyDeathScaler.LOGGER.warn("Dragon's health is lower: {} (now) vs {} (before)", nh, oh);
+        if (!bypassCheck && nh - oldHealth < 0) {
+            DifficultyDeathScaler.LOGGER.warn("Dragon's health is lower: {} (now) vs {} (before)", nh, oldHealth);
             return;
         }
         final var val = ((float) nh / BASE) - 1;
         buff(enderDragon, val);
         // heal the dragon the difference
-        enderDragon.heal(nh - oh);
+        enderDragon.heal(Math.abs(nh - oldHealth));
+        oldHealth = nh;
+        DifficultyDeathScaler.LOGGER.info("Dragon's health: {}", nh);
     }
 
     private int adjustedNewHealth(int players, int difficulty) {
@@ -57,7 +62,12 @@ public class DragonBuff {
         if (adjustHealth > 0) enderDragon.heal(adjustHealth);
     }
 
+    public boolean isDragonAlive() {
+        return enderDragon.isAlive();
+    }
+
     private static int newHealth(int players, int difficulty) {
+        players = Math.min(players, 40); // cap to 40
         return (int) Math.floor(
                 ALPHA * (Math.log(players + 1) * Math.pow(((double) difficulty / BETA + 1), 2) - Math.log(2)) + BASE
         ); // alpha*( ln(players+1) * (difficulty/beta + 1)^2 - ln(2) ) + base

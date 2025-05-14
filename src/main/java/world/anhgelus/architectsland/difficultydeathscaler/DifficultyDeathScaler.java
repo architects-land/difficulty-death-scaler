@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -115,13 +116,14 @@ public class DifficultyDeathScaler implements ModInitializer {
         UseEntityCallback.EVENT.register(PlayerListener::useItemCallback);
 
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+            if (entity instanceof EnderDragonEntity) BossManager.dragonLoaded((EnderDragonEntity) entity, world);
             if (!(entity instanceof HostileEntity)) return;
             difficultyManager.onEntitySpawn((HostileEntity) entity);
         });
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
-            if (destination.getRegistryKey() != World.END) return;
-            BossManager.playerEntersEnd(player);
+            if (destination.getRegistryKey().getValue() != World.END.getValue()) return;
+            BossManager.playerEntersEnd(player, destination);
         });
     }
 

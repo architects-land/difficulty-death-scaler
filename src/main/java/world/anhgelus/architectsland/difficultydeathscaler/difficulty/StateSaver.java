@@ -15,71 +15,28 @@ import java.util.Map;
 import java.util.UUID;
 
 public class StateSaver extends PersistentState {
-    public Map<UUID, PlayerData> players = new HashMap<>();
-    public GlobalData difficulty;
-
-    @Override
-    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        final var playersNbt = new NbtCompound();
-        players.forEach((uuid, playerData) -> {
-            NbtCompound playerNbt = new NbtCompound();
-
-            playerNbt.putInt("deaths", playerData.deaths);
-            playerNbt.putLong("timeBeforeReduce", playerData.timeBeforeReduce);
-            playerNbt.putInt("deathDay", playerData.deathDay);
-            playerNbt.putLongArray("deathDayDelay", playerData.deathDayDelay);
-            playerNbt.putInt("totalOfDeath", playerData.totalOfDeath);
-            playerNbt.putLong("bannedSince", playerData.bannedSince);
-            playerNbt.putLong("secondsLowerDifficulty", playerData.secondsLowerDifficulty);
-
-            playersNbt.put(uuid.toString(), playerNbt);
-        });
-        nbt.put("players", playersNbt);
-        nbt.putInt("deaths", difficulty.deaths);
-        nbt.putLong("timeBeforeReduce", difficulty.timeBeforeReduce);
-        nbt.putLong("timeBeforeIncrease", difficulty.timeBeforeIncrease);
-        nbt.putBoolean("increaseEnabled", difficulty.increaseEnabled);
-        nbt.putInt("totalOfDeath", difficulty.totalOfDeath);
-        nbt.putLong("secondsLowerDifficulty", difficulty.secondsLowerDifficulty);
-
-        return nbt;
-    }
-
-    public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        final var state = new StateSaver();
-        state.difficulty = new GlobalData();
-
-        final var playersNbt = tag.getCompound("players");
-        playersNbt.getKeys().forEach(key -> {
-            final var playerData = new PlayerData();
-            final var compound = playersNbt.getCompound(key);
-
-            playerData.deaths = compound.getInt("deaths");
-            playerData.timeBeforeReduce = compound.getLong("timeBeforeReduce");
-            playerData.deathDay = compound.getInt("deathDay");
-            playerData.deathDayDelay = compound.getLongArray("deathDayDelay");
-            playerData.totalOfDeath = compound.getInt("totalOfDeath");
-            if (compound.contains("bannedSince")) playerData.bannedSince = compound.getLong("bannedSince");
-            if (compound.contains("secondsLowerDifficulty"))
-                playerData.secondsLowerDifficulty = compound.getLong("secondsLowerDifficulty");
-
-            state.players.put(UUID.fromString(key), playerData);
-        });
-        state.difficulty.deaths = tag.getInt("deaths");
-        state.difficulty.timeBeforeReduce = tag.getLong("timeBeforeReduce");
-        state.difficulty.timeBeforeIncrease = tag.getLong("timeBeforeIncrease");
-        state.difficulty.increaseEnabled = tag.getBoolean("increaseEnabled");
-        state.difficulty.totalOfDeath = tag.getInt("totalOfDeath");
-        state.difficulty.secondsLowerDifficulty = tag.getInt("secondsLowerDifficulty");
-
-        return state;
-    }
-
+    public static final String PLAYERS_KEY = "players";
     private static final Type<StateSaver> type = new Type<>(
             StateSaver::new,
             StateSaver::createFromNbt,
             null
     );
+    public Map<UUID, PlayerData> players = new HashMap<>();
+    public GlobalData difficulty;
+
+    public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
+        final var state = new StateSaver();
+        state.difficulty = new GlobalData();
+
+        final var playersNbt = tag.getCompound(PLAYERS_KEY);
+        playersNbt.getKeys().forEach(key -> {
+            final var compound = playersNbt.getCompound(key);
+            state.players.put(UUID.fromString(key), PlayerData.from(compound));
+        });
+        state.difficulty = GlobalData.from(tag);
+
+        return state;
+    }
 
     public static StateSaver getServerState(MinecraftServer server) {
         final var world = server.getWorld(World.OVERWORLD);
@@ -102,5 +59,13 @@ public class StateSaver extends PersistentState {
     public static PlayerData getPlayerState(MinecraftServer server, UUID uuid) {
         final var state = getServerState(server);
         return state.players.computeIfAbsent(uuid, u -> new PlayerData());
+    }
+
+    @Override
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        final var playersNbt = new NbtCompound();
+        players.forEach((uuid, playerData) -> playersNbt.put(uuid.toString(), playerData.save()));
+        nbt.put(PLAYERS_KEY, playersNbt);
+        return difficulty.save(nbt);
     }
 }

@@ -9,7 +9,7 @@ import net.minecraft.util.Identifier;
 
 public class PassiveHealthModifier extends PassiveModifier<HostileEntity> {
     public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.MAX_HEALTH;
-    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
+    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
     public static final Identifier ID = Identifier.of(PREFIX + "health");
 
     private PassiveHealthModifier() {

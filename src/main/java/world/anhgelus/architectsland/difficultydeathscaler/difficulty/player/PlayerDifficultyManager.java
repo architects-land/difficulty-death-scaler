@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class PlayerDifficultyManager extends DifficultyManager {
-    public static final int SECONDS_BEFORE_DECREASED = 24;
+    public static final int SECONDS_BEFORE_DECREASED = 24 * 60 * 60;
     public static final Step[] STEPS = new Step[]{
             new Step(0, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(0);
@@ -80,6 +80,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     private int deathDay;
     private boolean tempBan;
     private long bannedSince = -1;
+
     public PlayerDifficultyManager(MinecraftServer server, GlobalDifficultyManager globalManager, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
         this.player = player;

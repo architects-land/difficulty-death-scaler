@@ -4,6 +4,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PiglinEntity;
+import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -24,7 +25,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 import java.util.List;
 
 public class GlobalDifficultyManager extends DifficultyManager {
-    public static final int SECONDS_BEFORE_DECREASED = 12; // 12 hours
+    public static final int SECONDS_BEFORE_DECREASED = 12 * 60 * 60; // 12 hours
 
     private final DifficultyIncrease increaser;
 
@@ -262,7 +263,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     public void onEntitySpawn(HostileEntity hostile) {
         FollowRangeModifier.apply(hostile, followRangeModifier);
         StepHeightModifier.apply(hostile, stepHeightModifier);
-        SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
+        if (hostile instanceof final ZombieEntity z) SpawnReinforcementsModifier.apply(z, spawnReinforcementModifier);
         // if mobs was already spawned, return
         if (hostile.hasCustomName()) return;
         if (hostile instanceof PiglinEntity)

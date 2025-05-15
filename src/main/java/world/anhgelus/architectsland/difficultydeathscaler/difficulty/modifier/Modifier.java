@@ -6,6 +6,7 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 public class Modifier<T extends LivingEntity> {
     public static final String PREFIX = "dds_";
@@ -61,14 +62,15 @@ public class Modifier<T extends LivingEntity> {
             double value
     ) {
         final var attr = entity.getAttributeInstance(attribute);
-        if (attr == null) return;
+        if (attr == null) {
+            DifficultyDeathScaler.LOGGER.warn("Attribute {} not found for {}", attribute, entity.getClass().getSimpleName());
+            return;
+        }
 
         attr.removeModifier(id);
         if (value == 0) return;
 
-        final var playerHealthModifier = new EntityAttributeModifier(
-                id, value, operation
-        );
+        final var playerHealthModifier = new EntityAttributeModifier(id, value, operation);
         attr.addPersistentModifier(playerHealthModifier);
     }
 

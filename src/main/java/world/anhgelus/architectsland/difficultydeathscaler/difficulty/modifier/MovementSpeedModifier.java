@@ -10,7 +10,7 @@ import net.minecraft.util.Identifier;
 public class MovementSpeedModifier extends Modifier<ServerPlayerEntity> {
     public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.MOVEMENT_SPEED;
     public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
-    protected static Identifier ID = Identifier.of(PREFIX + "movement_speed_modifier");
+    protected static final Identifier ID = Identifier.of(PREFIX + "movement_speed_modifier");
 
     public MovementSpeedModifier() {
         super(ID, ATTRIBUTE, OPERATION, Check.SMALLER);

@@ -28,6 +28,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.Glo
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.listener.PlayerListener;
+import world.anhgelus.architectsland.difficultydeathscaler.passive.PassiveDifficulty;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
@@ -50,6 +51,13 @@ public class DifficultyDeathScaler implements ModInitializer {
             GameRules.Category.MISC,
             GameRuleFactory.createBooleanRule(true, (server, rule) -> {
                 Bounty.ENABLED = rule.get();
+            })
+    );
+    public static final GameRules.Key<GameRules.BooleanRule> ENABLE_PASSIVE_DIFFICULTY = GameRuleRegistry.register(
+            GAMERULE_PREFIX + ":enablePassiveDifficulty",
+            GameRules.Category.MISC,
+            GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+                PassiveDifficulty.ENABLED = rule.get();
             })
     );
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
@@ -117,8 +125,9 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (entity instanceof EnderDragonEntity) BossManager.dragonLoaded((EnderDragonEntity) entity, world);
-            if (!(entity instanceof HostileEntity)) return;
-            difficultyManager.onEntitySpawn((HostileEntity) entity);
+            if (!(entity instanceof final HostileEntity hostile)) return;
+            difficultyManager.onEntitySpawn(hostile);
+            PassiveDifficulty.onEntitySpawn(hostile);
         });
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {

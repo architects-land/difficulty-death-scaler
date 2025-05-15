@@ -13,11 +13,11 @@ Every gamerule starting with the prefix `dds:` was added by the mod.
 
 ## Passive difficulty
 
-`dds:enablePassiveDifficulty` enables the passive difficulty (default: `true`).
+`dds:enablePassiveDifficulty` enables the [passive difficulty](/difficulty/passive) (default: `true`).
 
 ## Bounty
 
-TODO
+`dds:enableBounty` enables the [bounty](/other/bounty) (default: `true`)
 
 ## Redacted
 

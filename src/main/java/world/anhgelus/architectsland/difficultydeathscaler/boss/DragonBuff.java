@@ -23,8 +23,6 @@ public class DragonBuff {
     private final Set<ServerPlayerEntity> players = new HashSet<>();
     private int oldHealth;
 
-    private int adjustHealth;
-
     public DragonBuff(EnderDragonEntity enderDragon) {
         this.enderDragon = enderDragon;
     }
@@ -38,7 +36,7 @@ public class DragonBuff {
     }
 
     public void updateDragonHealth(int difficulty, boolean bypassCheck) {
-        final var nh = adjustedNewHealth(players.size(), difficulty); // new health
+        final var nh = newHealth(players.size(), difficulty); // new health
         if (!bypassCheck && nh - oldHealth < 0) {
             DifficultyDeathScaler.LOGGER.warn("Dragon's health is lower: {} (now) vs {} (before)", nh, oldHealth);
             return;
@@ -49,17 +47,6 @@ public class DragonBuff {
         enderDragon.heal(Math.abs(nh - oldHealth));
         oldHealth = nh;
         DifficultyDeathScaler.LOGGER.info("Dragon's health: {}", nh);
-    }
-
-    private int adjustedNewHealth(int players, int difficulty) {
-        return newHealth(players, difficulty) + adjustHealth;
-    }
-
-    public void setAdjustHealth(int adjustHealth) {
-        this.adjustHealth = adjustHealth;
-        final var val = ((float) adjustedNewHealth(players.size(), Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath()) / BASE) - 1;
-        buff(enderDragon, val);
-        if (adjustHealth > 0) enderDragon.heal(adjustHealth);
     }
 
     public boolean isDragonAlive() {

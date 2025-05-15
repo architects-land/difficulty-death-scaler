@@ -6,12 +6,10 @@ import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.boss.WitherEntity;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.ElderGuardianEntity;
 import net.minecraft.entity.mob.WardenEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.RaycastContext;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +26,8 @@ public class Boss {
 
     public Boss(LivingEntity entity) {
         this.entity = entity;
-        this.customBehavior = (e) -> {};
+        this.customBehavior = (e) -> {
+        };
     }
 
     public Boss(LivingEntity entity, CustomBehavior behavior) {
@@ -109,25 +108,15 @@ public class Boss {
 
                 e.setPosition(e.getPos().add(0, -2, 0));
             });
-        } else if (entity instanceof EnderDragonEntity) {
-            return new Boss(entity, (e) -> {
-                if (dragonBuff == null) {
-                    DifficultyDeathScaler.LOGGER.warn("Dragon buff is null during the buff of the ender dragon...");
-                    return;
-                }
-                dragonBuff.setAdjustHealth(100);
-            });
         }
         return new Boss(entity);
     }
 
     @Override
     public String toString() {
-        final var sb = new StringBuilder();
-        sb.append("Boss(entity uuid=").append(entity.getUuid())
-                .append(", entity class=").append(entity.getClass().getSimpleName())
-                .append(", entity location=").append(entity.getPos().toString())
-                .append(")");
-        return sb.toString();
+        return String.format(
+                "Boss(entity uuid=%s, entity class=%s, entity location=%s)",
+                entity.getUuid(), entity.getClass().getSimpleName(), entity.getPos().toString()
+        );
     }
 }

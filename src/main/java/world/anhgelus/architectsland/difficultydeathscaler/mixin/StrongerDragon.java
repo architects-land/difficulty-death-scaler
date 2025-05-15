@@ -17,7 +17,8 @@ public abstract class StrongerDragon {
             method = "applyDamage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)V",
             at = @At(value = "HEAD"),
             ordinal = 0,
-            index = 2
+            index = 2,
+            argsOnly = true
     )
     protected float reduceExplosionDamage(float amount, ServerWorld world, DamageSource source) {
         if (!((LivingEntity) (Object) this instanceof EnderDragonEntity)) return amount;
@@ -31,8 +32,7 @@ public abstract class StrongerDragon {
         final var level = Math.min(Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath(), 40);
         // percentage of damage: 1 - (level-1)/40
         return (float) Math.floor(
-                Math.min((1 - (float) (level - 1) / 40) * amount, amount
-                )
+                Math.min((1 - (float) (level - 1) / 40) * amount, amount)
         );
     }
 }

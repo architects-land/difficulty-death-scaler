@@ -13,11 +13,13 @@ dies during 12 hours.
 
 The Ender Dragon's stats are not modified by the buff, but its life is increased if there are many
 players in the end with a high [global difficulty](/difficulty/global).
+Its explosion resistance is also increased with a high [global difficulty](/difficulty/global).
 
-The Wither's stats are not modified, but you can't trap it in bedrock: you have to do the real 
+The Wither's stats are not modified, but you can't trap it in bedrock: you have to do the real
 fight.
 
 The Elder Guardian:
+
 - has a better knockback resistance
 - is smaller
 - has more health
@@ -25,5 +27,6 @@ The Elder Guardian:
 - do more damage
 
 The Warden:
+
 - is faster
 - is angry when it is buffed

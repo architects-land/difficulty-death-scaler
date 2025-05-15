@@ -26,23 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class PlayerDifficultyManager extends DifficultyManager {
-    public @Nullable ServerPlayerEntity player;
-    public @Nullable UUID uuid = null;
-
     public static final int SECONDS_BEFORE_DECREASED = 24;
-
-    public static class HealthModifier extends PlayerHealthModifier {
-        public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
-
-        public HealthModifier() {
-            super(ID);
-        }
-
-        public static void apply(ServerPlayerEntity player, double value) {
-            apply(ID, ATTRIBUTE, OPERATION, player, value);
-        }
-    }
-
     public static final Step[] STEPS = new Step[]{
             new Step(0, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(0);
@@ -82,19 +66,20 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 updater.getModifier(HealthModifier.class).update(-10);
             }),
     };
-
+    public static boolean ENABLE_TEMP_BAN = true;
+    public static int DEATH_BEFORE_TEMP_BAN = 5;
+    public static int TEMP_BAN_DURATION = 12;
+    private final GlobalDifficultyManager globalManager;
+    private final List<TickTask> deathDayTasks = new ArrayList<>();
+    public @Nullable ServerPlayerEntity player;
+    public @Nullable UUID uuid = null;
     protected double healthModifier = 0;
     //    protected double luckModifier = 0;
     protected double blockBreakSpeedModifier = 0;
     protected double movementSpeedModifier = 0;
-
-    private final GlobalDifficultyManager globalManager;
-
     private int deathDay;
     private boolean tempBan;
     private long bannedSince = -1;
-    private final List<TickTask> deathDayTasks = new ArrayList<>();
-
     public PlayerDifficultyManager(MinecraftServer server, GlobalDifficultyManager globalManager, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
         this.player = player;
@@ -129,7 +114,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
             }
         }
     }
-
 
     @Override
     protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
@@ -302,10 +286,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     public boolean diedTooMuch() {
-        final var rules = server.getGameRules();
-        if (!rules.get(DifficultyDeathScaler.ENABLE_TEMP_BAN).get()) return false;
-        return deathDay >= rules.getInt(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN) ||
-                (tempBan && System.currentTimeMillis() / 1000 - bannedSince < rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get() * 60 * 60L);
+        if (!ENABLE_TEMP_BAN) return false;
+        return deathDay >= DEATH_BEFORE_TEMP_BAN ||
+                (tempBan && System.currentTimeMillis() / 1000 - bannedSince < TEMP_BAN_DURATION);
     }
 
     /**
@@ -313,9 +296,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
      */
     public Text getKickedDiedTooMuchMessage() {
         if (!tempBan) throw new IllegalStateException("Player is not temp banned");
-        final var rules = server.getGameRules();
         final var banTime = System.currentTimeMillis() / 1000 - bannedSince;
-        final var banLength = rules.get(DifficultyDeathScaler.TEMP_BAN_DURATION).get() * 60 * 60L;
+        final var banLength = TEMP_BAN_DURATION * 60 * 60L;
         return MutableText.of(new PlainTextContent.Literal("You died too much during 24h...\nYou can log back in "))
                 .append(formatSeconds(banLength - banTime))
                 .append(".");
@@ -381,5 +363,17 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 .append(movementSpeedModifier)
                 .append("}");
         return sb.toString();
+    }
+
+    public static class HealthModifier extends PlayerHealthModifier {
+        public static final Identifier ID = Identifier.of(PREFIX + "player_health_modifier");
+
+        public HealthModifier() {
+            super(ID);
+        }
+
+        public static void apply(ServerPlayerEntity player, double value) {
+            apply(ID, ATTRIBUTE, OPERATION, player, value);
+        }
     }
 }

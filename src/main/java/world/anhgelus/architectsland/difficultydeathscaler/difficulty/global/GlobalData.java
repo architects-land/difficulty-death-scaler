@@ -13,8 +13,8 @@ public class GlobalData extends DifficultyData {
     public static GlobalData from(NbtCompound nbt) {
         final var data = new GlobalData();
         load(nbt, data);
-        data.timeBeforeReduce = nbt.getLong(TIME_BEFORE_REDUCE_KEY);
-        data.increaseEnabled = nbt.getBoolean(INCREASE_ENABLED_KEY);
+        data.timeBeforeReduce = nbt.getLong(TIME_BEFORE_REDUCE_KEY, GlobalDifficultyManager.SECONDS_BEFORE_DECREASED);
+        data.increaseEnabled = nbt.getBoolean(INCREASE_ENABLED_KEY, false);
         return data;
     }
 

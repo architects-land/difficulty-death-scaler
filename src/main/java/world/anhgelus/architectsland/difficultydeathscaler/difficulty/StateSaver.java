@@ -5,6 +5,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.PersistentState;
+import net.minecraft.world.PersistentStateType;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalData;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerData;
@@ -15,9 +16,10 @@ import java.util.UUID;
 
 public class StateSaver extends PersistentState {
     public static final String PLAYERS_KEY = "players";
-    private static final Type<StateSaver> type = new Type<>(
+    private static final PersistentStateType<StateSaver> type = new PersistentStateType<>(
+            DifficultyDeathScaler.MOD_ID,
             StateSaver::new,
-            StateSaver::createFromNbt,
+            null,
             null
     );
     public Map<UUID, PlayerData> players = new HashMap<>();
@@ -26,9 +28,9 @@ public class StateSaver extends PersistentState {
     public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         final var state = new StateSaver();
         state.difficulty = new GlobalData();
-        final var playersNbt = tag.getCompound(PLAYERS_KEY);
+        final var playersNbt = tag.getCompound(PLAYERS_KEY).orElseThrow();
         playersNbt.getKeys().forEach(key -> {
-            final var compound = playersNbt.getCompound(key);
+            final var compound = playersNbt.getCompound(key).orElseThrow();
             state.players.put(UUID.fromString(key), PlayerData.from(compound));
         });
         state.difficulty = GlobalData.from(tag);
@@ -40,7 +42,7 @@ public class StateSaver extends PersistentState {
         final var world = server.getOverworld();
         final var persistentStateManager = world.getPersistentStateManager();
 
-        final var state = persistentStateManager.getOrCreate(type, DifficultyDeathScaler.MOD_ID);
+        final var state = persistentStateManager.getOrCreate(type);
 
         state.markDirty();
 

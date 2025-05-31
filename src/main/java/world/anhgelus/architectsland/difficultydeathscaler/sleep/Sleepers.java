@@ -53,9 +53,5 @@ public class Sleepers {
         MobUtils.HOSTILE_MOBS_BURN = true;
     });
 
-    public static final Sleeper ANVIL_RAIN = new Sleeper("Heavy rain.", server -> {
-    }, server -> {
-    });
-
-    public static final Sleeper[] values = {LONG_NIGHT, PHANTOMS_NIGHTMARE, BRUTAL_HELL, RUN, ANVIL_RAIN};
+    public static final Sleeper[] values = {LONG_NIGHT, PHANTOMS_NIGHTMARE, BRUTAL_HELL, RUN};
 }

@@ -63,6 +63,13 @@ public class DifficultyDeathScaler implements ModInitializer {
                 PassiveDifficulty.ENABLED = rule.get();
             })
     );
+    public static final GameRules.Key<GameRules.BooleanRule> ENABLE_REDACTED = GameRuleRegistry.register(
+            GAMERULE_PREFIX + ":enableRedacted",
+            GameRules.Category.MISC,
+            GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+                Sleeper.ENABLED = rule.get();
+            })
+    );
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
             GAMERULE_PREFIX + ":deathBeforeTempBan",
             GameRules.Category.MISC,
@@ -140,6 +147,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         EntitySleepEvents.START_SLEEPING.register((entity, pos) -> {
             if (!Sleeper.canSleep()) return;
+            if (!Sleeper.ENABLED) return;
             // if the number is too high, return
             if (Getters.RANDOM.nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
                 return;

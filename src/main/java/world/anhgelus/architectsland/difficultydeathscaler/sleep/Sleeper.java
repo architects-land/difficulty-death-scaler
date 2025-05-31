@@ -15,6 +15,8 @@ public class Sleeper {
         void on(MinecraftServer server);
     }
 
+    public static boolean ENABLED = true;
+
     public final String description;
     public final boolean skipNight;
     public final On execStart;
@@ -40,6 +42,7 @@ public class Sleeper {
     }
 
     public void emit(MinecraftServer server) {
+        if (!ENABLED) throw new IllegalStateException("REDACTED is not enabled");
         if (!skipNight) {
             server.getPlayerManager()
                     .getPlayerList()

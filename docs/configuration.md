@@ -21,4 +21,4 @@ Every gamerule starting with the prefix `dds:` was added by the mod.
 
 ## Redacted
 
-TODO
+`dds:enableRedacted` enables the REDACTED features (default: `true`)

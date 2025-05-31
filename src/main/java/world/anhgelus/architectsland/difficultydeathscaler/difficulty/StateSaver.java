@@ -5,7 +5,6 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.PersistentState;
-import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalData;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerData;
@@ -27,7 +26,6 @@ public class StateSaver extends PersistentState {
     public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         final var state = new StateSaver();
         state.difficulty = new GlobalData();
-
         final var playersNbt = tag.getCompound(PLAYERS_KEY);
         playersNbt.getKeys().forEach(key -> {
             final var compound = playersNbt.getCompound(key);
@@ -39,8 +37,7 @@ public class StateSaver extends PersistentState {
     }
 
     public static StateSaver getServerState(MinecraftServer server) {
-        final var world = server.getWorld(World.OVERWORLD);
-        assert world != null;
+        final var world = server.getOverworld();
         final var persistentStateManager = world.getPersistentStateManager();
 
         final var state = persistentStateManager.getOrCreate(type, DifficultyDeathScaler.MOD_ID);

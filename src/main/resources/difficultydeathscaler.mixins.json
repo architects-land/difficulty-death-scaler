@@ -7,9 +7,11 @@
     "AnnoyingCreeper$Creeper",
     "AnnoyingCreeper$IgniteGoal",
     "AnnoyingDrowned",
+    "AnnoyingHostileMobs",
     "AnnoyingMobEntity",
     "AnnoyingSkeleton",
     "AnnoyingZombie",
+    "PhantomsSpawnerMixin",
     "PlayerManagerMixin",
     "StrongerDragon",
     "WorldTimerAccess"

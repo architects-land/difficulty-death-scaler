@@ -1,6 +1,7 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
 
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PiglinEntity;
@@ -26,6 +27,14 @@ import java.util.List;
 
 public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12 * 60 * 60; // 12 hours
+    public static int PIGLIN_BRUTES_BOOST = 0;
+    public static EntityModifies CUSTOM_SPAWN_EFFECTS = (entity) -> {
+    };
+
+    @FunctionalInterface
+    public interface EntityModifies {
+        void modify(LivingEntity entity);
+    }
 
     private final DifficultyIncrease increaser;
 
@@ -266,13 +275,18 @@ public class GlobalDifficultyManager extends DifficultyManager {
         if (hostile instanceof final ZombieEntity z) SpawnReinforcementsModifier.apply(z, spawnReinforcementModifier);
         // if mobs was already spawned, return
         if (hostile.hasCustomName()) return;
-        if (hostile instanceof PiglinEntity)
-            MobUtils.customSpawn(1.5f * (numberOfDeath - 27), 20, () -> {
-                // spawn piglin brutes
-                EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
-                hostile.discard();
-                return null;
-            });
+        CUSTOM_SPAWN_EFFECTS.modify(hostile);
+        if (hostile instanceof PiglinEntity) {
+            MobUtils.customSpawn(
+                    1.5f * (numberOfDeath + PIGLIN_BRUTES_BOOST - 27),
+                    20 + 1.5f * PIGLIN_BRUTES_BOOST,
+                    () -> {
+                        // spawn piglin brutes
+                        EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
+                        hostile.discard();
+                        return null;
+                    });
+        }
     }
 
     public void save() {
@@ -311,6 +325,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         final var sb = new StringBuilder();
         sb.append("GlobalDifficultyManager(number of death=").append(numberOfDeath)
                 .append(", total of death=").append(totalOfDeath)
+                .append(", piglin brutes boost=").append(PIGLIN_BRUTES_BOOST)
                 .append(") {better skeletons=").append(BETTER_SKELETON)
                 .append(", better zombies=").append(BETTER_ZOMBIES)
                 .append(", better creepers=").append(BETTER_CREEPERS)

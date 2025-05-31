@@ -3,6 +3,7 @@ package world.anhgelus.architectsland.difficultydeathscaler;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
@@ -16,6 +17,7 @@ import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +31,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bou
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.listener.PlayerListener;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.PassiveDifficulty;
+import world.anhgelus.architectsland.difficultydeathscaler.sleep.Sleeper;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
@@ -58,6 +61,13 @@ public class DifficultyDeathScaler implements ModInitializer {
             GameRules.Category.MISC,
             GameRuleFactory.createBooleanRule(true, (server, rule) -> {
                 PassiveDifficulty.ENABLED = rule.get();
+            })
+    );
+    public static final GameRules.Key<GameRules.BooleanRule> ENABLE_REDACTED = GameRuleRegistry.register(
+            GAMERULE_PREFIX + ":enableRedacted",
+            GameRules.Category.MISC,
+            GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+                Sleeper.ENABLED = rule.get();
             })
     );
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
@@ -133,6 +143,25 @@ public class DifficultyDeathScaler implements ModInitializer {
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
             if (destination.getRegistryKey().getValue() != World.END.getValue()) return;
             BossManager.playerEntersEnd(player, destination);
+        });
+
+        EntitySleepEvents.START_SLEEPING.register((entity, pos) -> {
+            if (!Sleeper.canSleep()) return;
+            if (!Sleeper.ENABLED) return;
+            // if the number is too high, return
+            if (Getters.RANDOM.nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
+                return;
+            // try starting a new event
+            final var server = entity.getServer();
+            if (server == null) {
+                LOGGER.warn("Server is null");
+                return;
+            }
+            if (Sleeper.tryEmitNewEvent(server)) LOGGER.info("Starting a new sleep event");
+        });
+
+        EntitySleepEvents.ALLOW_BED.register((entity, sleepingPos, state, vanillaResult) -> {
+            return Sleeper.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
         });
     }
 

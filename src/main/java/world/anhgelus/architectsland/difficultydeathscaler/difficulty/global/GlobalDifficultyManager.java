@@ -296,7 +296,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         // save state
         save(state.difficulty);
 
-        state.difficulty.timeBeforeIncrease = increaser.getTickingBeforeRun();
+        state.difficulty.timeBeforeIncrease = DifficultyIncrease.SECONDS_BEFORE_INCREASE * 20 - increaser.getTickingBeforeRun();
         state.difficulty.increaseEnabled = increaser.isEnabled();
     }
 

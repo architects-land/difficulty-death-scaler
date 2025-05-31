@@ -50,7 +50,7 @@ public class Sleeper {
             return;
         }
         final long when = (long) Math.floor(3 * Getters.RANDOM.nextFloat() + 2); // between 2 and 5
-        TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> runStart(server), 1 * 60 * 20));
+        TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> runStart(server), when * 60 * 20));
     }
 
     private void runStart(MinecraftServer server) {

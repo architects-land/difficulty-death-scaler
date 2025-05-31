@@ -38,7 +38,7 @@ public class PhantomsSpawnerMixin {
         }
         cooldown += (15 + rand.nextInt(30)) * 20;
         // limit to 75 phantoms *per world*
-        if (world.getEntitiesByType(EntityType.ENDER_DRAGON, LivingEntity::isAlive).size() > 75) {
+        if (world.getEntitiesByType(EntityType.PHANTOM, LivingEntity::isAlive).size() > 75) {
             cir.setReturnValue(0);
             return;
         }

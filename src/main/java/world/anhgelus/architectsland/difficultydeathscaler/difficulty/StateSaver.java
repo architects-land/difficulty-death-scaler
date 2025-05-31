@@ -19,8 +19,8 @@ public class StateSaver extends PersistentState {
     public static final String PLAYERS_KEY = "players";
     public static final String GLOBAL_KEY = "global";
     public static final Codec<StateSaver> CODEC = RecordCodecBuilder.create(i -> i.group(
-            NbtCompound.CODEC.fieldOf(PLAYERS_KEY).forGetter(s -> s.difficulty.save()),
-            Codec.unboundedMap(Codec.STRING, NbtCompound.CODEC).fieldOf(GLOBAL_KEY).forGetter(StateSaver::getPlayers)
+            NbtCompound.CODEC.fieldOf(GLOBAL_KEY).forGetter(s -> s.difficulty.save()),
+            Codec.unboundedMap(Codec.STRING, NbtCompound.CODEC).fieldOf(PLAYERS_KEY).forGetter(StateSaver::getPlayers)
     ).apply(i, StateSaver::new));
     private static final PersistentStateType<StateSaver> type = new PersistentStateType<>(
             DifficultyDeathScaler.MOD_ID,

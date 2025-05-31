@@ -17,7 +17,7 @@ public class PlayerData extends DifficultyData {
         load(nbt, data);
         data.deathDay = nbt.getInt(DEATH_DAY_KEY, 0);
         data.deathDayDelay = nbt.getLongArray(DEATH_DAY_DELAY_KEY).orElse(new long[]{});
-        if (nbt.contains(BANNED_SINCE_KEY)) data.bannedSince = nbt.getLong(BANNED_SINCE_KEY, -1);
+        data.bannedSince = nbt.getLong(BANNED_SINCE_KEY, -1);
         return data;
     }
 

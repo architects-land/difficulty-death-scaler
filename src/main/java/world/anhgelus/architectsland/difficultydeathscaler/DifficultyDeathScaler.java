@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -12,11 +13,13 @@ import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +30,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.Glo
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.listener.PlayerListener;
+import world.anhgelus.architectsland.difficultydeathscaler.passive.PassiveDifficulty;
 import world.anhgelus.architectsland.difficultydeathscaler.sleep.Sleeper;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
@@ -50,6 +54,13 @@ public class DifficultyDeathScaler implements ModInitializer {
             GameRules.Category.MISC,
             GameRuleFactory.createBooleanRule(true, (server, rule) -> {
                 Bounty.ENABLED = rule.get();
+            })
+    );
+    public static final GameRules.Key<GameRules.BooleanRule> ENABLE_PASSIVE_DIFFICULTY = GameRuleRegistry.register(
+            GAMERULE_PREFIX + ":enablePassiveDifficulty",
+            GameRules.Category.MISC,
+            GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+                PassiveDifficulty.ENABLED = rule.get();
             })
     );
     public static final GameRules.Key<GameRules.IntRule> DEATH_BEFORE_TEMP_BAN = GameRuleRegistry.register(
@@ -116,8 +127,15 @@ public class DifficultyDeathScaler implements ModInitializer {
         UseEntityCallback.EVENT.register(PlayerListener::useItemCallback);
 
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-            if (!(entity instanceof HostileEntity)) return;
-            difficultyManager.onEntitySpawn((HostileEntity) entity);
+            if (entity instanceof EnderDragonEntity) BossManager.dragonLoaded((EnderDragonEntity) entity, world);
+            if (!(entity instanceof final HostileEntity hostile)) return;
+            difficultyManager.onEntitySpawn(hostile);
+            PassiveDifficulty.onEntitySpawn(hostile);
+        });
+
+        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
+            if (destination.getRegistryKey().getValue() != World.END.getValue()) return;
+            BossManager.playerEntersEnd(player, destination);
         });
 
         EntitySleepEvents.START_SLEEPING.register((entity, pos) -> {

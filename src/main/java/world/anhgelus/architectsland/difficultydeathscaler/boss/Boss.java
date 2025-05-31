@@ -10,9 +10,9 @@ import net.minecraft.entity.mob.ElderGuardianEntity;
 import net.minecraft.entity.mob.WardenEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.RaycastContext;
+import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 public class Boss {
@@ -26,7 +26,8 @@ public class Boss {
 
     public Boss(LivingEntity entity) {
         this.entity = entity;
-        this.customBehavior = (e) -> {};
+        this.customBehavior = (e) -> {
+        };
     }
 
     public Boss(LivingEntity entity, CustomBehavior behavior) {
@@ -81,7 +82,7 @@ public class Boss {
         return 0;
     }
 
-    private static void buffAttribute(LivingEntity entity, RegistryEntry<EntityAttribute> attribute, String id, float value, EntityAttributeModifier.Operation operation) {
+    public static void buffAttribute(LivingEntity entity, RegistryEntry<EntityAttribute> attribute, String id, float value, EntityAttributeModifier.Operation operation) {
         final var attr = entity.getAttributeInstance(attribute);
         if (attr != null) {
             final var modifier = new EntityAttributeModifier(Identifier.of(id), value, operation);
@@ -89,11 +90,9 @@ public class Boss {
         }
     }
 
-    public static Boss fromEntity(LivingEntity entity) {
+    public static Boss fromEntity(LivingEntity entity, @Nullable DragonBuff dragonBuff) {
         if (entity instanceof WitherEntity) {
             return new Boss(entity, (e) -> {
-                DifficultyDeathScaler.LOGGER.info("Wither buffed");
-
                 final var world = e.getWorld();
 
                 final var hitResult = world.raycast(new RaycastContext(
@@ -115,11 +114,9 @@ public class Boss {
 
     @Override
     public String toString() {
-        final var sb = new StringBuilder();
-        sb.append("Boss(entity uuid=").append(entity.getUuid())
-                .append(", entity class=").append(entity.getClass().getSimpleName())
-                .append(", entity location=").append(entity.getPos().toString())
-                .append(")");
-        return sb.toString();
+        return String.format(
+                "Boss(entity uuid=%s, entity class=%s, entity location=%s)",
+                entity.getUuid(), entity.getClass().getSimpleName(), entity.getPos().toString()
+        );
     }
 }

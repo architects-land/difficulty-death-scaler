@@ -5,6 +5,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PiglinEntity;
+import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -15,6 +16,7 @@ import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
@@ -199,6 +201,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
             playSoundUpdate(updateType, p);
         });
 
+        BossManager.onDifficultyUpdate(this);
+
         if (updateType != UpdateType.SILENT)
             pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
@@ -268,7 +272,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     public void onEntitySpawn(HostileEntity hostile) {
         FollowRangeModifier.apply(hostile, followRangeModifier);
         StepHeightModifier.apply(hostile, stepHeightModifier);
-        SpawnReinforcementsModifier.apply(hostile, spawnReinforcementModifier);
+        if (hostile instanceof final ZombieEntity z) SpawnReinforcementsModifier.apply(z, spawnReinforcementModifier);
         // if mobs was already spawned, return
         if (hostile.hasCustomName()) return;
         CUSTOM_SPAWN_EFFECTS.modify(hostile);

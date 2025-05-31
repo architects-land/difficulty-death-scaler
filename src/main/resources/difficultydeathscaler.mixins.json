@@ -13,8 +13,8 @@
     "AnnoyingZombie",
     "PhantomsSpawnerMixin",
     "PlayerManagerMixin",
-    "WorldTimerAccess",
-    "WorldTimerMixin"
+    "StrongerDragon",
+    "WorldTimerAccess"
   ],
   "injectors": {
     "defaultRequire": 1

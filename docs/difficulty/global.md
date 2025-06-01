@@ -8,16 +8,17 @@ Each time a player dies, the number of deaths is increased.
 If a step is reached, it is activated.
 
 If no one dies during 12 hours, the latest activated step is disabled.
-For example, if you are at 15 deaths and the two latest steps were activated at 10 deaths and 13 
+For example, if you are at 15 deaths and the two latest steps were activated at 10 deaths and 13
 deaths, after the decrease, the number of deaths will be 10.
 
 ## Easy steps
 
 **0 death**
-Phantoms are disabled. 
+Phantoms are disabled.
 All blocks drop after a block explosion or a mob explosion.
 Difficulty is easy.
 At least 30% of connected players must sleep to skip the night.
+Ender pearls rest after the player's death.
 
 **1 death**
 Difficulty is normal.
@@ -54,6 +55,7 @@ All blocks do not drop after a TNT explosion.
 **15 deaths**
 Increase mobs' reinforcement by 25%.
 Zombies are more intelligent.
+Ender pearls vanish after the player's death.
 
 **16 deaths**
 Debug screen (F3) is reduced.

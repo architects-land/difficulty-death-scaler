@@ -68,6 +68,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(false, server);
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(30, server);
                 gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(true, server);
+                gamerules.get(GameRules.ENDER_PEARLS_VANISH_ON_DEATH).set(false, server);
                 // hardcore
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
                 updater.getModifier(HealthModifier.class).update(0);
@@ -101,6 +102,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
             new Step(13, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(true, server);
+                gamerules.get(GameRules.ENDER_PEARLS_VANISH_ON_DEATH).set(true, server);
             }),
             new Step(15, (server, gamerules, updater) -> {
                 updater.getModifier(SpawnReinforcementsModifier.class).update(0.25);

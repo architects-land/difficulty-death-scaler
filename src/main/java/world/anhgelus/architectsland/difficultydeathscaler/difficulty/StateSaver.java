@@ -1,10 +1,12 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.PersistentState;
+import net.minecraft.world.PersistentStateType;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalData;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerData;
@@ -15,32 +17,46 @@ import java.util.UUID;
 
 public class StateSaver extends PersistentState {
     public static final String PLAYERS_KEY = "players";
-    private static final Type<StateSaver> type = new Type<>(
+    public static final String GLOBAL_KEY = "global";
+    public static final Codec<StateSaver> CODEC = RecordCodecBuilder.create(i -> i.group(
+            NbtCompound.CODEC.fieldOf(GLOBAL_KEY).forGetter(s -> s.difficulty.save()),
+            Codec.unboundedMap(Codec.STRING, NbtCompound.CODEC).fieldOf(PLAYERS_KEY).forGetter(StateSaver::getPlayers)
+    ).apply(i, StateSaver::new));
+    private static final PersistentStateType<StateSaver> type = new PersistentStateType<>(
+            DifficultyDeathScaler.MOD_ID,
             StateSaver::new,
-            StateSaver::createFromNbt,
+            CODEC,
             null
     );
-    public Map<UUID, PlayerData> players = new HashMap<>();
+    public Map<UUID, PlayerData> players;
     public GlobalData difficulty;
 
-    public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        final var state = new StateSaver();
-        state.difficulty = new GlobalData();
-        final var playersNbt = tag.getCompound(PLAYERS_KEY);
-        playersNbt.getKeys().forEach(key -> {
-            final var compound = playersNbt.getCompound(key);
-            state.players.put(UUID.fromString(key), PlayerData.from(compound));
+    public StateSaver(NbtCompound difficulty, Map<String, NbtCompound> players) {
+        this.difficulty = GlobalData.from(difficulty);
+        final var np = new HashMap<UUID, PlayerData>();
+        players.forEach((s, playerData) -> {
+            np.put(UUID.fromString(s), PlayerData.from(playerData));
         });
-        state.difficulty = GlobalData.from(tag);
+        this.players = np;
+    }
 
-        return state;
+    public StateSaver() {
+        this(new NbtCompound(), new HashMap<>());
+    }
+
+    public Map<String, NbtCompound> getPlayers() {
+        final var np = new HashMap<String, NbtCompound>();
+        players.forEach((uuid, playerData) -> {
+            np.put(uuid.toString(), playerData.save());
+        });
+        return np;
     }
 
     public static StateSaver getServerState(MinecraftServer server) {
         final var world = server.getOverworld();
         final var persistentStateManager = world.getPersistentStateManager();
 
-        final var state = persistentStateManager.getOrCreate(type, DifficultyDeathScaler.MOD_ID);
+        final var state = persistentStateManager.getOrCreate(type);
 
         state.markDirty();
 
@@ -56,13 +72,5 @@ public class StateSaver extends PersistentState {
     public static PlayerData getPlayerState(MinecraftServer server, UUID uuid) {
         final var state = getServerState(server);
         return state.players.computeIfAbsent(uuid, u -> new PlayerData());
-    }
-
-    @Override
-    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        final var playersNbt = new NbtCompound();
-        players.forEach((uuid, playerData) -> playersNbt.put(uuid.toString(), playerData.save()));
-        nbt.put(PLAYERS_KEY, playersNbt);
-        return difficulty.save(nbt);
     }
 }

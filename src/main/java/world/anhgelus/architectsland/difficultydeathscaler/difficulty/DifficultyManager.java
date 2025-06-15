@@ -212,9 +212,9 @@ public abstract class DifficultyManager extends DifficultyTimer {
         data.deaths = numberOfDeath;
         data.totalOfDeath = totalOfDeath;
         data.secondsLowerDifficulty = secondsLowerDifficulty;
-        if (reducerTask != null && reducerTask.isRunning())
-            data.timeBeforeReduce = reducerTask.getTickingBeforeRun();
-        else data.timeBeforeReduce = 0;
+        if (reducerTask != null && reducerTask.isRunning()) {
+            data.timeBeforeReduce = secondsBeforeDecreased * 20 - reducerTask.getTickingBeforeRun();
+        } else data.timeBeforeReduce = 0;
     }
 
     protected List<Modifier<?>> getModifiers(int level) {

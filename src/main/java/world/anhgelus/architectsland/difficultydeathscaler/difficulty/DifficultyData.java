@@ -14,11 +14,10 @@ public class DifficultyData {
     public long secondsLowerDifficulty = 0;
 
     protected static void load(NbtCompound nbt, DifficultyData data) {
-        data.deaths = nbt.getInt(DEATHS_KEY);
-        data.timeBeforeReduce = nbt.getLong(TIME_BEFORE_REDUCE_KEY);
-        data.totalOfDeath = nbt.getInt(TOTAL_OF_DEATH_KEY);
-        if (nbt.contains(SECONDS_LOWER_DIFFICULTY_KEY))
-            data.secondsLowerDifficulty = nbt.getLong(SECONDS_LOWER_DIFFICULTY_KEY);
+        data.deaths = nbt.getInt(DEATHS_KEY, 0);
+        data.timeBeforeReduce = nbt.getLong(TIME_BEFORE_REDUCE_KEY, 0);
+        data.totalOfDeath = nbt.getInt(TOTAL_OF_DEATH_KEY, 0);
+        data.secondsLowerDifficulty = nbt.getLong(SECONDS_LOWER_DIFFICULTY_KEY, 0);
     }
 
     protected NbtCompound save(NbtCompound nbt) {

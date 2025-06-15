@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
@@ -148,6 +149,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         EntitySleepEvents.START_SLEEPING.register((entity, pos) -> {
             if (!Sleeper.canSleep()) return;
             if (!Sleeper.ENABLED) return;
+            if (!(entity instanceof PlayerEntity)) return;
             // if the number is too high, return
             if (Getters.RANDOM.nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
                 return;
@@ -161,6 +163,7 @@ public class DifficultyDeathScaler implements ModInitializer {
         });
 
         EntitySleepEvents.ALLOW_BED.register((entity, sleepingPos, state, vanillaResult) -> {
+            if (!(entity instanceof PlayerEntity)) return ActionResult.PASS;
             return Sleeper.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
         });
     }

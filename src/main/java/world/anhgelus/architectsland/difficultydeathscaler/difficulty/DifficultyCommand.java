@@ -12,6 +12,8 @@ import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import java.net.URI;
+
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 import static world.anhgelus.architectsland.difficultydeathscaler.utils.Getters.GLOBAL_DIFFICULTY_GETTER;
@@ -85,7 +87,7 @@ public class DifficultyCommand {
             final var link = Text.literal(url);
             link.fillStyle(
                     link.getStyle()
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url))
+                            .withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))
                             .withFormatting(Formatting.UNDERLINE)
             );
             context.getSource().sendFeedback(() ->

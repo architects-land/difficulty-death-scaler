@@ -28,28 +28,12 @@ import java.util.List;
 public class GlobalDifficultyManager extends DifficultyManager {
     public static final int SECONDS_BEFORE_DECREASED = 12 * 60 * 60; // 12 hours
     public static int PIGLIN_BRUTES_BOOST = 0;
+    public static boolean POLAR_NIGHT = false;
     public static EntityModifies CUSTOM_SPAWN_EFFECTS = (entity) -> {
     };
-
-    @FunctionalInterface
-    public interface EntityModifies {
-        void modify(LivingEntity entity);
-    }
-
-    private final DifficultyIncrease increaser;
-
-    public static class HealthModifier extends PlayerHealthModifier {
-        public static final Identifier ID = Identifier.of(PREFIX + "global_health_modifier");
-
-        public HealthModifier() {
-            super(ID);
-        }
-
-        public static void apply(ServerPlayerEntity player, double value) {
-            apply(ID, ATTRIBUTE, OPERATION, player, value);
-        }
-    }
-
+    protected static boolean BETTER_SKELETON = false;
+    protected static boolean BETTER_ZOMBIES = false;
+    protected static boolean BETTER_CREEPERS = false;
     public static final Step[] STEPS = new Step[]{
             new Step(0, (server, gamerules, updater) -> {
                 // mobs
@@ -68,6 +52,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(false, server);
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(30, server);
                 gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(true, server);
+                gamerules.get(GameRules.ENDER_PEARLS_VANISH_ON_DEATH).set(false, server);
                 // hardcore
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
                 updater.getModifier(HealthModifier.class).update(0);
@@ -101,6 +86,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
             }),
             new Step(13, (server, gamerules, updater) -> {
                 gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(true, server);
+                gamerules.get(GameRules.ENDER_PEARLS_VANISH_ON_DEATH).set(true, server);
             }),
             new Step(15, (server, gamerules, updater) -> {
                 updater.getModifier(SpawnReinforcementsModifier.class).update(0.25);
@@ -156,17 +142,12 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.NATURAL_REGENERATION).set(false, server);
             }),
     };
-
-    protected static boolean BETTER_SKELETON = false;
-    protected static boolean BETTER_ZOMBIES = false;
-    protected static boolean BETTER_CREEPERS = false;
-
+    private final DifficultyIncrease increaser;
     protected double healthModifier = 0;
     protected double followRangeModifier = 0;
     protected double stepHeightModifier = 0;
     protected double spawnReinforcementModifier = 0;
     protected double fallDamageMultiplierModifier = 0;
-
     private int totalOfDeath;
 
     public GlobalDifficultyManager(MinecraftServer server) {
@@ -182,9 +163,21 @@ public class GlobalDifficultyManager extends DifficultyManager {
         server.setDifficulty(getUpdater().getDifficulty(), true);
     }
 
+    public static boolean areSkeletonsBetter() {
+        return BETTER_SKELETON;
+    }
+
+    public static boolean areZombiesBetter() {
+        return BETTER_ZOMBIES;
+    }
+
+    public static boolean areCreepersBetter() {
+        return BETTER_CREEPERS;
+    }
+
     @Override
     protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
-        final var difficulty = updater.getDifficulty();
+        final var difficulty = POLAR_NIGHT ? updater.getDifficulty() : Difficulty.HARD;
         server.setDifficulty(difficulty, true);
 
         updateModifiersValue(updater);
@@ -296,24 +289,12 @@ public class GlobalDifficultyManager extends DifficultyManager {
         // save state
         save(state.difficulty);
 
-        state.difficulty.timeBeforeIncrease = increaser.getTickingBeforeRun();
+        state.difficulty.timeBeforeIncrease = DifficultyIncrease.SECONDS_BEFORE_INCREASE * 20 - increaser.getTickingBeforeRun();
         state.difficulty.increaseEnabled = increaser.isEnabled();
     }
 
     public int getTotalOfDeath() {
         return totalOfDeath;
-    }
-
-    public static boolean areSkeletonsBetter() {
-        return BETTER_SKELETON;
-    }
-
-    public static boolean areZombiesBetter() {
-        return BETTER_ZOMBIES;
-    }
-
-    public static boolean areCreepersBetter() {
-        return BETTER_CREEPERS;
     }
 
     public double getHealthModifier() {
@@ -322,19 +303,35 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
     @Override
     public String toString() {
-        final var sb = new StringBuilder();
-        sb.append("GlobalDifficultyManager(number of death=").append(numberOfDeath)
-                .append(", total of death=").append(totalOfDeath)
-                .append(", piglin brutes boost=").append(PIGLIN_BRUTES_BOOST)
-                .append(") {better skeletons=").append(BETTER_SKELETON)
-                .append(", better zombies=").append(BETTER_ZOMBIES)
-                .append(", better creepers=").append(BETTER_CREEPERS)
-                .append(", health modifier=").append(healthModifier)
-                .append(", follow range modifier=").append(followRangeModifier)
-                .append(", step height modifier=").append(stepHeightModifier)
-                .append(", spawn reinforcement modifier=").append(spawnReinforcementModifier)
-                .append(", fall damage multiplier modifier=").append(fallDamageMultiplierModifier)
-                .append("}");
-        return sb.toString();
+        String sb = "GlobalDifficultyManager(number of death=" + numberOfDeath +
+                ", total of death=" + totalOfDeath +
+                ", piglin brutes boost=" + PIGLIN_BRUTES_BOOST +
+                ") {better skeletons=" + BETTER_SKELETON +
+                ", better zombies=" + BETTER_ZOMBIES +
+                ", better creepers=" + BETTER_CREEPERS +
+                ", health modifier=" + healthModifier +
+                ", follow range modifier=" + followRangeModifier +
+                ", step height modifier=" + stepHeightModifier +
+                ", spawn reinforcement modifier=" + spawnReinforcementModifier +
+                ", fall damage multiplier modifier=" + fallDamageMultiplierModifier +
+                "}";
+        return sb;
+    }
+
+    @FunctionalInterface
+    public interface EntityModifies {
+        void modify(LivingEntity entity);
+    }
+
+    public static class HealthModifier extends PlayerHealthModifier {
+        public static final Identifier ID = Identifier.of(PREFIX + "global_health_modifier");
+
+        public HealthModifier() {
+            super(ID);
+        }
+
+        public static void apply(ServerPlayerEntity player, double value) {
+            apply(ID, ATTRIBUTE, OPERATION, player, value);
+        }
     }
 }

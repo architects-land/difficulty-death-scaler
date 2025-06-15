@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
@@ -24,22 +24,22 @@ public class PhantomsSpawnerMixin {
     private int cooldown;
 
     @Inject(method = "spawn", at = @At("HEAD"), cancellable = true)
-    public void spawnPhantoms(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals, CallbackInfoReturnable<Integer> cir) {
+    public void spawnPhantoms(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals, CallbackInfo ci) {
         if (!MobUtils.PHANTOMS_NIGHTMARE) return;
         if (!spawnMonsters) {
-            cir.setReturnValue(0);
+            ci.cancel();
             return;
         }
         final var rand = world.random;
         cooldown--;
         if (cooldown > 0) {
-            cir.setReturnValue(0);
+            ci.cancel();
             return;
         }
         cooldown += (15 + rand.nextInt(30)) * 20;
         // limit to 75 phantoms *per world*
         if (world.getEntitiesByType(EntityType.PHANTOM, LivingEntity::isAlive).size() > 75) {
-            cir.setReturnValue(0);
+            ci.cancel();
             return;
         }
         var i = new AtomicInteger(0);
@@ -71,6 +71,6 @@ public class PhantomsSpawnerMixin {
                         }
                     }
                 });
-        cir.setReturnValue(i.get());
+        ci.cancel();
     }
 }

@@ -4,6 +4,7 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
@@ -13,11 +14,16 @@ public class Sleepers {
     public static final Sleeper LONG_NIGHT = new Sleeper("Polar night.", server -> {
         final var rules = server.getGameRules();
         if (rules == null) return;
+        GlobalDifficultyManager.POLAR_NIGHT = true;
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, server);
+        server.setDifficulty(Difficulty.HARD, true);
     }, server -> {
         final var rules = server.getGameRules();
         if (rules == null) return;
+        GlobalDifficultyManager.POLAR_NIGHT = false;
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
+        final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+        difficulty.setNumberOfDeath(difficulty.getNumberOfDeath(), true);
     }, false);
 
     public static final Sleeper BRUTAL_HELL = new Sleeper("Wendy, I'm home.", server -> {

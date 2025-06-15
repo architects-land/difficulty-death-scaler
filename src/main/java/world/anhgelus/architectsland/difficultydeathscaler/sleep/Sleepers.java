@@ -14,11 +14,16 @@ public class Sleepers {
     public static final Sleeper LONG_NIGHT = new Sleeper("Polar night.", server -> {
         final var rules = server.getGameRules();
         if (rules == null) return;
+        GlobalDifficultyManager.POLAR_NIGHT = true;
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, server);
+        server.setDifficulty(Difficulty.HARD, true);
     }, server -> {
         final var rules = server.getGameRules();
         if (rules == null) return;
+        GlobalDifficultyManager.POLAR_NIGHT = false;
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
+        final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+        difficulty.setNumberOfDeath(difficulty.getNumberOfDeath(), true);
     }, false);
 
     public static final Sleeper BRUTAL_HELL = new Sleeper("Wendy, I'm home.", server -> {

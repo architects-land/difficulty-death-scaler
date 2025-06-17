@@ -44,14 +44,6 @@ public class StateSaver extends PersistentState {
         this(new NbtCompound(), new HashMap<>());
     }
 
-    public Map<String, NbtCompound> getPlayers() {
-        final var np = new HashMap<String, NbtCompound>();
-        players.forEach((uuid, playerData) -> {
-            np.put(uuid.toString(), playerData.save());
-        });
-        return np;
-    }
-
     public static StateSaver getServerState(MinecraftServer server) {
         final var world = server.getOverworld();
         final var persistentStateManager = world.getPersistentStateManager();
@@ -66,11 +58,19 @@ public class StateSaver extends PersistentState {
     }
 
     public static PlayerData getPlayerState(ServerPlayerEntity player) {
-        return getPlayerState(player.server, player.getUuid());
+        return getPlayerState(player.getServer(), player.getUuid());
     }
 
     public static PlayerData getPlayerState(MinecraftServer server, UUID uuid) {
         final var state = getServerState(server);
         return state.players.computeIfAbsent(uuid, u -> new PlayerData());
+    }
+
+    public Map<String, NbtCompound> getPlayers() {
+        final var np = new HashMap<String, NbtCompound>();
+        players.forEach((uuid, playerData) -> {
+            np.put(uuid.toString(), playerData.save());
+        });
+        return np;
     }
 }

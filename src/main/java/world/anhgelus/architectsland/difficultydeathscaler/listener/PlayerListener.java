@@ -26,13 +26,13 @@ public class PlayerListener {
 
         final var bounty = Getters.BOUNTY_GETTER.get(player.getUuid());
         if (bounty == null || !(damageSource.getAttacker() instanceof final ServerPlayerEntity killer)) return;
-        bounty.onKill(Getters.PLAYER_DIFFICULTY_GETTER.get(killer.server, killer));
+        bounty.onKill(Getters.PLAYER_DIFFICULTY_GETTER.get(killer.getServer(), killer));
     }
 
     public static void afterRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
         Getters.GLOBAL_DIFFICULTY_GETTER.get().applyModifiers(newPlayer);
 
-        final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(newPlayer.server, newPlayer);
+        final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(newPlayer.getServer(), newPlayer);
         playerDifficulty.player = newPlayer;
         playerDifficulty.increaseDeath();
         playerDifficulty.applyModifiers();

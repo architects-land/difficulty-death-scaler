@@ -102,6 +102,9 @@ public class DifficultyDeathScaler implements ModInitializer {
             difficultyManager = new GlobalDifficultyManager(server);
             loadAllPlayerManagers(server);
 
+            //enforce gamerules to prevent a crash during sleeper event
+            server.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
+
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
             Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);

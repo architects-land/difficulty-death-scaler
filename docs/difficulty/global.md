@@ -39,12 +39,14 @@ Phantoms are back.
 **7 deaths**
 Increase mobs' follow range by 25%.
 Skeletons are more intelligent.
+Limit waypoint receive range to 2500.
 
 **8 deaths**
 Increase fall damage by 25%.
 
 **10 deaths**
 Remove one heart.
+Limit waypoint receive range to 1000.
 
 **12 deaths**
 Increase mobs' step height to `1.1`.
@@ -60,6 +62,7 @@ Ender pearls vanish after the player's death.
 **16 deaths**
 Debug screen (F3) is reduced.
 You cannot get your coordinates.
+Limit waypoint receive range to 500.
 
 **18 deaths**
 Increase fall damage by 50%.
@@ -72,6 +75,7 @@ Remove another heart (2 removed).
 **22 deaths**
 All players must sleep to skip the night.
 Charged creepers start spawning.
+Limit waypoint receive range to 250.
 
 **23 deaths**
 Increase mobs' follow range by 35%.
@@ -90,6 +94,7 @@ Increase mpbs' step height to `1.5`.
 **28 deaths**
 Limit crafting to unlocked recipes.
 Piglin brutes start spawning.
+Limit waypoint receive range to 100.
 
 **30 deaths**
 Enable universal anger.

@@ -9,7 +9,8 @@ import net.minecraft.util.Identifier;
 
 public class WaypointReceiveModifier extends Modifier<ServerPlayerEntity> {
     public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.WAYPOINT_RECEIVE_RANGE;
-    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
+    public static final double BASE_VALUE = 60_000_000;
     protected static final Identifier ID = Identifier.of(PREFIX + "waypoint_receive_modifier");
 
     public WaypointReceiveModifier() {
@@ -17,6 +18,7 @@ public class WaypointReceiveModifier extends Modifier<ServerPlayerEntity> {
     }
 
     public static void apply(ServerPlayerEntity player, double value) {
-        apply(ID, ATTRIBUTE, OPERATION, player, value);
+        // works like a set
+        apply(ID, ATTRIBUTE, OPERATION, player, -BASE_VALUE - value);
     }
 }

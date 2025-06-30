@@ -59,7 +59,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(StepHeightModifier.class).update(0);
                 updater.getModifier(SpawnReinforcementsModifier.class).update(0);
                 updater.getModifier(FallDamageMultiplierModifier.class).update(0);
-                updater.getModifier(WaypointReceiveModifier.class).update(60000000);
+                updater.getModifier(WaypointReceiveModifier.class).update(WaypointReceiveModifier.BASE_VALUE);
                 updater.updateDifficulty(1);
             }),
             new Step(1, (server, gamerules, updater) -> updater.updateDifficulty(2)),

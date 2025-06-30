@@ -30,7 +30,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
 //                updater.getModifier(LuckModifier.class).update(0.1);
                 updater.getModifier(BlockBreakSpeedModifier.class).update(0.4); // is haste 2
                 updater.getModifier(MovementSpeedModifier.class).update(0.1); // is speed 1
-                updater.getModifier(WaypointTransmitModifier.class).update(60000000);
+                updater.getModifier(WaypointTransmitModifier.class).update(WaypointTransmitModifier.BASE_VALUE);
             }),
             new Step(1, (server, gamerules, updater) -> {
 //                updater.getModifier(LuckModifier.class).update(0);

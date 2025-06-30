@@ -1,14 +1,14 @@
 # Player difficulty
 
 The player difficulty is split into steps.
-The activated steps is determined by the player' deaths.
+The activated steps is determined by the player's deaths.
 This difficulty is *per player*.
 
 Each time a player dies, the number of deaths is increased.
 If a step is reached, it is activated.
 
 If the player don't die during 24 hours, the latest activated step is disabled.
-For example, if you are at 15 deaths and the two latest steps were activated at 10 deaths and 13 
+For example, if you are at 15 deaths and the two latest steps were activated at 10 deaths and 13
 deaths, after the decrease, the number of deaths will be 10.
 
 If a player dies 5 times or more in less than 24 hours, they are ban for 12 hours.

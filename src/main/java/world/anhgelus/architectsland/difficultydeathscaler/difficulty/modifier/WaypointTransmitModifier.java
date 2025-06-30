@@ -19,6 +19,6 @@ public class WaypointTransmitModifier extends Modifier<ServerPlayerEntity> {
 
     public static void apply(ServerPlayerEntity player, double value) {
         // works like a set
-        apply(ID, ATTRIBUTE, OPERATION, player, -BASE_VALUE - value);
+        apply(ID, ATTRIBUTE, OPERATION, player, -BASE_VALUE + value);
     }
 }

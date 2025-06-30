@@ -15,10 +15,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.BlockBreakSpeedModifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.MovementSpeedModifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 
 import java.util.ArrayList;
@@ -33,21 +30,26 @@ public class PlayerDifficultyManager extends DifficultyManager {
 //                updater.getModifier(LuckModifier.class).update(0.1);
                 updater.getModifier(BlockBreakSpeedModifier.class).update(0.4); // is haste 2
                 updater.getModifier(MovementSpeedModifier.class).update(0.1); // is speed 1
+                updater.getModifier(WaypointTransmitModifier.class).update(60000000);
             }),
             new Step(1, (server, gamerules, updater) -> {
 //                updater.getModifier(LuckModifier.class).update(0);
                 updater.getModifier(BlockBreakSpeedModifier.class).update(0.2); // is haste 1
                 updater.getModifier(MovementSpeedModifier.class).update(0);
+                updater.getModifier(WaypointTransmitModifier.class).update(2500);
             }),
             new Step(2, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-2);
+                updater.getModifier(WaypointTransmitModifier.class).update(1000);
             }),
             new Step(3, (server, gamerules, updater) -> {
                 updater.getModifier(BlockBreakSpeedModifier.class).update(0);
                 updater.getModifier(HealthModifier.class).update(-4);
+                updater.getModifier(WaypointTransmitModifier.class).update(500);
             }),
             new Step(5, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-6);
+                updater.getModifier(WaypointTransmitModifier.class).update(250);
             }),
             new Step(7, (server, gamerules, updater) -> {
                 updater.getModifier(MovementSpeedModifier.class).update(-0.1); // is slowness 1
@@ -55,15 +57,18 @@ public class PlayerDifficultyManager extends DifficultyManager {
             new Step(8, (server, gamerules, updater) -> {
                 updater.getModifier(BlockBreakSpeedModifier.class).update(-0.2); // is mining fatigue 1
 //                updater.getModifier(LuckModifier.class).update(-0.2);
+                updater.getModifier(WaypointTransmitModifier.class).update(150);
             }),
             new Step(10, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-8);
             }),
             new Step(12, (server, gamerules, updater) -> {
                 updater.getModifier(MovementSpeedModifier.class).update(-0.2); // is slowness 2
+                updater.getModifier(WaypointTransmitModifier.class).update(100);
             }),
             new Step(15, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-10);
+                updater.getModifier(WaypointTransmitModifier.class).update(50);
             }),
     };
     public static boolean ENABLE_TEMP_BAN = true;

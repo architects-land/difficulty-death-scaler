@@ -144,7 +144,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         newDeathDay(24 * 60 * 60 + System.currentTimeMillis() / 1000);
         if (!diedTooMuch()) return;
         // temp ban
-        DifficultyDeathScaler.LOGGER.info("{} has skill issue: banned for 12 hours", player.getName());
+        DifficultyDeathScaler.LOGGER.info("{} has skill issue: banned for 12 hours", player.getName().getString());
         tempBan = true;
         bannedSince = System.currentTimeMillis() / 1000;
         kickIfDiedTooMuch();

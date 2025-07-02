@@ -43,10 +43,9 @@ public class Bounty extends DifficultyTimer {
     public static Bounty newBounty(MinecraftServer server, GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
         if (!ENABLED) return null;
         if (globalDifficulty.getTotalOfDeath() >= BOUNTY_ENABLED_AFTER &&
-                (double) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() <= BOUNTY_DEATH_PERCENTAGE
-        ) {
-            return new Bounty(server, globalDifficulty, playerDifficulty);
-        }
+                playerDifficulty.getTotalOfDeath() / (double) globalDifficulty.getTotalOfDeath() <= BOUNTY_DEATH_PERCENTAGE
+        ) return new Bounty(server, globalDifficulty, playerDifficulty);
+        DifficultyDeathScaler.LOGGER.info("total of death: {}; ratio: {}", globalDifficulty.getTotalOfDeath(), playerDifficulty.getTotalOfDeath() / (double) globalDifficulty.getTotalOfDeath());
         return null;
     }
 
@@ -133,15 +132,10 @@ public class Bounty extends DifficultyTimer {
     }
 
     public String toString() {
-        String sb = "Bounty(" +
-                "bountyDeathPercentage=" + BOUNTY_DEATH_PERCENTAGE +
-                ", bountyEnabledAfter=" + BOUNTY_ENABLED_AFTER +
-                ", player=" + player.getName().getString() +
-                ", player_uuid=" + player.getUuid() +
-                ", player_totalDeath=" + playerDifficulty.getTotalOfDeath() +
-                ", global_totalDeath=" + globalDifficulty.getTotalOfDeath() +
-                ", player_deathPercentage=" + (float) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() +
-                ")";
-        return sb;
+        return String.format(
+                "Bounty(bountyDeathPercentage=%f, bountyEnabledAfter=%d, player=%s, player_totalDeath=%s, global_totalDeath=%s, player_deathPercentage=%f)",
+                BOUNTY_DEATH_PERCENTAGE, BOUNTY_ENABLED_AFTER, player.getName().getString(), playerDifficulty.getTotalOfDeath(), globalDifficulty.getTotalOfDeath(),
+                playerDifficulty.getTotalOfDeath() / (double) globalDifficulty.getTotalOfDeath()
+        );
     }
 }

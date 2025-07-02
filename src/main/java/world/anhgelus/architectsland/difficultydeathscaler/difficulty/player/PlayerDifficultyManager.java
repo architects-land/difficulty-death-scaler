@@ -71,6 +71,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     public static int TEMP_BAN_DURATION = 12;
     private final GlobalDifficultyManager globalManager;
     private final List<TickTask> deathDayTasks = new ArrayList<>();
+    private final List<Long> deathDayEnd = new ArrayList<>();
     public @Nullable ServerPlayerEntity player;
     public @Nullable UUID uuid = null;
     protected double healthModifier = 0;
@@ -102,12 +103,11 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     private void load(PlayerData data) {
         super.load(data);
-        deathDay = data.deathDay;
         bannedSince = data.bannedSince;
         tempBan = bannedSince != -1;
-        for (final var ticksDelay : data.deathDayDelay) {
+        for (final var timeEnd : data.deathDayEnd) {
             try {
-                scheduleDeathDayTask(ticksDelay);
+                newDeathDay(timeEnd);
             } catch (IllegalArgumentException e) {
                 DifficultyDeathScaler.LOGGER.error("An error occurred while loading data", e);
                 DifficultyDeathScaler.LOGGER.warn("Removing one day death");
@@ -135,14 +135,13 @@ public class PlayerDifficultyManager extends DifficultyManager {
     @Override
     protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
         if (updateType == UpdateType.SET || updateType == UpdateType.SILENT) return;
-        deathDay++;
 
         if (player == null) {
             DifficultyDeathScaler.LOGGER.error("Updating death of null player. UpdateType {}", updateType);
             throw new IllegalStateException("Player is null");
         }
         if (player.getWorld().isClient()) return;
-        scheduleDeathDayTask();
+        newDeathDay(24 * 60 * 60 + System.currentTimeMillis() / 1000);
         if (!diedTooMuch()) return;
         // temp ban
         DifficultyDeathScaler.LOGGER.info("{} has skill issue: banned for 12 hours", player.getName());
@@ -151,6 +150,17 @@ public class PlayerDifficultyManager extends DifficultyManager {
         kickIfDiedTooMuch();
         // resetting death day
         resetDeathDay();
+    }
+
+    public void newDeathDay(long endTime) {
+        final var diff = endTime - System.currentTimeMillis() / 1000; // time passed
+        if (diff <= 0) {
+            DifficultyDeathScaler.LOGGER.info("Death day is already passed, skipping");
+            return;
+        }
+        deathDay++;
+        deathDayEnd.add(endTime);
+        scheduleDeathDayTask(diff * 20);
     }
 
     @Override
@@ -230,15 +240,10 @@ public class PlayerDifficultyManager extends DifficultyManager {
         // save state
         save(state);
 
-        state.deathDay = deathDay;
         state.bannedSince = bannedSince;
-
-        final var runningDeathDay = deathDayTasks.stream().filter(TickTask::isRunning).toList();
-        var starts = new long[runningDeathDay.size()];
-        for (int i = 0; i < runningDeathDay.size(); i++) {
-            starts[i] = runningDeathDay.get(i).getTickingBeforeRun();
-        }
-        state.deathDayDelay = starts;
+        final var ends = new long[deathDay];
+        for (int i = 0; i < deathDay; i++) ends[i] = deathDayEnd.get(i);
+        state.deathDayEnd = ends;
     }
 
     public void applyModifiers() {
@@ -249,24 +254,14 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     public void setDeathDay(int n) {
         if (deathDay == n) return;
+        final var t = 20 * 60 * 60 + System.currentTimeMillis() / 1000;
         if (n > deathDay) {
-            for (int i = 0; i < n - deathDay; i++) {
-                scheduleDeathDayTask();
-            }
-            deathDay = n;
-            kickIfDiedTooMuch();
-            return;
-        }
-        resetDeathDay();
-        deathDay = n;
-        for (int i = 0; i < n; i++) {
-            scheduleDeathDayTask();
+            for (int i = 0; i < n - deathDay; i++) newDeathDay(t);
+        } else {
+            resetDeathDay();
+            for (int i = 0; i < n; i++) newDeathDay(t);
         }
         kickIfDiedTooMuch();
-    }
-
-    private void scheduleDeathDayTask() {
-        scheduleDeathDayTask((24 * 60 * 60) * 20L);
     }
 
     private void scheduleDeathDayTask(long ticksDelay) {
@@ -284,6 +279,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         deathDay = 0;
         deathDayTasks.forEach(TickTask::cancel);
         deathDayTasks.clear();
+        deathDayEnd.clear();
     }
 
     public boolean diedTooMuch() {

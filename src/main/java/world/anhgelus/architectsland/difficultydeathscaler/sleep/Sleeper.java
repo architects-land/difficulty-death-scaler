@@ -4,11 +4,9 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
-import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 public class Sleeper {
     public final static long EVENT_DURATION = 20 * 60 * 20; // is one day
@@ -36,11 +34,7 @@ public class Sleeper {
 
     public static boolean tryEmitNewEvent(MinecraftServer server) {
         // prevent emitting events during the same night
-        final var world = server.getWorld(World.OVERWORLD);
-        if (world == null) {
-            DifficultyDeathScaler.LOGGER.warn("Impossible to get the overworld");
-            return false;
-        }
+        final var world = server.getOverworld();
         final var time = world.getTime();
         if (time - lastSleep < 10 * 60 * 20) return false;
         // emitting random event
@@ -51,7 +45,7 @@ public class Sleeper {
         }
         lastSleep = time;
         final var val = Sleepers.values;
-        var ev = val[Getters.RANDOM.nextInt(val.length)];
+        var ev = val[server.getOverworld().getRandom().nextInt(val.length)];
         ev.emit(server);
         return true;
     }
@@ -76,7 +70,7 @@ public class Sleeper {
             runStart(server);
             return;
         }
-        final long when = (long) Math.floor(3 * Getters.RANDOM.nextFloat() + 2); // between 2 and 5
+        final long when = (long) Math.floor(3 * server.getOverworld().getRandom().nextFloat() + 2); // between 2 and 5
         TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> runStart(server), when * 60 * 20));
     }
 

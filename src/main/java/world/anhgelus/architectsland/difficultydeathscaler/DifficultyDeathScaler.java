@@ -109,7 +109,6 @@ public class DifficultyDeathScaler implements ModInitializer {
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
             Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);
             Getters.BOUNTY_GETTER = this::getPlayerBounty;
-            Getters.RANDOM = server.getOverworld().getRandom();
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -154,7 +153,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             if (!Sleeper.ENABLED) return;
             if (!(entity instanceof PlayerEntity)) return;
             // if the number is too high, return
-            if (Getters.RANDOM.nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
+            if (entity.getRandom().nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
                 return;
             // try starting a new event
             final var server = entity.getServer();

@@ -9,7 +9,6 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 public class Bounty extends DifficultyTimer {
     public static final double BOUNTY_DEATH_PERCENTAGE = 0.04;
@@ -30,7 +29,7 @@ public class Bounty extends DifficultyTimer {
         this.playerDifficulty = playerDifficulty;
         this.player = playerDifficulty.player;
 
-        final var delay = Getters.RANDOM.nextInt(2) + 1;
+        final var delay = server.getOverworld().getRandom().nextInt(2) + 1;
 
         DifficultyDeathScaler.LOGGER.info("New bounty {} broadcast in {} minutes", this, delay * 5);
 
@@ -134,16 +133,15 @@ public class Bounty extends DifficultyTimer {
     }
 
     public String toString() {
-        final var sb = new StringBuilder();
-        sb.append("Bounty(")
-                .append("bountyDeathPercentage=").append(BOUNTY_DEATH_PERCENTAGE)
-                .append(", bountyEnabledAfter=").append(BOUNTY_ENABLED_AFTER)
-                .append(", player=").append(player.getName().getString())
-                .append(", player_uuid=").append(player.getUuid())
-                .append(", player_totalDeath=").append(playerDifficulty.getTotalOfDeath())
-                .append(", global_totalDeath=").append(globalDifficulty.getTotalOfDeath())
-                .append(", player_deathPercentage=").append((float) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath())
-                .append(")");
-        return sb.toString();
+        String sb = "Bounty(" +
+                "bountyDeathPercentage=" + BOUNTY_DEATH_PERCENTAGE +
+                ", bountyEnabledAfter=" + BOUNTY_ENABLED_AFTER +
+                ", player=" + player.getName().getString() +
+                ", player_uuid=" + player.getUuid() +
+                ", player_totalDeath=" + playerDifficulty.getTotalOfDeath() +
+                ", global_totalDeath=" + globalDifficulty.getTotalOfDeath() +
+                ", player_deathPercentage=" + (float) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() +
+                ")";
+        return sb;
     }
 }

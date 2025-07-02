@@ -3,7 +3,6 @@ package world.anhgelus.architectsland.difficultydeathscaler.utils;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.random.Random;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
@@ -11,7 +10,6 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Pla
 import java.util.UUID;
 
 public class Getters {
-    public static Random RANDOM;
     public static Getters.ProfileDifficultyGetter PROFILE_DIFFICULTY_GETTER;
     public static Getters.PlayerDifficultyGetter PLAYER_DIFFICULTY_GETTER;
     public static Getters.GlobalDifficultyGetter GLOBAL_DIFFICULTY_GETTER;

@@ -271,6 +271,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
         CUSTOM_SPAWN_EFFECTS.modify(hostile);
         if (hostile instanceof PiglinEntity) {
             MobUtils.customSpawn(
+                    hostile.getRandom(),
                     1.5f * (numberOfDeath + PIGLIN_BRUTES_BOOST - 27),
                     20 + 1.5f * PIGLIN_BRUTES_BOOST,
                     () -> {

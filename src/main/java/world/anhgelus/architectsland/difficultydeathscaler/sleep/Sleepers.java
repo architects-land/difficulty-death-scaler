@@ -45,7 +45,7 @@ public class Sleepers {
             final var now = System.currentTimeMillis() / 50;
 
             RegistryEntry<StatusEffect> effect;
-            if (Getters.RANDOM.nextFloat() * 100 > 90) effect = StatusEffects.RESISTANCE;
+            if (living.getRandom().nextFloat() * 100 > 90) effect = StatusEffects.RESISTANCE;
             else effect = StatusEffects.INVISIBILITY;
 
             final var diff = (int) (Sleeper.EVENT_DURATION - now + since);

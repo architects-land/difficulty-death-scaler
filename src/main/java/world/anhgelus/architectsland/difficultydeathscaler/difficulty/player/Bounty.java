@@ -43,9 +43,8 @@ public class Bounty extends DifficultyTimer {
     public static Bounty newBounty(MinecraftServer server, GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
         if (!ENABLED) return null;
         if (globalDifficulty.getTotalOfDeath() >= BOUNTY_ENABLED_AFTER &&
-                playerDifficulty.getTotalOfDeath() / (double) globalDifficulty.getTotalOfDeath() <= BOUNTY_DEATH_PERCENTAGE
+                (double) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() <= BOUNTY_DEATH_PERCENTAGE
         ) return new Bounty(server, globalDifficulty, playerDifficulty);
-        DifficultyDeathScaler.LOGGER.info("total of death: {}; ratio: {}", globalDifficulty.getTotalOfDeath(), playerDifficulty.getTotalOfDeath() / (double) globalDifficulty.getTotalOfDeath());
         return null;
     }
 

@@ -134,7 +134,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     @Override
     protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
-        if (updateType == UpdateType.SET || updateType == UpdateType.SILENT) return;
+        super.onDeath(updateType, updater);
 
         if (player == null) {
             DifficultyDeathScaler.LOGGER.error("Updating death of null player. UpdateType {}", updateType);
@@ -247,9 +247,12 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     public void applyModifiers() {
+        assert player != null;
+        DifficultyDeathScaler.LOGGER.info("Applying modifier to player {}; health: {}", player.getName().getString(), healthModifier);
         HealthModifier.apply(player, healthModifier);
 //        LuckModifier.apply(player, luckModifier);
         BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);
+        MovementSpeedModifier.apply(player, movementSpeedModifier);
     }
 
     public void setDeathDay(int n) {
@@ -330,10 +333,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
             bannedSince = -1;
         }
         return false;
-    }
-
-    public int getTotalOfDeath() {
-        return numberOfDeath;
     }
 
     @Override

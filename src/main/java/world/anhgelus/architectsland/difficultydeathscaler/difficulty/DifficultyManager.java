@@ -16,14 +16,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class DifficultyManager extends DifficultyTimer {
-    protected TickTask reducerTask;
-
     protected final long secondsBeforeDecreased;
-
     protected final Step[] steps;
     protected final MinecraftServer server;
-
-    protected int numberOfDeath;
+    protected TickTask reducerTask;
+    protected int numberOfDeath = 0;
     protected int totalOfDeath = 0;
 
     protected long secondsLowerDifficulty;
@@ -33,52 +30,22 @@ public abstract class DifficultyManager extends DifficultyTimer {
         timer = TimerAccess.getTimerFromOverworld(server);
         this.server = server;
         this.steps = steps;
-        numberOfDeath = 0;
         this.secondsBeforeDecreased = secondsBeforeDecreased;
     }
 
-    /**
-     * Types of update
-     */
-    protected enum UpdateType {
-        /**
-         * Automatic increase
-         */
-        INCREASE,
-        /**
-         * Automatic decrease
-         */
-        DECREASE,
-        /**
-         * Manual set
-         */
-        SET,
-        /**
-         * Silent update
-         */
-        SILENT,
-        /**
-         * Increase not linked with death
-         */
-        AUTOMATIC_INCREASE
-    }
-
-    @FunctionalInterface
-    public interface Reached {
-        void reached(MinecraftServer server, GameRules gamerules, DifficultyUpdater updater);
-    }
-
-    public static final class Step extends Pair<Integer, Reached> {
-        public Step(Integer level, Reached reached) {
-            super(level, reached);
-        }
-
-        public int level() {
-            return getLeft();
-        }
-
-        public void reached(MinecraftServer server, GameRules rules, DifficultyUpdater updater) {
-            getRight().reached(server, rules, updater);
+    protected static void playSoundUpdate(UpdateType updateType, ServerPlayerEntity player) {
+        if (updateType == UpdateType.INCREASE || updateType == UpdateType.SET) {
+            player.playSoundToPlayer(SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
+                    SoundCategory.AMBIENT,
+                    1,
+                    1.2f
+            );
+        } else if (updateType == UpdateType.DECREASE) {
+            player.playSoundToPlayer(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
+                    SoundCategory.AMBIENT,
+                    1,
+                    1
+            );
         }
     }
 
@@ -97,6 +64,10 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     public int getNumberOfDeath() {
         return numberOfDeath;
+    }
+
+    public int getTotalOfDeath() {
+        return totalOfDeath;
     }
 
     public void increaseDeath() {
@@ -150,7 +121,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     protected void updateDeath(UpdateType updateType) {
         final var updater = getUpdater();
 
-        if (updateType != UpdateType.DECREASE) onDeath(updateType, updater);
+        if (updateType == UpdateType.INCREASE) onDeath(updateType, updater); // increase is always linked with the death
 
         if (Arrays.stream(steps).noneMatch(x -> x.level() == numberOfDeath) && updateType != UpdateType.SET) return;
 
@@ -188,6 +159,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
     protected abstract void onUpdate(UpdateType updateType, DifficultyUpdater updater);
 
     protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
+        totalOfDeath++;
     }
 
     /**
@@ -278,22 +250,51 @@ public abstract class DifficultyManager extends DifficultyTimer {
         return sb.toString();
     }
 
-    protected static void playSoundUpdate(UpdateType updateType, ServerPlayerEntity player) {
-        if (updateType == UpdateType.INCREASE || updateType == UpdateType.SET) {
-            player.playSoundToPlayer(SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
-                    SoundCategory.AMBIENT,
-                    1,
-                    1.2f
-            );
-        } else if (updateType == UpdateType.DECREASE) {
-            player.playSoundToPlayer(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
-                    SoundCategory.AMBIENT,
-                    1,
-                    1
-            );
-        }
-    }
-
     @Override
     public abstract String toString();
+
+    /**
+     * Types of update
+     */
+    protected enum UpdateType {
+        /**
+         * Automatic increase
+         */
+        INCREASE,
+        /**
+         * Automatic decrease
+         */
+        DECREASE,
+        /**
+         * Manual set
+         */
+        SET,
+        /**
+         * Silent update
+         */
+        SILENT,
+        /**
+         * Increase not linked with death
+         */
+        AUTOMATIC_INCREASE
+    }
+
+    @FunctionalInterface
+    public interface Reached {
+        void reached(MinecraftServer server, GameRules gamerules, DifficultyUpdater updater);
+    }
+
+    public static final class Step extends Pair<Integer, Reached> {
+        public Step(Integer level, Reached reached) {
+            super(level, reached);
+        }
+
+        public int level() {
+            return getLeft();
+        }
+
+        public void reached(MinecraftServer server, GameRules rules, DifficultyUpdater updater) {
+            getRight().reached(server, rules, updater);
+        }
+    }
 }

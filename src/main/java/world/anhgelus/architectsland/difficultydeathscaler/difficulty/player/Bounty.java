@@ -11,7 +11,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
 public class Bounty extends DifficultyTimer {
-    public static final double BOUNTY_DEATH_PERCENTAGE = 0.04;
+    public static final double BOUNTY_DEATH_PERCENTAGE = 0.03;
     public static final int BOUNTY_ENABLED_AFTER = 20;
 
     public static boolean ENABLED = true;

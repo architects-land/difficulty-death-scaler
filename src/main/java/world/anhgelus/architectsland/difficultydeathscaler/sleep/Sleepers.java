@@ -23,7 +23,7 @@ public class Sleepers {
         GlobalDifficultyManager.POLAR_NIGHT = false;
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
-        difficulty.setNumberOfDeath(difficulty.getNumberOfDeath(), true);
+        difficulty.setNumberOfDeath(difficulty.getNumberOfDeath());
     }, false);
 
     public static final Sleeper BRUTAL_HELL = new Sleeper("Wendy, I'm home.", server -> {

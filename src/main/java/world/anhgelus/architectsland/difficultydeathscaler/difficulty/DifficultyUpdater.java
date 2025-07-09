@@ -9,14 +9,11 @@ import java.util.List;
 import java.util.Map;
 
 public class DifficultyUpdater {
+    private final Map<Class<? extends Modifier<?>>, Modifier<?>> map = new HashMap<>();
     private int difficultyLevel = 1;
 
-    private final Map<Class<? extends Modifier<?>>, Modifier<?>> map = new HashMap<>();
-
     public void updateDifficulty(int level) {
-        if (level > difficultyLevel) {
-            difficultyLevel = level;
-        }
+        if (level > difficultyLevel) difficultyLevel = level;
     }
 
     public Modifier<?> getModifier(Class<? extends Modifier<?>> clazz) {

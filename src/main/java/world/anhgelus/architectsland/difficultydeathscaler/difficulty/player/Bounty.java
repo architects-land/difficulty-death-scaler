@@ -102,8 +102,8 @@ public class Bounty extends DifficultyTimer {
         player.getServer().getPlayerManager().broadcast(Text.of(sb.toString()), false);
 
         final var n = attackerDifficulty.getNumberOfDeath();
-        attackerDifficulty.setNumberOfDeath(playerDifficulty.getNumberOfDeath(), false);
-        playerDifficulty.setNumberOfDeath(n, false);
+        attackerDifficulty.setNumberOfDeath(playerDifficulty.getNumberOfDeath());
+        playerDifficulty.setNumberOfDeath(n);
     }
 
     public void onDeath() {

@@ -41,7 +41,7 @@ public class DifficultyCommand {
         final var setGlobalCommand = literal("global").then(
                 argument("number of death", IntegerArgumentType.integer()).executes(context -> {
                     final var source = context.getSource();
-                    GLOBAL_DIFFICULTY_GETTER.get().setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
+                    GLOBAL_DIFFICULTY_GETTER.get().setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"));
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
@@ -54,7 +54,7 @@ public class DifficultyCommand {
                             final var source = context.getSource();
                             final var server = source.getServer();
                             final var target = EntityArgumentType.getPlayer(context, "player");
-                            PLAYER_DIFFICULTY_GETTER.get(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
+                            PLAYER_DIFFICULTY_GETTER.get(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"));
                             source.sendFeedback(() -> {
                                 return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
                             }, true);

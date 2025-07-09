@@ -49,21 +49,19 @@ public abstract class DifficultyManager extends DifficultyTimer {
         }
     }
 
+    public int getNumberOfDeath() {
+        return numberOfDeath;
+    }
+
     /**
      * Set the number of death
      *
-     * @param n      number of death
-     * @param silent if the update is silent
+     * @param n number of death
      */
-    public void setNumberOfDeath(int n, boolean silent) {
+    public void setNumberOfDeath(int n) {
         numberOfDeath = n;
-        if (silent) updateDeath(UpdateType.SILENT);
-        else updateDeath(UpdateType.SET);
+        updateDeath(UpdateType.SET);
         updateTimerTask();
-    }
-
-    public int getNumberOfDeath() {
-        return numberOfDeath;
     }
 
     public int getTotalOfDeath() {
@@ -125,8 +123,6 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
         if (Arrays.stream(steps).noneMatch(x -> x.level() == numberOfDeath) && updateType != UpdateType.SET) return;
 
-        getUpdatedSteps(updater);
-
         onUpdate(updateType, updater);
     }
 
@@ -177,7 +173,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
         totalOfDeath = data.totalOfDeath;
         secondsLowerDifficulty = data.secondsLowerDifficulty;
         delayFirstTask(data.timeBeforeReduce);
-        setNumberOfDeath(data.deaths, true);
+        setNumberOfDeath(data.deaths);
     }
 
     protected void save(DifficultyData data) {
@@ -269,10 +265,6 @@ public abstract class DifficultyManager extends DifficultyTimer {
          * Manual set
          */
         SET,
-        /**
-         * Silent update
-         */
-        SILENT,
         /**
          * Increase not linked with death
          */

@@ -3,6 +3,8 @@
 If a player has 3% (or less) of the total number of death, a bounty is put on this player.
 The bounty swaps the [player difficulty](/difficulty/player) between the killer and the player.
 
+You can get the list of bounties with the command `/bounty`.
+
 ::: tip
 The bounty starts between 5 and 10 minutes *after* the connection of the player.
 

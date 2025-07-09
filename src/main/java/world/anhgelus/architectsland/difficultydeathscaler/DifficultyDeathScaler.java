@@ -107,7 +107,6 @@ public class DifficultyDeathScaler implements ModInitializer {
 
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
-            Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);
             Getters.BOUNTY_GETTER = this::getPlayerBounty;
         });
 
@@ -123,7 +122,7 @@ public class DifficultyDeathScaler implements ModInitializer {
                 BossManager.handleKill(entity, difficultyManager);
                 return;
             }
-            PlayerListener.onKill(player, damageSource);
+            PlayerListener.afterDeath(player, damageSource);
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register(PlayerListener::afterRespawn);
@@ -183,17 +182,11 @@ public class DifficultyDeathScaler implements ModInitializer {
      * Does not set player in difficulty manager!
      */
     private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, GameProfile profile) {
-        if (playerDifficultyManagerMap.containsKey(profile.getId())) {
-            return playerDifficultyManagerMap.get(profile.getId());
-        }
-        final var playerDifficulty = new PlayerDifficultyManager(
-                server,
-                difficultyManager,
-                profile.getId(),
-                StateSaver.getPlayerState(server, profile.getId())
-        );
-        playerDifficultyManagerMap.put(profile.getId(), playerDifficulty);
-        return playerDifficulty;
+        return playerDifficultyManagerMap.computeIfAbsent(profile.getId(), (id) -> {
+            return new PlayerDifficultyManager(
+                    server, difficultyManager, id, StateSaver.getPlayerState(server, profile.getId())
+            );
+        });
     }
 
     @Nullable

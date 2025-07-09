@@ -10,7 +10,6 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Pla
 import java.util.UUID;
 
 public class Getters {
-    public static Getters.ProfileDifficultyGetter PROFILE_DIFFICULTY_GETTER;
     public static Getters.PlayerDifficultyGetter PLAYER_DIFFICULTY_GETTER;
     public static Getters.GlobalDifficultyGetter GLOBAL_DIFFICULTY_GETTER;
     public static Getters.BountyGetter BOUNTY_GETTER;

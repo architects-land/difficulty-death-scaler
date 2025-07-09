@@ -21,8 +21,9 @@ import java.util.Map;
 import java.util.UUID;
 
 public class PlayerListener {
-    public static void onKill(ServerPlayerEntity player, DamageSource damageSource) {
+    public static void afterDeath(ServerPlayerEntity player, DamageSource damageSource) {
         Getters.GLOBAL_DIFFICULTY_GETTER.get().increaseDeath();
+        Getters.PLAYER_DIFFICULTY_GETTER.get(player.getServer(), player).increaseDeath();
 
         final var bounty = Getters.BOUNTY_GETTER.get(player.getUuid());
         if (bounty == null || !(damageSource.getAttacker() instanceof final ServerPlayerEntity killer)) return;
@@ -34,7 +35,6 @@ public class PlayerListener {
 
         final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(newPlayer.getServer(), newPlayer);
         playerDifficulty.player = newPlayer;
-        playerDifficulty.increaseDeath();
         playerDifficulty.applyModifiers();
 
         final var bounty = Getters.BOUNTY_GETTER.get(newPlayer.getUuid());

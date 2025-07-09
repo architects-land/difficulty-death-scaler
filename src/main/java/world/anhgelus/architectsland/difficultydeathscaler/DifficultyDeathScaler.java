@@ -29,6 +29,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.BountyCommand;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.listener.PlayerListener;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.PassiveDifficulty;
@@ -95,6 +96,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             DifficultyCommand.register(dispatcher);
+            BountyCommand.register(dispatcher);
         });
 
         // set up base difficulty and player difficulty fetcher
@@ -108,6 +110,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
             Getters.BOUNTY_GETTER = this::getPlayerBounty;
+            Getters.BOUNTIES_GETTER = bountyMap::values;
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -182,7 +185,7 @@ public class DifficultyDeathScaler implements ModInitializer {
      * Does not set player in difficulty manager!
      */
     private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, GameProfile profile) {
-        return playerDifficultyManagerMap.computeIfAbsent(profile.getId(), (id) -> {
+        return playerDifficultyManagerMap.computeIfAbsent(profile.getId(), id -> {
             return new PlayerDifficultyManager(
                     server, difficultyManager, id, StateSaver.getPlayerState(server, profile.getId())
             );

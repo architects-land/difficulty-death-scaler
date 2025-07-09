@@ -130,6 +130,14 @@ public class Bounty extends DifficultyTimer {
         player.getServer().getPlayerManager().broadcast(Text.of(sb.toString()), false);
     }
 
+    public ServerPlayerEntity getPlayer() {
+        return player;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
     public String toString() {
         return String.format(
                 "Bounty(bountyDeathPercentage=%f, bountyEnabledAfter=%d, player=%s, player_totalDeath=%s, global_totalDeath=%s, player_deathPercentage=%f)",

@@ -34,6 +34,8 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Pla
 import world.anhgelus.architectsland.difficultydeathscaler.listener.PlayerListener;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.PassiveDifficulty;
 import world.anhgelus.architectsland.difficultydeathscaler.sleep.Sleeper;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
@@ -111,13 +113,16 @@ public class DifficultyDeathScaler implements ModInitializer {
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
             Getters.BOUNTY_GETTER = this::getPlayerBounty;
             Getters.BOUNTIES_GETTER = bountyMap::values;
+
+            TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> {
+                difficultyManager.save();
+                playerDifficultyManagerMap.forEach((player, manager) -> manager.save());
+            }, 20 * 60 * 20, 20 * 60 * 20));
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             difficultyManager.save();
-            playerDifficultyManagerMap.forEach((player, manager) -> {
-                manager.save();
-            });
+            playerDifficultyManagerMap.forEach((player, manager) -> manager.save());
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {

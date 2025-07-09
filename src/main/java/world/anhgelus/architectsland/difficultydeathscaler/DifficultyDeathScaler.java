@@ -115,8 +115,10 @@ public class DifficultyDeathScaler implements ModInitializer {
             Getters.BOUNTIES_GETTER = bountyMap::values;
 
             TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> {
+                LOGGER.info("Difficulty Death Scaler saving...");
                 difficultyManager.save();
                 playerDifficultyManagerMap.forEach((player, manager) -> manager.save());
+                LOGGER.info("Difficulty Death Scaler saved");
             }, 20 * 60 * 20, 20 * 60 * 20));
         });
 

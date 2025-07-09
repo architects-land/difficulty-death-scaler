@@ -58,7 +58,7 @@ public class Bounty extends DifficultyTimer {
         else name = player.getDisplayName().getString();
 
         sb.append(name);
-        sb.append(" because he ");
+        sb.append(" because they ");
         if (playerDifficulty.getTotalOfDeath() == 0) {
             sb.append("never died!");
         } else if (playerDifficulty.getTotalOfDeath() == 1) {
@@ -123,7 +123,7 @@ public class Bounty extends DifficultyTimer {
         if (player.getDisplayName() == null) name = player.getName().getString();
         else name = player.getDisplayName().getString();
 
-        sb.append(name).append(" disconnected. The bounty will be back when he/she is next connected!\n");
+        sb.append(name).append(" disconnected. The bounty will be back when they are next connected!\n");
         sb.append("§8=============================================§r");
 
         if (player.getServer() == null) return;

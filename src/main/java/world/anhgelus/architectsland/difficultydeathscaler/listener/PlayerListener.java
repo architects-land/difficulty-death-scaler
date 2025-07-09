@@ -22,8 +22,13 @@ import java.util.UUID;
 
 public class PlayerListener {
     public static void afterDeath(ServerPlayerEntity player, DamageSource damageSource) {
-        Getters.GLOBAL_DIFFICULTY_GETTER.get().increaseDeath();
-        Getters.PLAYER_DIFFICULTY_GETTER.get(player.getServer(), player).increaseDeath();
+        final var globalDifficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+        globalDifficulty.increaseDeath();
+        globalDifficulty.save();
+
+        final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(player.getServer(), player);
+        playerDifficulty.increaseDeath();
+        playerDifficulty.save();
 
         final var bounty = Getters.BOUNTY_GETTER.get(player.getUuid());
         if (bounty == null || !(damageSource.getAttacker() instanceof final ServerPlayerEntity killer)) return;
@@ -60,9 +65,8 @@ public class PlayerListener {
     }
 
     public static ActionResult useItemCallback(PlayerEntity player, World world, Hand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-        if (!(entity instanceof LivingEntity)) {
-            return ActionResult.PASS;
-        }
-        return BossManager.handleBuff(player, world, hand, (LivingEntity) entity);
+        return entity instanceof LivingEntity
+                ? BossManager.handleBuff(player, world, hand, (LivingEntity) entity)
+                : ActionResult.PASS;
     }
 }

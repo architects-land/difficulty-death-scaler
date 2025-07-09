@@ -119,8 +119,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
     protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
         updateModifiersValue(updater);
 
-        if (updateType == UpdateType.SILENT) return;
-
         if (player == null) {
             DifficultyDeathScaler.LOGGER.warn("Player in {} is null", this);
             return;

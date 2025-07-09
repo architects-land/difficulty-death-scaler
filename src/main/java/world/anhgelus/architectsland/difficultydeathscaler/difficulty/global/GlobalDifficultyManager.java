@@ -193,8 +193,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
         BossManager.onDifficultyUpdate(this);
 
-        if (updateType != UpdateType.SILENT)
-            pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
+        pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
 
         if (updateType != UpdateType.AUTOMATIC_INCREASE && updateType != UpdateType.DECREASE)

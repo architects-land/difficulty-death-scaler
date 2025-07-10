@@ -73,7 +73,7 @@ public class Bounty extends DifficultyTimer {
 
     public static Text getBountiesMessage() {
         final var txt = Text.empty().append(Bounty.getBountyHeader());
-        if (bounties.isEmpty()) {
+        if (bounties.values().stream().noneMatch(Bounty::isEnabled)) {
             txt.append("Currently, there are no bounties.\n");
             txt.append(Bounty.getBountyFooter());
             return txt;

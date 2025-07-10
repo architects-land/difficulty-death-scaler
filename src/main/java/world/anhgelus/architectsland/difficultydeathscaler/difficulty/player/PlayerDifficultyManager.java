@@ -197,9 +197,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
             if (deathDay > 0) {
                 txt.append("s");
             }
-            txt.append(" in less than 24 hours.\n");
-            txt.append("You will lose one 24 hours death in ");
-            txt.append(formatSeconds(deathDayEnd.getFirst() - System.currentTimeMillis() / 1000));
+            txt.append(" in 24 hours. You will lose one of these in ");
+            txt.append(Text.literal(formatSecondsBig(deathDayEnd.getFirst() - System.currentTimeMillis() / 1000)).formatted(Formatting.YELLOW));
             txt.append(".\n");
         }
         txt.append("\n");

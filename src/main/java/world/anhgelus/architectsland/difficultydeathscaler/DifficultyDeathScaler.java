@@ -111,7 +111,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
 
             TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> {
-                LOGGER.info("Difficulty Death Scaler saving...");
+                LOGGER.info("Difficulty Death Scaler is saving...");
                 difficultyManager.save();
                 playerDifficultyManagerMap.forEach((player, manager) -> manager.save());
                 LOGGER.info("Difficulty Death Scaler saved");

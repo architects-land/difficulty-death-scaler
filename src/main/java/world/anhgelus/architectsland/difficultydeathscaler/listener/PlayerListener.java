@@ -51,6 +51,8 @@ public class PlayerListener {
         final var difficultyManager = Getters.GLOBAL_DIFFICULTY_GETTER.get();
         difficultyManager.applyModifiers(handler.player);
 
+        handler.player.sendMessage(Bounty.getBountiesMessage());
+
         Bounty.newBounty(server, difficultyManager, playerDifficulty);
     }
 

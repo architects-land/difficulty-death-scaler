@@ -4,6 +4,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
@@ -148,7 +150,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
         if (reducerTask != null) reducerTask.cancel();
     }
 
-    public String getDifficultyUpdate(net.minecraft.world.Difficulty difficulty) {
+    public Text getDifficultyUpdate(net.minecraft.world.Difficulty difficulty) {
         return generateDifficultyUpdate(null, difficulty);
     }
 
@@ -165,7 +167,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
      * @param difficulty Difficulty of the game
      * @return Message to print
      */
-    protected abstract @NotNull String generateDifficultyUpdate(@Nullable UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
+    protected abstract @NotNull Text generateDifficultyUpdate(@Nullable UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
 
     public abstract void applyModifiers(ServerPlayerEntity player);
 
@@ -200,50 +202,59 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     protected abstract void updateModifiersValue(List<Modifier<?>> modifiers);
 
-    protected String generateHeaderUpdate(@Nullable UpdateType updateType) {
-        final var sb = new StringBuilder();
-        if (updateType == null) sb.append("§8============== §rCurrent difficulty: §8==============§r");
+    protected Text generateHeaderUpdate(@Nullable UpdateType updateType) {
+        final var txt = Text.empty();
+        txt.append(Text.literal("============== ").formatted(Formatting.DARK_GRAY));
+        if (updateType == null) txt.append(Text.literal("Current difficulty:"));
         else {
             switch (updateType) {
-                case INCREASE -> sb.append("§8============== §rDifficulty increase! §8==============§r");
-                case DECREASE -> sb.append("§8============== §rDifficulty decrease! §8==============§r");
-                case SET -> sb.append("§8=============== §rDifficulty change! §8===============§r");
-                default -> sb.append("§8============== §rCurrent difficulty: §8==============§r");
+                case INCREASE -> txt.append("Difficulty increase!");
+                case DECREASE -> txt.append("Difficulty decrease!");
+                case SET -> txt.append("Difficulty change!");
+                default -> txt.append("Current difficulty:");
             }
         }
-        sb.append("\n");
-        sb.append("Death step: §d").append(numberOfDeath).append("§r\n");
-        return sb.toString();
+        txt.append(Text.literal(" ==============").formatted(Formatting.DARK_GRAY));
+        txt.append("\n");
+        txt.append("Death step: ")
+                .append(Text.literal(String.format("%d", numberOfDeath)).formatted(Formatting.LIGHT_PURPLE))
+                .append("\n");
+        return txt;
     }
 
-    protected String generateFooterUpdate(Step[] steps, String beginning, UpdateType updateType) {
+    protected Text generateFooterUpdate(Step[] steps, String beginning, UpdateType updateType) {
+        final var txt = Text.empty();
         if (numberOfDeath < steps[1].level()) {
-            return "The difficulty cannot get lower. Congratulations!\n§8=============================================§r";
+            return txt.append("The difficulty cannot get lower. Congratulations!\n")
+                    .append("=============================================")
+                    .formatted(Formatting.DARK_GRAY);
         }
-        final var sb = new StringBuilder();
 
         if (updateType == UpdateType.DECREASE) {
-            sb.append("You only need to survive for §6")
-                    .append(formatSeconds(secondsBeforeDecreased))
-                    .append("§r to make the difficulty decrease again.");
+            txt.append("You only need to survive for ")
+                    .append(Text.literal(formatSeconds(secondsBeforeDecreased)).formatted(Formatting.GOLD))
+                    .append(" to make the difficulty decrease again.");
         } else if (updateType == UpdateType.AUTOMATIC_INCREASE) {
-            sb.append("The difficulty is increasing automatically!");
+            txt.append("The difficulty is increasing automatically!");
         } else if (updateType != UpdateType.INCREASE) {
-            sb.append("You only need to survive for §6");
-            if (updateType == UpdateType.SET) sb.append(formatSeconds(secondsBeforeDecreased));
-            else sb.append(formatSecondsBeforeRun(reducerTask));
-            sb.append("§r to make the difficulty decrease.");
+            txt.append("You only need to survive for ");
+            final var t = Text.empty().formatted(Formatting.GOLD);
+            if (updateType == UpdateType.SET) t.append(formatSeconds(secondsBeforeDecreased));
+            else t.append(formatSecondsBeforeRun(reducerTask));
+            txt.append(t);
+            txt.append(" to make the difficulty decrease.");
         } else if (numberOfDeath == steps[1].level()) {
-            sb.append("You were on the lowest difficulty for §6")
-                    .append(formatSeconds(secondsLowerDifficulty))
-                    .append("§r, but you had to die and ruin everything, hadn't you?");
+            txt.append("You were on the lowest difficulty for ")
+                    .append(Text.literal(formatSeconds(secondsLowerDifficulty)).formatted(Formatting.GOLD))
+                    .append(", but you had to die and ruin everything, hadn't you?");
         } else {
-            sb.append("If ").append(beginning).append(" for §6")
-                    .append(formatSecondsBeforeRun(reducerTask))
-                    .append("§r, then the difficulty would’ve decreased... But you chose your fate.");
+            txt.append("If ").append(beginning).append(" for")
+                    .append(Text.literal(formatSecondsBeforeRun(reducerTask)).formatted(Formatting.GOLD))
+                    .append(", then the difficulty would’ve decreased... But you chose your fate.");
         }
-        sb.append("\n§8=============================================§r");
-        return sb.toString();
+        txt.append("\n");
+        txt.append(Text.literal("=============================================").formatted(Formatting.DARK_GRAY));
+        return txt;
     }
 
     @Override

@@ -25,7 +25,7 @@ public class DifficultyCommand {
             final var source = context.getSource();
             final var server = source.getServer();
             source.sendFeedback(() -> {
-                return Text.literal(GLOBAL_DIFFICULTY_GETTER.get().getDifficultyUpdate(server.getOverworld().getDifficulty()));
+                return GLOBAL_DIFFICULTY_GETTER.get().getDifficultyUpdate(server.getOverworld().getDifficulty());
             }, false);
             return Command.SINGLE_SUCCESS;
         };
@@ -126,10 +126,10 @@ public class DifficultyCommand {
     private static int sendPlayerDifficulty(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) {
         final var source = context.getSource();
         final var server = source.getServer();
-        source.sendFeedback(() -> Text.literal(
+        source.sendFeedback(() ->
                 PLAYER_DIFFICULTY_GETTER.get(server, target)
-                        .getDifficultyUpdate(server.getOverworld().getDifficulty())
-        ), false);
+                        .getDifficultyUpdate(server.getOverworld().getDifficulty()
+                        ), false);
         return Command.SINGLE_SUCCESS;
     }
 }

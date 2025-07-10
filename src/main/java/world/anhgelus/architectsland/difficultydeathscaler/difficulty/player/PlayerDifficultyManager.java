@@ -6,6 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import org.jetbrains.annotations.NotNull;
@@ -119,10 +120,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
         updateModifiersValue(updater);
 
-        if (player == null) {
-            DifficultyDeathScaler.LOGGER.warn("Player in {} is null", this);
-            return;
-        }
+        if (player == null) return;
 
         player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
@@ -178,45 +176,49 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     @Override
-    protected @NotNull String generateDifficultyUpdate(UpdateType updateType, @Nullable Difficulty difficulty) {
+    protected @NotNull Text generateDifficultyUpdate(UpdateType updateType, @Nullable Difficulty difficulty) {
         final var heartAmount = (20 + healthModifier + globalManager.getHealthModifier()) / 2;
 
-        final var sb = new StringBuilder();
-        sb.append(generateHeaderUpdate(updateType));
+        final var txt = Text.empty();
+        txt.append(generateHeaderUpdate(updateType));
 
         if (deathDay != 0) {
-            sb.append("You died ");
+            txt.append("You died ");
+            final var t = Text.empty();
             if (deathDay >= 4) {
-                sb.append("§c");
+                t.formatted(Formatting.RED);
             } else if (deathDay >= 2) {
-                sb.append("§e");
+                t.formatted(Formatting.YELLOW);
             } else {
-                sb.append("§2");
+                t.formatted(Formatting.DARK_GREEN);
             }
-            sb.append(deathDay).append("§r time");
+            t.append(String.format("%d", deathDay));
+            txt.append(t).append(" time");
             if (deathDay > 0) {
-                sb.append("s");
+                txt.append("s");
             }
-            sb.append(" in less than 24 hours.\n");
-            sb.append("You will lose one 24 hours death in ");
-            sb.append(formatSeconds(deathDayEnd.getFirst() - System.currentTimeMillis() / 1000));
-            sb.append(".\n");
+            txt.append(" in less than 24 hours.\n");
+            txt.append("You will lose one 24 hours death in ");
+            txt.append(formatSeconds(deathDayEnd.getFirst() - System.currentTimeMillis() / 1000));
+            txt.append(".\n");
         }
-        sb.append("\n");
+        txt.append("\n");
 
-        sb.append("Max hearts: ");
+        txt.append("Max hearts: ");
+        final var t = Text.empty();
         if (heartAmount == 10) {
-            sb.append("§2");
+            t.formatted(Formatting.DARK_GREEN);
         } else if (heartAmount >= 8) {
-            sb.append("§e");
+            t.formatted(Formatting.YELLOW);
         } else {
-            sb.append("§c");
+            t.formatted(Formatting.RED);
         }
-        sb.append(heartAmount).append(" ❤§r\n\n");
+        t.append(String.format("%.0f ❤", heartAmount));
+        txt.append(t).append("\n\n");
 
-        sb.append(generateFooterUpdate(STEPS, "you didn't die", updateType));
+        txt.append(generateFooterUpdate(STEPS, "you didn't die", updateType));
 
-        return sb.toString();
+        return txt;
     }
 
     @Override
@@ -245,7 +247,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     public void applyModifiers() {
         assert player != null;
-        DifficultyDeathScaler.LOGGER.info("Applying modifier to player {}; health: {}", player.getName().getString(), healthModifier);
         HealthModifier.apply(player, healthModifier);
 //        LuckModifier.apply(player, luckModifier);
         BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);

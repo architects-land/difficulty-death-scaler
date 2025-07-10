@@ -10,6 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
@@ -218,43 +219,43 @@ public class GlobalDifficultyManager extends DifficultyManager {
     }
 
     @Override
-    protected @NotNull String generateDifficultyUpdate(UpdateType updateType, net.minecraft.world.@Nullable Difficulty difficulty) {
-        final var sb = new StringBuilder();
-        sb.append(generateHeaderUpdate(updateType));
+    protected @NotNull Text generateDifficultyUpdate(UpdateType updateType, net.minecraft.world.@Nullable Difficulty difficulty) {
+        final var txt = Text.empty();
+        txt.append(generateHeaderUpdate(updateType));
+        txt.append("World Difficulty: ");
         if (difficulty == Difficulty.EASY) {
-            sb.append("World Difficulty: §2Easy§r");
+            txt.append(Text.literal("Easy").formatted(Formatting.DARK_GREEN));
         } else if (difficulty == Difficulty.NORMAL) {
-            sb.append("Difficulty: §eNormal§r");
+            txt.append(Text.literal("Normal").formatted(Formatting.YELLOW));
         } else {
-            sb.append("Difficulty: §cHard§r");
+            txt.append(Text.literal("Hard").formatted(Formatting.RED));
         }
         if (numberOfDeath >= STEPS[1].level()) {
-            sb.append("\n\n");
+            txt.append("\n\n");
         }
         if (numberOfDeath >= STEPS[STEPS.length - 1].level()) {
-            sb.append("§cWell... Good luck... you dont have regen anymore§r");
+            txt.append(Text.literal("Well... Good luck... you dont have regen anymore").formatted(Formatting.RED));
         } else if (numberOfDeath >= STEPS[21].level()) {
-            sb.append("§cNether is gonna be very dangerous...§r");
+            txt.append(Text.literal("Nether is gonna be very dangerous").formatted(Formatting.RED));
         } else if (numberOfDeath >= STEPS[9].level()) {
-            sb.append("§eThis is so fcking annoying!§r");
+            txt.append(Text.literal("This is so fcking annoying!").formatted(Formatting.YELLOW));
         } else if (numberOfDeath >= STEPS[5].level()) {
-            sb.append("§eMobs are modified, right?...§r");
+            txt.append(Text.literal("Mobs are modified, right?...").formatted(Formatting.YELLOW));
         } else if (numberOfDeath >= STEPS[3].level()) {
-            sb.append("§2Normal difficulty is back!§r");
+            txt.append(Text.literal("Normal difficulty is back!").formatted(Formatting.DARK_GREEN));
         } else if (numberOfDeath >= STEPS[1].level()) {
-            sb.append("§2Oh no, the difficulty is becoming harder.§r");
+            txt.append(Text.literal("Oh no, the difficulty is becoming harder.").formatted(Formatting.DARK_GREEN));
         }
-        sb.append("§r\n\n");
+        txt.append("\n\n");
 
         if (updateType == null && increaser.isEnabled()) updateType = UpdateType.AUTOMATIC_INCREASE;
-        sb.append(generateFooterUpdate(STEPS, "no one died", updateType));
+        txt.append(generateFooterUpdate(STEPS, "no one died", updateType));
 
-        return sb.toString();
+        return txt;
     }
 
     @Override
     public void applyModifiers(ServerPlayerEntity player) {
-        DifficultyDeathScaler.LOGGER.info("Applying global modifier to player {}; health: {}", player.getName().getString(), healthModifier);
         HealthModifier.apply(player, healthModifier);
         FallDamageMultiplierModifier.apply(player, fallDamageMultiplierModifier);
     }

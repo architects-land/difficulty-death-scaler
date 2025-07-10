@@ -13,16 +13,20 @@ public class BountyCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("bounty").executes(context -> {
             final var bounties = Getters.BOUNTIES_GETTER.get();
+            final var txt = Text.empty().append(Bounty.getBountyHeader());
             if (bounties.isEmpty()) {
-                context.getSource().sendFeedback(() -> Text.literal("There are no bounties."), false);
+                txt.append("Currently, there are no bounties.\n");
+                txt.append(Bounty.getBountyFooter());
+                context.getSource().sendFeedback(() -> txt, false);
                 return Command.SINGLE_SUCCESS;
             }
-            final var txt = Text.literal("Bounties:\n");
+            txt.append("Bounties:\n");
             Getters.BOUNTIES_GETTER.get().forEach(bounty -> {
                 if (!bounty.isEnabled()) return;
                 final var name = Text.empty().formatted(Formatting.RED).append(bounty.getPlayer().getDisplayName());
-                txt.append("\n- ").append(name);
+                txt.append("- ").append(name).append("\n");
             });
+            txt.append(Bounty.getBountyFooter());
             context.getSource().sendFeedback(() -> txt, false);
             return Command.SINGLE_SUCCESS;
         }));

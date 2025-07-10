@@ -11,12 +11,16 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.Glo
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class Bounty extends DifficultyTimer {
     public static final double BOUNTY_DEATH_PERCENTAGE = 0.03;
     public static final int BOUNTY_ENABLED_AFTER = 20;
-
+    private static final Map<UUID, Bounty> bounties = new HashMap<>();
     public static boolean ENABLED = true;
-
     private final GlobalDifficultyManager globalDifficulty;
     private final PlayerDifficultyManager playerDifficulty;
     private ServerPlayerEntity player;
@@ -43,20 +47,55 @@ public class Bounty extends DifficultyTimer {
     @Nullable
     public static Bounty newBounty(MinecraftServer server, GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
         if (!ENABLED) return null;
+        assert playerDifficulty.player != null;
+        if (bounties.containsKey(playerDifficulty.player.getUuid())) {
+            DifficultyDeathScaler.LOGGER.warn("Bounty already exists for player {}", playerDifficulty.player.getUuid());
+            return null;
+        }
         if (globalDifficulty.getTotalOfDeath() >= BOUNTY_ENABLED_AFTER &&
                 (double) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() <= BOUNTY_DEATH_PERCENTAGE
-        ) return new Bounty(server, globalDifficulty, playerDifficulty);
+        ) {
+            final var b = new Bounty(server, globalDifficulty, playerDifficulty);
+            bounties.put(playerDifficulty.player.getUuid(), b);
+            return b;
+        }
         return null;
     }
 
-    public static Text getBountyHeader() {
+    @Nullable
+    public static Bounty get(UUID uuid) {
+        return bounties.get(uuid);
+    }
+
+    public static Collection<Bounty> get() {
+        return bounties.values();
+    }
+
+    public static Text getBountiesMessage() {
+        final var txt = Text.empty().append(Bounty.getBountyHeader());
+        if (bounties.isEmpty()) {
+            txt.append("Currently, there are no bounties.\n");
+            txt.append(Bounty.getBountyFooter());
+            return txt;
+        }
+        txt.append("Bounties:\n");
+        get().forEach(bounty -> {
+            if (!bounty.isEnabled()) return;
+            final var name = Text.empty().formatted(Formatting.RED).append(bounty.getPlayer().getDisplayName());
+            txt.append("- ").append(name).append("\n");
+        });
+        txt.append(Bounty.getBountyFooter());
+        return txt;
+    }
+
+    private static Text getBountyHeader() {
         final var txt = Text.empty();
         txt.append(Text.literal("==================== ").formatted(Formatting.DARK_GRAY));
         txt.append("Bounty!");
         return txt.append(Text.literal(" ====================\n").formatted(Formatting.DARK_GRAY));
     }
 
-    public static Text getBountyFooter() {
+    private static Text getBountyFooter() {
         return Text.literal("===============================================").formatted(Formatting.DARK_GRAY);
     }
 

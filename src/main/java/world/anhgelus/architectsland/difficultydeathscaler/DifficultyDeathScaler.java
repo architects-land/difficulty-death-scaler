@@ -21,7 +21,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
@@ -89,7 +88,6 @@ public class DifficultyDeathScaler implements ModInitializer {
             })
     );
     private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
-    private final Map<UUID, Bounty> bountyMap = new HashMap<>();
     private GlobalDifficultyManager difficultyManager;
 
     @Override
@@ -111,8 +109,6 @@ public class DifficultyDeathScaler implements ModInitializer {
 
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
-            Getters.BOUNTY_GETTER = this::getPlayerBounty;
-            Getters.BOUNTIES_GETTER = bountyMap::values;
 
             TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> {
                 LOGGER.info("Difficulty Death Scaler saving...");
@@ -137,9 +133,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerPlayerEvents.AFTER_RESPAWN.register(PlayerListener::afterRespawn);
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            PlayerListener.onConnection(handler, sender, server, bountyMap);
-        });
+        ServerPlayConnectionEvents.JOIN.register(PlayerListener::onConnection);
 
         ServerPlayConnectionEvents.DISCONNECT.register(PlayerListener::onDisconnection);
 
@@ -197,11 +191,6 @@ public class DifficultyDeathScaler implements ModInitializer {
                     server, difficultyManager, id, StateSaver.getPlayerState(server, profile.getId())
             );
         });
-    }
-
-    @Nullable
-    private Bounty getPlayerBounty(UUID uuid) {
-        return bountyMap.get(uuid);
     }
 
     private void loadAllPlayerManagers(MinecraftServer server) {

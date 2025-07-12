@@ -1,0 +1,21 @@
+{
+  "criteria": {
+    "joined": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "background": "minecraft:textures/gui/advancements/backgrounds/adventure.png",
+    "description": "Welcome to a world governed by Difficulty Death Scaler!",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:grass_block"
+    },
+    "title": "Difficulty Death Scaler world"
+  },
+  "requirements": [
+    [
+      "joined"
+    ]
+  ]
+}

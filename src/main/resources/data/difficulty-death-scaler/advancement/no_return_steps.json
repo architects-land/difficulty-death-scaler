@@ -1,0 +1,24 @@
+{
+  "parent": "difficulty-death-scaler:evil_steps",
+  "criteria": {
+    "no_return_steps": {
+      "conditions": {
+        "requiredDifficulty": 37
+      },
+      "trigger": "difficulty-death-scaler:difficulty"
+    }
+  },
+  "display": {
+    "description": "Your nightmares are true...",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:wither_rose"
+    },
+    "title": "No return is possible now..."
+  },
+  "requirements": [
+    [
+      "no_return_steps"
+    ]
+  ]
+}

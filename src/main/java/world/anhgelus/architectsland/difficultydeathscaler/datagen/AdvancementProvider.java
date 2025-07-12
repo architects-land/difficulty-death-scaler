@@ -24,7 +24,7 @@ public class AdvancementProvider extends FabricAdvancementProvider {
 
     @Override
     public void generateAdvancement(RegistryWrapper.WrapperLookup wrapperLookup, Consumer<AdvancementEntry> consumer) {
-        final var ddsWorld = Advancement.Builder.create()
+        final var ddsWorld = Advancement.Builder.createUntelemetered()
                 .display(
                         Items.GRASS_BLOCK,
                         Text.literal("Difficulty Death Scaler world"),
@@ -46,7 +46,7 @@ public class AdvancementProvider extends FabricAdvancementProvider {
     }
 
     private AdvancementEntry create(Consumer<AdvancementEntry> consumer, AdvancementEntry parent, Item item, String title, String subtitle, String id, int difficulty) {
-        return Advancement.Builder.create()
+        return Advancement.Builder.createUntelemetered()
                 .parent(parent)
                 .display(
                         item,

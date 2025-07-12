@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:easy_steps",
+  "criteria": {
+    "ominous_steps": {
+      "conditions": {
+        "max": 20,
+        "min": 7
+      },
+      "trigger": "difficulty-death-scaler:global_difficulty"
+    }
+  },
+  "display": {
+    "description": "The world is becoming harder",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:shield"
+    },
+    "title": "Ominous steps reached!"
+  },
+  "requirements": [
+    [
+      "ominous_steps"
+    ]
+  ]
+}

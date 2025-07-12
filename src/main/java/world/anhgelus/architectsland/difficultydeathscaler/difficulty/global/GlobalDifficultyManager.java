@@ -10,7 +10,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
@@ -18,10 +17,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 import java.util.List;
@@ -60,6 +62,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(StepHeightModifier.class).update(0);
                 updater.getModifier(SpawnReinforcementsModifier.class).update(0);
                 updater.getModifier(FallDamageMultiplierModifier.class).update(0);
+                updater.getModifier(WaypointReceiveModifier.class).update(WaypointReceiveModifier.BASE_VALUE);
                 updater.updateDifficulty(1);
             }),
             new Step(1, (server, gamerules, updater) -> updater.updateDifficulty(2)),
@@ -73,6 +76,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(true, server);
             }),
             new Step(7, (server, gamerules, updater) -> {
+                updater.getModifier(WaypointReceiveModifier.class).update(10000);
                 updater.getModifier(FollowRangeModifier.class).update(0.25);
                 BETTER_SKELETON = true;
             }),
@@ -80,6 +84,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(FallDamageMultiplierModifier.class).update(0.25);
             }),
             new Step(10, (server, gamerules, updater) -> {
+                updater.getModifier(WaypointReceiveModifier.class).update(7500);
                 updater.getModifier(HealthModifier.class).update(-2);
             }),
             new Step(12, (server, gamerules, updater) -> {
@@ -94,6 +99,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 BETTER_ZOMBIES = true;
             }),
             new Step(16, (server, gamerules, updater) -> {
+                updater.getModifier(WaypointReceiveModifier.class).update(5000);
                 gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(true, server);
             }),
             new Step(18, (server, gamerules, updater) -> {
@@ -106,6 +112,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(FallDamageMultiplierModifier.class).update(0.5);
             }),
             new Step(22, (server, gamerules, updater) -> {
+                updater.getModifier(WaypointReceiveModifier.class).update(3000);
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
             }),
             new Step(23, (server, gamerules, updater) -> {
@@ -121,6 +128,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(StepHeightModifier.class).update(1);
             }),
             new Step(28, (server, gamerules, updater) -> {
+                updater.getModifier(WaypointReceiveModifier.class).update(2000);
                 gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(true, server);
             }),
             new Step(30, (server, gamerules, updater) -> {
@@ -149,6 +157,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     protected double stepHeightModifier = 0;
     protected double spawnReinforcementModifier = 0;
     protected double fallDamageMultiplierModifier = 0;
+    protected double waypointReceiveModifier = 0;
 
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -176,7 +185,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     }
 
     @Override
-    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
+    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater, int before) {
         final var difficulty = POLAR_NIGHT ? updater.getDifficulty() : Difficulty.HARD;
         server.setDifficulty(difficulty, true);
 
@@ -190,6 +199,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 else if (m instanceof final FallDamageMultiplierModifier mod) mod.apply(p);
             });
             playSoundUpdate(updateType, p);
+            ModCriteria.REACH_GLOBAL_DIFFICULTY.trigger(p, numberOfDeath);
+            if (updateType == UpdateType.DECREASE && before >= 37)
+                ModCriteria.ARBITRARY.trigger(p, AdvancementProvider.LEAVE_NO_RETURN);
         });
 
         BossManager.onDifficultyUpdate(this);
@@ -214,6 +226,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 spawnReinforcementModifier = mod.getValue();
             } else if (m instanceof final FallDamageMultiplierModifier mod) {
                 fallDamageMultiplierModifier = mod.getValue();
+            } else if (m instanceof final WaypointReceiveModifier mod) {
+                waypointReceiveModifier = mod.getValue();
             }
         });
     }
@@ -224,27 +238,27 @@ public class GlobalDifficultyManager extends DifficultyManager {
         txt.append(generateHeaderUpdate(updateType));
         txt.append("World Difficulty: ");
         if (difficulty == Difficulty.EASY) {
-            txt.append(Text.literal("Easy").formatted(Formatting.DARK_GREEN));
+            txt.append(Text.literal("Easy").formatted(Constants.COLOR_OK));
         } else if (difficulty == Difficulty.NORMAL) {
-            txt.append(Text.literal("Normal").formatted(Formatting.YELLOW));
+            txt.append(Text.literal("Normal").formatted(Constants.COLOR_WARNING));
         } else {
-            txt.append(Text.literal("Hard").formatted(Formatting.RED));
+            txt.append(Text.literal("Hard").formatted(Constants.COLOR_DANGER));
         }
         if (numberOfDeath >= STEPS[1].level()) {
             txt.append("\n\n");
         }
         if (numberOfDeath >= STEPS[STEPS.length - 1].level()) {
-            txt.append(Text.literal("Well... Good luck... you dont have regen anymore").formatted(Formatting.RED));
+            txt.append(Text.literal("Well... Good luck... you dont have regen anymore").formatted(Constants.COLOR_DANGER));
         } else if (numberOfDeath >= STEPS[21].level()) {
-            txt.append(Text.literal("Nether is gonna be very dangerous").formatted(Formatting.RED));
+            txt.append(Text.literal("Nether is gonna be very dangerous").formatted(Constants.COLOR_DANGER));
         } else if (numberOfDeath >= STEPS[9].level()) {
-            txt.append(Text.literal("This is so fcking annoying!").formatted(Formatting.YELLOW));
+            txt.append(Text.literal("This is so fcking annoying!").formatted(Constants.COLOR_WARNING));
         } else if (numberOfDeath >= STEPS[5].level()) {
-            txt.append(Text.literal("Mobs are modified, right?...").formatted(Formatting.YELLOW));
+            txt.append(Text.literal("Mobs are modified, right?...").formatted(Constants.COLOR_WARNING));
         } else if (numberOfDeath >= STEPS[3].level()) {
-            txt.append(Text.literal("Normal difficulty is back!").formatted(Formatting.DARK_GREEN));
+            txt.append(Text.literal("Normal difficulty is back!").formatted(Constants.COLOR_OK));
         } else if (numberOfDeath >= STEPS[1].level()) {
-            txt.append(Text.literal("Oh no, the difficulty is becoming harder.").formatted(Formatting.DARK_GREEN));
+            txt.append(Text.literal("Oh no, the difficulty is becoming harder.").formatted(Constants.COLOR_OK));
         }
         txt.append("\n\n");
 
@@ -258,6 +272,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     public void applyModifiers(ServerPlayerEntity player) {
         HealthModifier.apply(player, healthModifier);
         FallDamageMultiplierModifier.apply(player, fallDamageMultiplierModifier);
+        WaypointReceiveModifier.apply(player, waypointReceiveModifier);
     }
 
     public void onEntitySpawn(HostileEntity hostile) {

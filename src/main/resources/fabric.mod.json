@@ -16,6 +16,9 @@
   "entrypoints": {
     "main": [
       "world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler"
+    ],
+    "fabric-datagen": [
+      "world.anhgelus.architectsland.difficultydeathscaler.datagen.DataGenerator"
     ]
   },
   "mixins": [

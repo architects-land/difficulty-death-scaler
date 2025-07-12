@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:dangerous_player_steps",
+  "criteria": {
+    "evil_player_steps": {
+      "conditions": {
+        "max": 12,
+        "min": 10
+      },
+      "trigger": "difficulty-death-scaler:player_difficulty"
+    }
+  },
+  "display": {
+    "description": "You are really weak, proceed with caution",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:zombie_head"
+    },
+    "title": "Evil player steps reached..."
+  },
+  "requirements": [
+    [
+      "evil_player_steps"
+    ]
+  ]
+}

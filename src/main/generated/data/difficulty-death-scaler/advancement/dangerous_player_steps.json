@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:ominous_player_steps",
+  "criteria": {
+    "dangerous_player_steps": {
+      "conditions": {
+        "max": 10,
+        "min": 5
+      },
+      "trigger": "difficulty-death-scaler:player_difficulty"
+    }
+  },
+  "display": {
+    "description": "You are weak",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:piglin_head"
+    },
+    "title": "Dangerous player steps reached!..."
+  },
+  "requirements": [
+    [
+      "dangerous_player_steps"
+    ]
+  ]
+}

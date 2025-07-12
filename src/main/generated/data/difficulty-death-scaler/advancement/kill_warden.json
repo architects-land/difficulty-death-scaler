@@ -1,0 +1,26 @@
+{
+  "parent": "difficulty-death-scaler:buff_warden",
+  "criteria": {
+    "kill_warden": {
+      "conditions": {
+        "entity": "net.minecraft.entity.mob.WardenEntity",
+        "killed": true
+      },
+      "trigger": "difficulty-death-scaler:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Kill a buffed warden to decrease the difficulty",
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:sculk_shrieker"
+    },
+    "title": "Kill a buffed warden"
+  },
+  "requirements": [
+    [
+      "kill_warden"
+    ]
+  ]
+}

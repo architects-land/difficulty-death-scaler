@@ -1,0 +1,26 @@
+{
+  "parent": "difficulty-death-scaler:no_return_player_steps",
+  "criteria": {
+    "leave_no_return_player": {
+      "conditions": {
+        "id": 1
+      },
+      "trigger": "difficulty-death-scaler:arbitrary"
+    }
+  },
+  "display": {
+    "description": "GG, you left the no return steps!",
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "minecraft:cornflower"
+    },
+    "title": "Left your player no return"
+  },
+  "requirements": [
+    [
+      "leave_no_return_player"
+    ]
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:bounty_be_present",
+  "criteria": {
+    "bounty_receive": {
+      "conditions": {
+        "id": 1
+      },
+      "trigger": "difficulty-death-scaler:bounty"
+    }
+  },
+  "display": {
+    "description": "Receive a bounty on you",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:diamond_chestplate"
+    },
+    "title": "Be hunted"
+  },
+  "requirements": [
+    [
+      "bounty_receive"
+    ]
+  ]
+}

@@ -5,14 +5,16 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,8 +63,11 @@ public abstract class DifficultyManager extends DifficultyTimer {
      * @param n number of death
      */
     public void setNumberOfDeath(int n) {
+        final var before = numberOfDeath;
         numberOfDeath = n;
-        updateDeath(UpdateType.SET);
+        // this order is required because without it will break the counter
+        // BUT this provokes a bad timer to be displayed after restart (not really important)
+        updateDeath(UpdateType.SET, before);
         updateTimerTask();
     }
 
@@ -75,9 +80,14 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     public void increaseDeath(boolean automaticIncrease) {
+        final var before = numberOfDeath;
         numberOfDeath++;
-        if (automaticIncrease) updateDeath(UpdateType.AUTOMATIC_INCREASE);
-        else updateDeath(UpdateType.INCREASE);
+        if (automaticIncrease) {
+            server.getPlayerManager().getPlayerList().forEach(p -> {
+                ModCriteria.ARBITRARY.trigger(p, AdvancementProvider.DIFFICULTY_INCREASE);
+            });
+            updateDeath(UpdateType.AUTOMATIC_INCREASE, before);
+        } else updateDeath(UpdateType.INCREASE, before);
         updateTimerTask();
     }
 
@@ -108,6 +118,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
             return;
         }
 
+        final var before = numberOfDeath;
+
         for (int i = steps.length - 1; i > 0; i--) {
             if (numberOfDeath >= steps[i].level()) {
                 numberOfDeath = steps[i - 1].level();
@@ -115,17 +127,17 @@ public abstract class DifficultyManager extends DifficultyTimer {
             }
         }
 
-        updateDeath(UpdateType.DECREASE);
+        updateDeath(UpdateType.DECREASE, before);
     }
 
-    protected void updateDeath(UpdateType updateType) {
+    protected void updateDeath(UpdateType updateType, int before) {
         final var updater = getUpdater();
 
         if (updateType == UpdateType.INCREASE) onDeath(updateType, updater); // increase is always linked with the death
 
         if (Arrays.stream(steps).noneMatch(x -> x.level() == numberOfDeath) && updateType != UpdateType.SET) return;
 
-        onUpdate(updateType, updater);
+        onUpdate(updateType, updater, before);
     }
 
     protected DifficultyUpdater getUpdater() {
@@ -154,7 +166,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
         return generateDifficultyUpdate(null, difficulty);
     }
 
-    protected abstract void onUpdate(UpdateType updateType, DifficultyUpdater updater);
+    protected abstract void onUpdate(UpdateType updateType, DifficultyUpdater updater, int before);
 
     protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
         totalOfDeath++;
@@ -204,7 +216,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     protected Text generateHeaderUpdate(@Nullable UpdateType updateType) {
         final var txt = Text.empty();
-        txt.append(Text.literal("============== ").formatted(Formatting.DARK_GRAY));
+        txt.append(Text.literal("============== ").formatted(Constants.COLOR_SEPARATOR));
         if (updateType == null) txt.append(Text.literal("Current difficulty:"));
         else {
             switch (updateType) {
@@ -214,10 +226,10 @@ public abstract class DifficultyManager extends DifficultyTimer {
                 default -> txt.append("Current difficulty:");
             }
         }
-        txt.append(Text.literal(" ==============").formatted(Formatting.DARK_GRAY));
+        txt.append(Text.literal(" ==============").formatted(Constants.COLOR_SEPARATOR));
         txt.append("\n");
         txt.append("Death step: ")
-                .append(Text.literal(String.format("%d", numberOfDeath)).formatted(Formatting.LIGHT_PURPLE))
+                .append(Text.literal(String.format("%d", numberOfDeath)).formatted(Constants.COLOR_ACCENT))
                 .append("\n");
         return txt;
     }
@@ -225,35 +237,34 @@ public abstract class DifficultyManager extends DifficultyTimer {
     protected Text generateFooterUpdate(Step[] steps, String beginning, UpdateType updateType) {
         final var txt = Text.empty();
         if (numberOfDeath < steps[1].level()) {
-            return txt.append("The difficulty cannot get lower. Congratulations!\n")
-                    .append("=============================================")
-                    .formatted(Formatting.DARK_GRAY);
+            return txt.append(Text.literal("The difficulty cannot get lower. Congratulations!\n").formatted(Constants.COLOR_OK))
+                    .append(Text.literal("=============================================").formatted(Constants.COLOR_SEPARATOR));
         }
 
         if (updateType == UpdateType.DECREASE) {
             txt.append("You only need to survive for ")
-                    .append(Text.literal(formatSeconds(secondsBeforeDecreased)).formatted(Formatting.GOLD))
+                    .append(Text.literal(formatSeconds(secondsBeforeDecreased)).formatted(Constants.COLOR_TIME))
                     .append(" to make the difficulty decrease again.");
         } else if (updateType == UpdateType.AUTOMATIC_INCREASE) {
             txt.append("The difficulty is increasing automatically!");
         } else if (updateType != UpdateType.INCREASE) {
             txt.append("You only need to survive for ");
-            final var t = Text.empty().formatted(Formatting.GOLD);
+            final var t = Text.empty().formatted(Constants.COLOR_TIME);
             if (updateType == UpdateType.SET) t.append(formatSeconds(secondsBeforeDecreased));
             else t.append(formatSecondsBeforeRun(reducerTask));
             txt.append(t);
             txt.append(" to make the difficulty decrease.");
         } else if (numberOfDeath == steps[1].level()) {
             txt.append("You were on the lowest difficulty for ")
-                    .append(Text.literal(formatSeconds(secondsLowerDifficulty)).formatted(Formatting.GOLD))
+                    .append(Text.literal(formatSeconds(secondsLowerDifficulty)).formatted(Constants.COLOR_TIME))
                     .append(", but you had to die and ruin everything, hadn't you?");
         } else {
             txt.append("If ").append(beginning).append(" for")
-                    .append(Text.literal(formatSecondsBeforeRun(reducerTask)).formatted(Formatting.GOLD))
+                    .append(Text.literal(formatSecondsBeforeRun(reducerTask)).formatted(Constants.COLOR_TIME))
                     .append(", then the difficulty would’ve decreased... But you chose your fate.");
         }
         txt.append("\n");
-        txt.append(Text.literal("=============================================").formatted(Formatting.DARK_GRAY));
+        txt.append(Text.literal("=============================================").formatted(Constants.COLOR_SEPARATOR));
         return txt;
     }
 

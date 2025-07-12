@@ -1,0 +1,26 @@
+{
+  "parent": "difficulty-death-scaler:buff_boss",
+  "criteria": {
+    "buff_wither": {
+      "conditions": {
+        "entity": "net.minecraft.entity.boss.WitherEntity",
+        "killed": false
+      },
+      "trigger": "difficulty-death-scaler:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Buff the Wither with a netherite ingot",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:wither_skeleton_skull"
+    },
+    "title": "Buff the Wither"
+  },
+  "requirements": [
+    [
+      "buff_wither"
+    ]
+  ]
+}

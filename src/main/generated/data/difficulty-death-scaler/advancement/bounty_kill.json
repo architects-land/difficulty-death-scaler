@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:bounty_be_present",
+  "criteria": {
+    "bounty_kill": {
+      "conditions": {
+        "id": 2
+      },
+      "trigger": "difficulty-death-scaler:bounty"
+    }
+  },
+  "display": {
+    "description": "Hunt for the bounty",
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:netherite_sword"
+    },
+    "title": "Hunter"
+  },
+  "requirements": [
+    [
+      "bounty_kill"
+    ]
+  ]
+}

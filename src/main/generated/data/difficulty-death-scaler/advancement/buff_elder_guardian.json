@@ -1,0 +1,26 @@
+{
+  "parent": "difficulty-death-scaler:buff_boss",
+  "criteria": {
+    "buff_elder_guardian": {
+      "conditions": {
+        "entity": "net.minecraft.entity.mob.ElderGuardianEntity",
+        "killed": false
+      },
+      "trigger": "difficulty-death-scaler:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Buff an elder guardian with a netherite ingot",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:prismarine"
+    },
+    "title": "Buff an elder guardian"
+  },
+  "requirements": [
+    [
+      "buff_elder_guardian"
+    ]
+  ]
+}

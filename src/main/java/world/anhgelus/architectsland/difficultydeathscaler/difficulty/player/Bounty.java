@@ -3,13 +3,15 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyTimer;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,6 +43,10 @@ public class Bounty extends DifficultyTimer {
         timer.dds_runTask(new TickTask(() -> {
             enabled = true;
             bountyBroadcast();
+            server.getPlayerManager().getPlayerList().forEach(p -> {
+                ModCriteria.BOUNTY.trigger(p, AdvancementProvider.BOUNTY_BE_PRESENT);
+            });
+            ModCriteria.BOUNTY.trigger(player, AdvancementProvider.BOUNTY_RECEIVE);
         }, Math.round(delay * 5 * 60 * 20L)));
     }
 
@@ -81,7 +87,7 @@ public class Bounty extends DifficultyTimer {
         txt.append("Bounties:\n");
         get().forEach(bounty -> {
             if (!bounty.isEnabled()) return;
-            final var name = Text.empty().formatted(Formatting.RED).append(bounty.getPlayer().getDisplayName());
+            final var name = Text.empty().formatted(Constants.COLOR_DANGER).append(bounty.getPlayer().getDisplayName());
             txt.append("- ").append(name).append("\n");
         });
         txt.append(Bounty.getBountyFooter());
@@ -90,26 +96,28 @@ public class Bounty extends DifficultyTimer {
 
     private static Text getBountyHeader() {
         final var txt = Text.empty();
-        txt.append(Text.literal("==================== ").formatted(Formatting.DARK_GRAY));
+        txt.append(Text.literal("==================== ").formatted(Constants.COLOR_SEPARATOR));
         txt.append("Bounty!");
-        return txt.append(Text.literal(" ====================\n").formatted(Formatting.DARK_GRAY));
+        return txt.append(Text.literal(" ====================\n").formatted(Constants.COLOR_SEPARATOR));
     }
 
     private static Text getBountyFooter() {
-        return Text.literal("===============================================").formatted(Formatting.DARK_GRAY);
+        return Text.literal("===============================================").formatted(Constants.COLOR_SEPARATOR);
     }
 
     private void bountyBroadcast() {
         final var txt = Text.empty().append(getBountyHeader());
         txt.append("A bounty is put on ");
-        txt.append(Text.empty().append(player.getDisplayName()).formatted(Formatting.RED));
+        txt.append(Text.empty().append(player.getDisplayName()).formatted(Constants.COLOR_DANGER));
         txt.append(" because they ");
         if (playerDifficulty.getTotalOfDeath() == 0) txt.append("never died!");
         else if (playerDifficulty.getTotalOfDeath() == 1) txt.append("died only once!");
         else txt.append(String.format("died only %d times!", playerDifficulty.getTotalOfDeath()));
 
         txt.append("\n\n");
-        txt.append("If you kill ").append(player.getDisplayName()).append(", you will swap your personal difficulty!\n\n");
+        txt.append("If you kill ");
+        txt.append(Text.empty().append(player.getDisplayName()).formatted(Constants.COLOR_DANGER));
+        txt.append(", you will swap your personal difficulty!\n\n");
         txt.append("Good luck!\n");
         txt.append(getBountyFooter());
 
@@ -122,9 +130,9 @@ public class Bounty extends DifficultyTimer {
         enabled = false;
         assert attackerDifficulty.player != null;
         final var txt = Text.empty().append(getBountyHeader());
-        txt.append(Text.empty().append(attackerDifficulty.player.getDisplayName()).formatted(Formatting.YELLOW));
+        txt.append(Text.empty().append(attackerDifficulty.player.getDisplayName()).formatted(Constants.COLOR_WARNING));
         txt.append(" killed ");
-        txt.append(Text.empty().append(player.getDisplayName()).formatted(Formatting.RED));
+        txt.append(Text.empty().append(player.getDisplayName()).formatted(Constants.COLOR_DANGER));
         txt.append("!\n");
         txt.append("They swap their player difficulty!\n");
         txt.append(getBountyFooter());
@@ -138,6 +146,12 @@ public class Bounty extends DifficultyTimer {
         final var n = attackerDifficulty.getNumberOfDeath();
         attackerDifficulty.setNumberOfDeath(playerDifficulty.getNumberOfDeath());
         playerDifficulty.setNumberOfDeath(n);
+
+        attackerDifficulty.increaseBonusHearts();
+        playerDifficulty.resetBonusHearts();
+
+        ModCriteria.BOUNTY.trigger(player, AdvancementProvider.BOUNTY_KILLED);
+        ModCriteria.BOUNTY.trigger(attackerDifficulty.player, AdvancementProvider.BOUNTY_KILLER);
     }
 
     public void onDeath() {
@@ -151,7 +165,7 @@ public class Bounty extends DifficultyTimer {
         if (!enabled) return;
         enabled = false;
         final var txt = Text.empty().append(getBountyHeader());
-        txt.append(Text.empty().append(player.getDisplayName()).formatted(Formatting.RED));
+        txt.append(Text.empty().append(player.getDisplayName()).formatted(Constants.COLOR_DANGER));
         txt.append(" disconnected. The bounty will be back when they are next connected!\n");
         txt.append(getBountyFooter());
 

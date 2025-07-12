@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:dangerous_steps",
+  "criteria": {
+    "evil_steps": {
+      "conditions": {
+        "max": 37,
+        "min": 28
+      },
+      "trigger": "difficulty-death-scaler:global_difficulty"
+    }
+  },
+  "display": {
+    "description": "Please stops dying",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:wither_skeleton_skull"
+    },
+    "title": "Evil steps reached..."
+  },
+  "requirements": [
+    [
+      "evil_steps"
+    ]
+  ]
+}

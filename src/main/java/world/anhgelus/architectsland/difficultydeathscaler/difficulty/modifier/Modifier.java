@@ -10,23 +10,37 @@ import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler
 
 public class Modifier<T extends LivingEntity> {
     public static final String PREFIX = "dds_";
-
-    protected enum Check {
-        BIGGER, SMALLER
-    }
-
-    protected double value = 0;
-    protected boolean valueSet = false;
     protected final Identifier id;
     protected final RegistryEntry<EntityAttribute> attribute;
     protected final EntityAttributeModifier.Operation operation;
     protected final Check check;
-
+    protected double value = 0;
+    protected boolean valueSet = false;
     protected Modifier(Identifier id, RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier.Operation operation, Check check) {
         this.id = id;
         this.attribute = attribute;
         this.operation = operation;
         this.check = check;
+    }
+
+    public static void apply(
+            Identifier id,
+            RegistryEntry<EntityAttribute> attribute,
+            EntityAttributeModifier.Operation operation,
+            LivingEntity entity,
+            double value
+    ) {
+        final var attr = entity.getAttributeInstance(attribute);
+        if (attr == null) {
+            DifficultyDeathScaler.LOGGER.warn("Attribute {} not found for {}", attribute, entity.getClass().getSimpleName());
+            return;
+        }
+
+        attr.removeModifier(id);
+        if (value == 0) return;
+
+        final var playerHealthModifier = new EntityAttributeModifier(id, value, operation);
+        attr.addPersistentModifier(playerHealthModifier);
     }
 
     /**
@@ -54,27 +68,11 @@ public class Modifier<T extends LivingEntity> {
         apply(id, attribute, operation, entity, value);
     }
 
-    protected static void apply(
-            Identifier id,
-            RegistryEntry<EntityAttribute> attribute,
-            EntityAttributeModifier.Operation operation,
-            LivingEntity entity,
-            double value
-    ) {
-        final var attr = entity.getAttributeInstance(attribute);
-        if (attr == null) {
-            DifficultyDeathScaler.LOGGER.warn("Attribute {} not found for {}", attribute, entity.getClass().getSimpleName());
-            return;
-        }
-
-        attr.removeModifier(id);
-        if (value == 0) return;
-
-        final var playerHealthModifier = new EntityAttributeModifier(id, value, operation);
-        attr.addPersistentModifier(playerHealthModifier);
-    }
-
     public double getValue() {
         return value;
+    }
+
+    protected enum Check {
+        BIGGER, SMALLER
     }
 }

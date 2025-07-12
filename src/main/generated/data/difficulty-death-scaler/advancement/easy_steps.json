@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:dds_world",
+  "criteria": {
+    "easy_steps": {
+      "conditions": {
+        "max": 7,
+        "min": 0
+      },
+      "trigger": "difficulty-death-scaler:global_difficulty"
+    }
+  },
+  "display": {
+    "description": "The world is easier than vanilla",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:poppy"
+    },
+    "title": "Easy steps reached!"
+  },
+  "requirements": [
+    [
+      "easy_steps"
+    ]
+  ]
+}

@@ -6,9 +6,9 @@ import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.boss.WitherEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.ElderGuardianEntity;
 import net.minecraft.entity.mob.WardenEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -18,6 +18,8 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 
@@ -32,7 +34,7 @@ public class BossManager {
 
     private static DragonBuff dragonBuff = null;
 
-    public static ActionResult handleBuff(PlayerEntity player, World world, Hand hand, LivingEntity e) {
+    public static ActionResult handleBuff(ServerPlayerEntity player, World world, Hand hand, LivingEntity e) {
         if (!(e instanceof WitherEntity ||
                 e instanceof EnderDragonEntity ||
                 e instanceof ElderGuardianEntity ||
@@ -43,6 +45,9 @@ public class BossManager {
         final ItemStack itemStack = player.getStackInHand(hand);
         if (!itemStack.isOf(BUFFING_ITEM)) return ActionResult.PASS;
         itemStack.decrementUnlessCreative(1, player);
+
+        ModCriteria.BOSS.trigger(player, e.getClass(), false);
+        ModCriteria.ARBITRARY.trigger(player, AdvancementProvider.BUFF_BOSS);
 
         Boss.fromEntity(e, dragonBuff).buff();
         buffedBosses.add(e.getUuid());
@@ -58,11 +63,14 @@ public class BossManager {
         return ActionResult.SUCCESS;
     }
 
-    public static void handleKill(Entity entity, DifficultyManager manager) {
+    public static void handleKill(Entity entity, DamageSource source, DifficultyManager manager) {
         if (entity instanceof EnderDragonEntity) dragonDies();
         if (!buffedBosses.contains(entity.getUuid())) return;
+        if (source.getAttacker() instanceof final ServerPlayerEntity p)
+            ModCriteria.BOSS.trigger(p, entity.getClass(), true);
         buffedBosses.remove(entity.getUuid());
         manager.decreaseDeath();
+        manager.updateTimerTask(); // reset timer task
     }
 
     public static void playerEntersEnd(ServerPlayerEntity player, ServerWorld world) {

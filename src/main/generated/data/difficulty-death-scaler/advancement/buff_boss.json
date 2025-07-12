@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:dds_world",
+  "criteria": {
+    "buff_boss": {
+      "conditions": {
+        "id": 3
+      },
+      "trigger": "difficulty-death-scaler:arbitrary"
+    }
+  },
+  "display": {
+    "description": "Buff a boss with a netherite ingot.",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:netherite_ingot"
+    },
+    "title": "Buff a boss"
+  },
+  "requirements": [
+    [
+      "buff_boss"
+    ]
+  ]
+}

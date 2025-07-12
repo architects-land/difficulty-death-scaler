@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,6 +23,7 @@ import net.minecraft.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyCommand;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
@@ -92,7 +92,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Difficulty Death Scaler initialized");
+        ModCriteria.init();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             DifficultyCommand.register(dispatcher);
@@ -125,7 +125,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (!(entity instanceof ServerPlayerEntity player)) {
-                BossManager.handleKill(entity, difficultyManager);
+                BossManager.handleKill(entity, damageSource, difficultyManager);
                 return;
             }
             PlayerListener.afterDeath(player, damageSource);
@@ -133,9 +133,9 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerPlayerEvents.AFTER_RESPAWN.register(PlayerListener::afterRespawn);
 
-        ServerPlayConnectionEvents.JOIN.register(PlayerListener::onConnection);
+        ServerPlayerEvents.JOIN.register(PlayerListener::onConnection);
 
-        ServerPlayConnectionEvents.DISCONNECT.register(PlayerListener::onDisconnection);
+        ServerPlayerEvents.LEAVE.register(PlayerListener::onDisconnection);
 
         UseEntityCallback.EVENT.register(PlayerListener::useItemCallback);
 
@@ -171,6 +171,8 @@ public class DifficultyDeathScaler implements ModInitializer {
             if (!(entity instanceof PlayerEntity)) return ActionResult.PASS;
             return Sleeper.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
         });
+
+        LOGGER.info("Difficulty Death Scaler initialized");
     }
 
     /**

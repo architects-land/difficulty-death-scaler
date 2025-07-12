@@ -1,26 +1,27 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.server.BannedPlayerEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.BlockBreakSpeedModifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.MovementSpeedModifier;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.PlayerHealthModifier;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -37,21 +38,26 @@ public class PlayerDifficultyManager extends DifficultyManager {
 //                updater.getModifier(LuckModifier.class).update(0.1);
                 updater.getModifier(BlockBreakSpeedModifier.class).update(0.4); // is haste 2
                 updater.getModifier(MovementSpeedModifier.class).update(0.1); // is speed 1
+                updater.getModifier(WaypointTransmitModifier.class).update(WaypointTransmitModifier.BASE_VALUE);
             }),
             new Step(1, (server, gamerules, updater) -> {
 //                updater.getModifier(LuckModifier.class).update(0);
                 updater.getModifier(BlockBreakSpeedModifier.class).update(0.2); // is haste 1
                 updater.getModifier(MovementSpeedModifier.class).update(0);
+                updater.getModifier(WaypointTransmitModifier.class).update(15000);
             }),
             new Step(2, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-2);
+                updater.getModifier(WaypointTransmitModifier.class).update(10000);
             }),
             new Step(3, (server, gamerules, updater) -> {
                 updater.getModifier(BlockBreakSpeedModifier.class).update(0);
                 updater.getModifier(HealthModifier.class).update(-4);
+                updater.getModifier(WaypointTransmitModifier.class).update(7500);
             }),
             new Step(5, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-6);
+                updater.getModifier(WaypointTransmitModifier.class).update(5000);
             }),
             new Step(7, (server, gamerules, updater) -> {
                 updater.getModifier(MovementSpeedModifier.class).update(-0.1); // is slowness 1
@@ -59,17 +65,20 @@ public class PlayerDifficultyManager extends DifficultyManager {
             new Step(8, (server, gamerules, updater) -> {
                 updater.getModifier(BlockBreakSpeedModifier.class).update(-0.2); // is mining fatigue 1
 //                updater.getModifier(LuckModifier.class).update(-0.2);
+                updater.getModifier(WaypointTransmitModifier.class).update(2500);
             }),
             new Step(10, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-8);
             }),
             new Step(12, (server, gamerules, updater) -> {
                 updater.getModifier(MovementSpeedModifier.class).update(-0.2); // is slowness 2
+                updater.getModifier(WaypointTransmitModifier.class).update(1000);
             }),
             new Step(15, (server, gamerules, updater) -> {
                 updater.getModifier(HealthModifier.class).update(-10);
             }),
     };
+    public static final Identifier BONUS_HEARTS_ID = Identifier.of(Modifier.PREFIX + "bonus_hearts_modifier");
     public static boolean ENABLE_TEMP_BAN = true;
     public static int DEATH_BEFORE_TEMP_BAN = 5;
     public static int TEMP_BAN_DURATION = 12;
@@ -82,7 +91,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
     //    protected double luckModifier = 0;
     protected double blockBreakSpeedModifier = 0;
     protected double movementSpeedModifier = 0;
+    protected double waypointTransmitModifier = 0;
     private int deathDay;
+    private int bonusHearts = 0;
 
     public PlayerDifficultyManager(MinecraftServer server, GlobalDifficultyManager globalManager, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -114,13 +125,39 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 deathDay--;
             }
         }
+        bonusHearts = data.bonusHearts;
+    }
+
+    public void save() {
+        assert player != null || uuid != null;
+        // get state
+        PlayerData state;
+        if (player == null) {
+            DifficultyDeathScaler.LOGGER.info("Saving player with uuid {} difficulty data", uuid);
+            state = StateSaver.getPlayerState(server, uuid);
+        } else {
+            DifficultyDeathScaler.LOGGER.info("Saving player ({}) difficulty data", player.getUuid());
+            state = StateSaver.getPlayerState(player);
+        }
+        // save state
+        save(state);
+
+        final var ends = new long[deathDay];
+        for (int i = 0; i < deathDay; i++) ends[i] = deathDayEnd.get(i);
+        state.deathDayEnd = ends;
+
+        state.bonusHearts = bonusHearts;
     }
 
     @Override
-    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
+    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater, int before) {
         updateModifiersValue(updater);
 
         if (player == null) return;
+
+        ModCriteria.REACH_PLAYER_DIFFICULTY.trigger(player, numberOfDeath);
+        if (updateType == UpdateType.DECREASE && before >= 15)
+            ModCriteria.ARBITRARY.trigger(player, AdvancementProvider.LEAVE_NO_RETURN_PLAYER);
 
         player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
@@ -171,8 +208,27 @@ public class PlayerDifficultyManager extends DifficultyManager {
             } else if (m instanceof final MovementSpeedModifier mod) {
                 movementSpeedModifier = mod.getValue();
                 if (player != null) mod.apply(player);
+            } else if (m instanceof final WaypointTransmitModifier mod) {
+                waypointTransmitModifier = mod.getValue();
+                if (player != null) mod.apply(player);
             }
         });
+        applyBonusHearts();
+    }
+
+    private void applyBonusHearts() {
+        if (player == null) return;
+        Modifier.apply(BONUS_HEARTS_ID, EntityAttributes.MAX_HEALTH, EntityAttributeModifier.Operation.ADD_VALUE, player, bonusHearts * 2);
+    }
+
+    public void increaseBonusHearts() {
+        bonusHearts = Math.min(bonusHearts + 1, 5); // limit to 5 hearts
+        applyBonusHearts();
+    }
+
+    public void resetBonusHearts() {
+        bonusHearts = 0;
+        applyBonusHearts();
     }
 
     @Override
@@ -186,11 +242,11 @@ public class PlayerDifficultyManager extends DifficultyManager {
             txt.append("You died ");
             final var t = Text.empty();
             if (deathDay >= 4) {
-                t.formatted(Formatting.RED);
+                t.formatted(Constants.COLOR_DANGER);
             } else if (deathDay >= 2) {
-                t.formatted(Formatting.YELLOW);
+                t.formatted(Constants.COLOR_WARNING);
             } else {
-                t.formatted(Formatting.DARK_GREEN);
+                t.formatted(Constants.COLOR_OK);
             }
             t.append(String.format("%d", deathDay));
             txt.append(t).append(" time");
@@ -198,7 +254,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 txt.append("s");
             }
             txt.append(" in 24 hours. You will lose one of these in ");
-            txt.append(Text.literal(formatSecondsBig(deathDayEnd.getFirst() - System.currentTimeMillis() / 1000)).formatted(Formatting.YELLOW));
+            txt.append(Text.literal(formatSecondsBig(deathDayEnd.getFirst() - System.currentTimeMillis() / 1000)).formatted(Constants.COLOR_TIME));
             txt.append(".\n");
         }
         txt.append("\n");
@@ -206,11 +262,11 @@ public class PlayerDifficultyManager extends DifficultyManager {
         txt.append("Max hearts: ");
         final var t = Text.empty();
         if (heartAmount == 10) {
-            t.formatted(Formatting.DARK_GREEN);
+            t.formatted(Constants.COLOR_OK);
         } else if (heartAmount >= 8) {
-            t.formatted(Formatting.YELLOW);
+            t.formatted(Constants.COLOR_WARNING);
         } else {
-            t.formatted(Formatting.RED);
+            t.formatted(Constants.COLOR_DANGER);
         }
         t.append(String.format("%.0f ❤", heartAmount));
         txt.append(t).append("\n\n");
@@ -225,31 +281,14 @@ public class PlayerDifficultyManager extends DifficultyManager {
         applyModifiers();
     }
 
-    public void save() {
-        assert player != null || uuid != null;
-        // get state
-        PlayerData state;
-        if (player == null) {
-            DifficultyDeathScaler.LOGGER.info("Saving player with uuid {} difficulty data", uuid);
-            state = StateSaver.getPlayerState(server, uuid);
-        } else {
-            DifficultyDeathScaler.LOGGER.info("Saving player ({}) difficulty data", player.getUuid());
-            state = StateSaver.getPlayerState(player);
-        }
-        // save state
-        save(state);
-
-        final var ends = new long[deathDay];
-        for (int i = 0; i < deathDay; i++) ends[i] = deathDayEnd.get(i);
-        state.deathDayEnd = ends;
-    }
-
     public void applyModifiers() {
         assert player != null;
         HealthModifier.apply(player, healthModifier);
 //        LuckModifier.apply(player, luckModifier);
         BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);
         MovementSpeedModifier.apply(player, movementSpeedModifier);
+        WaypointTransmitModifier.apply(player, waypointTransmitModifier);
+        applyBonusHearts();
     }
 
     public void setDeathDay(int n) {

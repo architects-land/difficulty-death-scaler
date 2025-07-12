@@ -241,9 +241,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
         if (deathDay != 0) {
             txt.append("You died ");
             final var t = Text.empty();
-            if (deathDay >= 4) {
+            if (deathDay >= 0.8f * DEATH_BEFORE_TEMP_BAN) {
                 t.formatted(Constants.COLOR_DANGER);
-            } else if (deathDay >= 2) {
+            } else if (deathDay >= 0.4f * DEATH_BEFORE_TEMP_BAN) {
                 t.formatted(Constants.COLOR_WARNING);
             } else {
                 t.formatted(Constants.COLOR_OK);

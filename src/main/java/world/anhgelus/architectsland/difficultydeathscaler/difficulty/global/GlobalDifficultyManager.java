@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
@@ -183,7 +184,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     }
 
     @Override
-    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
+    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater, int before) {
         final var difficulty = POLAR_NIGHT ? updater.getDifficulty() : Difficulty.HARD;
         server.setDifficulty(difficulty, true);
 
@@ -198,6 +199,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
             });
             playSoundUpdate(updateType, p);
             ModCriteria.REACH_GLOBAL_DIFFICULTY.trigger(p, numberOfDeath);
+            if (updateType == UpdateType.DECREASE && before >= 37)
+                ModCriteria.ARBITRARY.trigger(p, AdvancementProvider.LEAVE_NO_RETURN);
         });
 
         BossManager.onDifficultyUpdate(this);

@@ -18,6 +18,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class AdvancementProvider extends FabricAdvancementProvider {
+    public static final int LEAVE_NO_RETURN = 0;
+    public static final int LEAVE_NO_RETURN_PLAYER = 1;
+    public static final int DIFFICULTY_INCREASE = 2;
+
     protected AdvancementProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
         super(output, registryLookup);
     }
@@ -51,6 +55,51 @@ public class AdvancementProvider extends FabricAdvancementProvider {
         final var dangerousPlayerSteps = create(consumer, ModCriteria.REACH_PLAYER_DIFFICULTY, ominousPlayerSteps, Items.PIGLIN_HEAD, "Dangerous player steps reached!...", "Debuff are starting...", "dangerous_player_steps", 5, 10);
         final var evilPlayerSteps = create(consumer, ModCriteria.REACH_PLAYER_DIFFICULTY, dangerousPlayerSteps, Items.ZOMBIE_HEAD, "Evil player steps reached...", "Debuff are starting...", "evil_player_steps", 10, 12);
         final var noReturnPlayerSteps = create(consumer, ModCriteria.REACH_PLAYER_DIFFICULTY, evilPlayerSteps, Items.PLAYER_HEAD, "No return player steps reached...", "The only solution is waiting 24 hours...", "no_return_player_steps", 15, -1);
+
+        final var leaveNoReturn = Advancement.Builder.createUntelemetered()
+                .parent(noReturnsSteps)
+                .display(
+                        Items.NETHERITE_INGOT,
+                        Text.literal("Left global no return"),
+                        Text.literal("GG, you left the no return steps!"),
+                        null,
+                        AdvancementFrame.CHALLENGE,
+                        true,
+                        true,
+                        true
+                )
+                .criterion("leave_no_return", ModCriteria.ARBITRARY.create(new ArbitraryCriterion.Conditions(Optional.empty(), LEAVE_NO_RETURN)))
+                .build(consumer, getId("leave_no_return"));
+
+        final var leaveNoReturnPlayer = Advancement.Builder.createUntelemetered()
+                .parent(noReturnPlayerSteps)
+                .display(
+                        Items.NETHERITE_INGOT,
+                        Text.literal("Left your player no return"),
+                        Text.literal("GG, you left the no return steps!"),
+                        null,
+                        AdvancementFrame.CHALLENGE,
+                        true,
+                        true,
+                        true
+                )
+                .criterion("leave_no_return_player", ModCriteria.ARBITRARY.create(new ArbitraryCriterion.Conditions(Optional.empty(), LEAVE_NO_RETURN_PLAYER)))
+                .build(consumer, getId("leave_no_return_player"));
+
+        final var difficultyIncrease = Advancement.Builder.createUntelemetered()
+                .parent(ddsWorld)
+                .display(
+                        Items.NETHERITE_SWORD,
+                        Text.literal("Difficulty is increasing"),
+                        Text.literal("You are too strong, you will pay for that."),
+                        null,
+                        AdvancementFrame.GOAL,
+                        true,
+                        true,
+                        true
+                )
+                .criterion("difficulty_increase", ModCriteria.ARBITRARY.create(new ArbitraryCriterion.Conditions(Optional.empty(), DIFFICULTY_INCREASE)))
+                .build(consumer, getId("difficulty_increase"));
     }
 
     private AdvancementEntry create(Consumer<AdvancementEntry> consumer, ReachDifficultyCriterion crit, AdvancementEntry parent, Item item, String title, String subtitle, String id, int min, int max) {

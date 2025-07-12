@@ -11,6 +11,7 @@ import net.minecraft.world.Difficulty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
@@ -122,12 +123,14 @@ public class PlayerDifficultyManager extends DifficultyManager {
     }
 
     @Override
-    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater) {
+    protected void onUpdate(UpdateType updateType, DifficultyUpdater updater, int before) {
         updateModifiersValue(updater);
 
         if (player == null) return;
 
         ModCriteria.REACH_PLAYER_DIFFICULTY.trigger(player, numberOfDeath);
+        if (updateType == UpdateType.DECREASE && before >= 15)
+            ModCriteria.ARBITRARY.trigger(player, AdvancementProvider.LEAVE_NO_RETURN_PLAYER);
 
         player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 

@@ -9,6 +9,8 @@ import net.minecraft.util.Pair;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
@@ -61,8 +63,9 @@ public abstract class DifficultyManager extends DifficultyTimer {
      * @param n number of death
      */
     public void setNumberOfDeath(int n) {
+        final var before = numberOfDeath;
         numberOfDeath = n;
-        updateDeath(UpdateType.SET);
+        updateDeath(UpdateType.SET, before);
         updateTimerTask();
     }
 
@@ -75,9 +78,14 @@ public abstract class DifficultyManager extends DifficultyTimer {
     }
 
     public void increaseDeath(boolean automaticIncrease) {
+        final var before = numberOfDeath;
         numberOfDeath++;
-        if (automaticIncrease) updateDeath(UpdateType.AUTOMATIC_INCREASE);
-        else updateDeath(UpdateType.INCREASE);
+        if (automaticIncrease) {
+            server.getPlayerManager().getPlayerList().forEach(p -> {
+                ModCriteria.ARBITRARY.trigger(p, AdvancementProvider.DIFFICULTY_INCREASE);
+            });
+            updateDeath(UpdateType.AUTOMATIC_INCREASE, before);
+        } else updateDeath(UpdateType.INCREASE, before);
         updateTimerTask();
     }
 
@@ -108,6 +116,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
             return;
         }
 
+        final var before = numberOfDeath;
+
         for (int i = steps.length - 1; i > 0; i--) {
             if (numberOfDeath >= steps[i].level()) {
                 numberOfDeath = steps[i - 1].level();
@@ -115,17 +125,17 @@ public abstract class DifficultyManager extends DifficultyTimer {
             }
         }
 
-        updateDeath(UpdateType.DECREASE);
+        updateDeath(UpdateType.DECREASE, before);
     }
 
-    protected void updateDeath(UpdateType updateType) {
+    protected void updateDeath(UpdateType updateType, int before) {
         final var updater = getUpdater();
 
         if (updateType == UpdateType.INCREASE) onDeath(updateType, updater); // increase is always linked with the death
 
         if (Arrays.stream(steps).noneMatch(x -> x.level() == numberOfDeath) && updateType != UpdateType.SET) return;
 
-        onUpdate(updateType, updater);
+        onUpdate(updateType, updater, before);
     }
 
     protected DifficultyUpdater getUpdater() {
@@ -154,7 +164,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
         return generateDifficultyUpdate(null, difficulty);
     }
 
-    protected abstract void onUpdate(UpdateType updateType, DifficultyUpdater updater);
+    protected abstract void onUpdate(UpdateType updateType, DifficultyUpdater updater, int before);
 
     protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
         totalOfDeath++;

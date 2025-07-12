@@ -1,0 +1,26 @@
+{
+  "parent": "difficulty-death-scaler:dds_world",
+  "criteria": {
+    "difficulty_increase": {
+      "conditions": {
+        "id": 2
+      },
+      "trigger": "difficulty-death-scaler:arbitrary"
+    }
+  },
+  "display": {
+    "description": "You are too strong, you will pay for that.",
+    "frame": "goal",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "minecraft:netherite_sword"
+    },
+    "title": "Difficulty is increasing"
+  },
+  "requirements": [
+    [
+      "difficulty_increase"
+    ]
+  ]
+}

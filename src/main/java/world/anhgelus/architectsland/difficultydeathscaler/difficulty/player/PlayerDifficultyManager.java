@@ -1,5 +1,7 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.server.BannedPlayerEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -76,6 +78,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 updater.getModifier(HealthModifier.class).update(-10);
             }),
     };
+    public static final Identifier BONUS_HEARTS_ID = Identifier.of(Modifier.PREFIX + "bonus_hearts_modifier");
     public static boolean ENABLE_TEMP_BAN = true;
     public static int DEATH_BEFORE_TEMP_BAN = 5;
     public static int TEMP_BAN_DURATION = 12;
@@ -89,6 +92,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     protected double blockBreakSpeedModifier = 0;
     protected double movementSpeedModifier = 0;
     private int deathDay;
+    private int bonusHearts = 0;
 
     public PlayerDifficultyManager(MinecraftServer server, GlobalDifficultyManager globalManager, ServerPlayerEntity player) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -120,6 +124,28 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 deathDay--;
             }
         }
+        bonusHearts = data.bonusHearts;
+    }
+
+    public void save() {
+        assert player != null || uuid != null;
+        // get state
+        PlayerData state;
+        if (player == null) {
+            DifficultyDeathScaler.LOGGER.info("Saving player with uuid {} difficulty data", uuid);
+            state = StateSaver.getPlayerState(server, uuid);
+        } else {
+            DifficultyDeathScaler.LOGGER.info("Saving player ({}) difficulty data", player.getUuid());
+            state = StateSaver.getPlayerState(player);
+        }
+        // save state
+        save(state);
+
+        final var ends = new long[deathDay];
+        for (int i = 0; i < deathDay; i++) ends[i] = deathDayEnd.get(i);
+        state.deathDayEnd = ends;
+
+        state.bonusHearts = bonusHearts;
     }
 
     @Override
@@ -183,6 +209,22 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 if (player != null) mod.apply(player);
             }
         });
+        applyBonusHearts();
+    }
+
+    private void applyBonusHearts() {
+        if (player == null) return;
+        Modifier.apply(BONUS_HEARTS_ID, EntityAttributes.MAX_HEALTH, EntityAttributeModifier.Operation.ADD_VALUE, player, bonusHearts * 2);
+    }
+
+    public void increaseBonusHearts() {
+        bonusHearts = Math.min(bonusHearts + 1, 5); // limit to 5 hearts
+        applyBonusHearts();
+    }
+
+    public void resetBonusHearts() {
+        bonusHearts = 0;
+        applyBonusHearts();
     }
 
     @Override
@@ -233,25 +275,6 @@ public class PlayerDifficultyManager extends DifficultyManager {
     @Override
     public void applyModifiers(ServerPlayerEntity player) {
         applyModifiers();
-    }
-
-    public void save() {
-        assert player != null || uuid != null;
-        // get state
-        PlayerData state;
-        if (player == null) {
-            DifficultyDeathScaler.LOGGER.info("Saving player with uuid {} difficulty data", uuid);
-            state = StateSaver.getPlayerState(server, uuid);
-        } else {
-            DifficultyDeathScaler.LOGGER.info("Saving player ({}) difficulty data", player.getUuid());
-            state = StateSaver.getPlayerState(player);
-        }
-        // save state
-        save(state);
-
-        final var ends = new long[deathDay];
-        for (int i = 0; i < deathDay; i++) ends[i] = deathDayEnd.get(i);
-        state.deathDayEnd = ends;
     }
 
     public void applyModifiers() {

@@ -147,6 +147,9 @@ public class Bounty extends DifficultyTimer {
         attackerDifficulty.setNumberOfDeath(playerDifficulty.getNumberOfDeath());
         playerDifficulty.setNumberOfDeath(n);
 
+        attackerDifficulty.increaseBonusHearts();
+        playerDifficulty.resetBonusHearts();
+
         ModCriteria.BOUNTY.trigger(player, AdvancementProvider.BOUNTY_KILLED);
         ModCriteria.BOUNTY.trigger(attackerDifficulty.player, AdvancementProvider.BOUNTY_KILLER);
     }

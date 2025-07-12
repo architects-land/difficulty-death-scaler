@@ -233,7 +233,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
 
     @Override
     protected @NotNull Text generateDifficultyUpdate(UpdateType updateType, @Nullable Difficulty difficulty) {
-        final var heartAmount = (20 + healthModifier + globalManager.getHealthModifier()) / 2;
+        final var heartAmount = (20 + healthModifier + globalManager.getHealthModifier()) / 2 + bonusHearts;
 
         final var txt = Text.empty();
         txt.append(generateHeaderUpdate(updateType));
@@ -368,6 +368,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 .append(deathDay)
                 .append(") {health modifier=")
                 .append(healthModifier)
+                .append(", bonus hearts=")
+                .append(bonusHearts)
 //                .append(", luck modifier=")
 //                .append(luckModifier)
                 .append(", block break speed modifier=")

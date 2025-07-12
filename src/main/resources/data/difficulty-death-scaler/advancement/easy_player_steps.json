@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:dds_world",
+  "criteria": {
+    "easy_player_steps": {
+      "conditions": {
+        "max": 2,
+        "min": 0
+      },
+      "trigger": "difficulty-death-scaler:player_difficulty"
+    }
+  },
+  "display": {
+    "description": "You have op buff",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:dandelion"
+    },
+    "title": "Easy player steps reached!"
+  },
+  "requirements": [
+    [
+      "easy_player_steps"
+    ]
+  ]
+}

@@ -6,7 +6,7 @@
         "max": 28,
         "min": 20
       },
-      "trigger": "difficulty-death-scaler:difficulty"
+      "trigger": "difficulty-death-scaler:global_difficulty"
     }
   },
   "display": {

@@ -11,6 +11,7 @@ import net.minecraft.world.Difficulty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
@@ -125,6 +126,8 @@ public class PlayerDifficultyManager extends DifficultyManager {
         updateModifiersValue(updater);
 
         if (player == null) return;
+
+        ModCriteria.REACH_PLAYER_DIFFICULTY.trigger(player, numberOfDeath);
 
         player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 

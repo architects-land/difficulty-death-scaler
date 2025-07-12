@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:evil_player_steps",
+  "criteria": {
+    "no_return_player_steps": {
+      "conditions": {
+        "max": -1,
+        "min": 15
+      },
+      "trigger": "difficulty-death-scaler:player_difficulty"
+    }
+  },
+  "display": {
+    "description": "The only solution is waiting 24 hours...",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:player_head"
+    },
+    "title": "No return player steps reached..."
+  },
+  "requirements": [
+    [
+      "no_return_player_steps"
+    ]
+  ]
+}

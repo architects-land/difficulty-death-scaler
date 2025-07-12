@@ -50,7 +50,8 @@ public class PlayerListener {
         final var difficultyManager = Getters.GLOBAL_DIFFICULTY_GETTER.get();
         difficultyManager.applyModifiers(player);
 
-        ModCriteria.REACH_DIFFICULTY.trigger(player, difficultyManager.getNumberOfDeath());
+        ModCriteria.REACH_GLOBAL_DIFFICULTY.trigger(player, difficultyManager.getNumberOfDeath());
+        ModCriteria.REACH_PLAYER_DIFFICULTY.trigger(player, playerDifficulty.getNumberOfDeath());
 
         player.sendMessage(Bounty.getBountiesMessage());
 

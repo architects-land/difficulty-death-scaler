@@ -38,14 +38,22 @@ public class AdvancementProvider extends FabricAdvancementProvider {
                 .criterion("joined", TickCriterion.Conditions.createTick())
                 .build(consumer, getId("dds_world"));
 
-        final var easySteps = create(consumer, ddsWorld, Items.POPPY, "Easy steps reached!", "The world is easier than vanilla", "easy_steps", 0, 7);
-        final var ominousSteps = create(consumer, easySteps, Items.SHIELD, "Ominous steps reached!", "The world is becoming harder", "ominous_steps", 7, 20);
-        final var dangerousSteps = create(consumer, ominousSteps, Items.SKELETON_SKULL, "Dangerous steps reached!...", "The world wants to kill you", "dangerous_steps", 20, 28);
-        final var evilSteps = create(consumer, dangerousSteps, Items.WITHER_SKELETON_SKULL, "Evil steps reached...", "Please stops dying", "evil_steps", 28, 37);
-        final var noReturnsSteps = create(consumer, evilSteps, Items.WITHER_ROSE, "No return is possible now...", "Your nightmares become true...", "no_return_steps", 37, -1);
+        // global difficulty
+        final var easySteps = create(consumer, ModCriteria.REACH_GLOBAL_DIFFICULTY, ddsWorld, Items.POPPY, "Easy steps reached!", "The world is easier than vanilla", "easy_steps", 0, 7);
+        final var ominousSteps = create(consumer, ModCriteria.REACH_GLOBAL_DIFFICULTY, easySteps, Items.SHIELD, "Ominous steps reached!", "The world is becoming harder", "ominous_steps", 7, 20);
+        final var dangerousSteps = create(consumer, ModCriteria.REACH_GLOBAL_DIFFICULTY, ominousSteps, Items.SKELETON_SKULL, "Dangerous steps reached!...", "The world wants to kill you", "dangerous_steps", 20, 28);
+        final var evilSteps = create(consumer, ModCriteria.REACH_GLOBAL_DIFFICULTY, dangerousSteps, Items.WITHER_SKELETON_SKULL, "Evil steps reached...", "Please stops dying", "evil_steps", 28, 37);
+        final var noReturnsSteps = create(consumer, ModCriteria.REACH_GLOBAL_DIFFICULTY, evilSteps, Items.WITHER_ROSE, "No return is possible now...", "Your nightmares become true...", "no_return_steps", 37, -1);
+
+        // player difficulty
+        final var easyPlayerSteps = create(consumer, ModCriteria.REACH_PLAYER_DIFFICULTY, ddsWorld, Items.DANDELION, "Easy player steps reached!", "You have op buff", "easy_player_steps", 0, 2);
+        final var ominousPlayerSteps = create(consumer, ModCriteria.REACH_PLAYER_DIFFICULTY, easyPlayerSteps, Items.GOLDEN_AXE, "Ominous player steps reached!", "Debuff are starting...", "ominous_player_steps", 2, 5);
+        final var dangerousPlayerSteps = create(consumer, ModCriteria.REACH_PLAYER_DIFFICULTY, ominousPlayerSteps, Items.PIGLIN_HEAD, "Dangerous player steps reached!...", "Debuff are starting...", "dangerous_player_steps", 5, 10);
+        final var evilPlayerSteps = create(consumer, ModCriteria.REACH_PLAYER_DIFFICULTY, dangerousPlayerSteps, Items.ZOMBIE_HEAD, "Evil player steps reached...", "Debuff are starting...", "evil_player_steps", 10, 12);
+        final var noReturnPlayerSteps = create(consumer, ModCriteria.REACH_PLAYER_DIFFICULTY, evilPlayerSteps, Items.PLAYER_HEAD, "No return player steps reached...", "The only solution is waiting 24 hours...", "no_return_player_steps", 15, -1);
     }
 
-    private AdvancementEntry create(Consumer<AdvancementEntry> consumer, AdvancementEntry parent, Item item, String title, String subtitle, String id, int min, int max) {
+    private AdvancementEntry create(Consumer<AdvancementEntry> consumer, ReachDifficultyCriterion crit, AdvancementEntry parent, Item item, String title, String subtitle, String id, int min, int max) {
         return Advancement.Builder.createUntelemetered()
                 .parent(parent)
                 .display(
@@ -58,7 +66,7 @@ public class AdvancementProvider extends FabricAdvancementProvider {
                         true,
                         false
                 )
-                .criterion(id, ModCriteria.REACH_DIFFICULTY.create(new ReachDifficultyCriterion.Conditions(Optional.empty(), min, max)))
+                .criterion(id, crit.create(new ReachDifficultyCriterion.Conditions(Optional.empty(), min, max)))
                 .build(consumer, getId(id));
     }
 

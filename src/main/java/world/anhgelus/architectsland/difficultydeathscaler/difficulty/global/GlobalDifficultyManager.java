@@ -197,7 +197,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 else if (m instanceof final FallDamageMultiplierModifier mod) mod.apply(p);
             });
             playSoundUpdate(updateType, p);
-            ModCriteria.REACH_DIFFICULTY.trigger(p, numberOfDeath);
+            ModCriteria.REACH_GLOBAL_DIFFICULTY.trigger(p, numberOfDeath);
         });
 
         BossManager.onDifficultyUpdate(this);

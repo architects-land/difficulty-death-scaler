@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:easy_player_steps",
+  "criteria": {
+    "ominous_player_steps": {
+      "conditions": {
+        "max": 5,
+        "min": 2
+      },
+      "trigger": "difficulty-death-scaler:player_difficulty"
+    }
+  },
+  "display": {
+    "description": "Debuff are starting...",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:golden_axe"
+    },
+    "title": "Ominous player steps reached!"
+  },
+  "requirements": [
+    [
+      "ominous_player_steps"
+    ]
+  ]
+}

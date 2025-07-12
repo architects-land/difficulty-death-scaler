@@ -25,8 +25,8 @@ public class Bounty extends DifficultyTimer {
     public static boolean ENABLED = true;
     private final GlobalDifficultyManager globalDifficulty;
     private final PlayerDifficultyManager playerDifficulty;
+    private final TimerAccess.TickTask task;
     private ServerPlayerEntity player;
-
     private boolean enabled = false;
 
     private Bounty(MinecraftServer server, GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
@@ -40,14 +40,16 @@ public class Bounty extends DifficultyTimer {
 
         DifficultyDeathScaler.LOGGER.info("New bounty {} broadcast in {} minutes", this, delay * 5);
 
-        timer.dds_runTask(new TickTask(() -> {
+        task = new TickTask(() -> {
             enabled = true;
             bountyBroadcast();
             server.getPlayerManager().getPlayerList().forEach(p -> {
                 ModCriteria.BOUNTY.trigger(p, AdvancementProvider.BOUNTY_BE_PRESENT);
             });
             ModCriteria.BOUNTY.trigger(player, AdvancementProvider.BOUNTY_RECEIVE);
-        }, Math.round(delay * 5 * 60 * 20L)));
+        }, Math.round(delay * 5 * 60 * 20L));
+
+        timer.dds_runTask(task);
     }
 
     @Nullable
@@ -161,7 +163,10 @@ public class Bounty extends DifficultyTimer {
     }
 
     public void onDisconnect() {
-        if (!enabled) return;
+        if (!enabled) {
+            if (task.isRunning()) task.cancel();
+            return;
+        }
         enabled = false;
         final var txt = Text.empty().append(getBountyHeader());
         txt.append(Text.empty().append(player.getDisplayName()).formatted(Constants.COLOR_DANGER));

@@ -27,9 +27,9 @@ public class AdvancementProvider extends FabricAdvancementProvider {
         final var ddsWorld = Advancement.Builder.createUntelemetered()
                 .display(
                         Items.GRASS_BLOCK,
-                        Text.literal("Difficulty Death Scaler world"),
+                        Text.literal("Difficulty Death Scaler"),
                         Text.literal("Welcome to a world governed by Difficulty Death Scaler!"),
-                        Identifier.ofVanilla("textures/gui/advancements/backgrounds/adventure.png"),
+                        Identifier.of(""), // force the "no texture"
                         AdvancementFrame.TASK,
                         true,
                         true,
@@ -42,7 +42,7 @@ public class AdvancementProvider extends FabricAdvancementProvider {
         final var ominousSteps = create(consumer, easySteps, Items.SHIELD, "Ominous steps reached!", "The world is becoming harder", "ominous_steps", 7);
         final var dangerousSteps = create(consumer, ominousSteps, Items.SKELETON_SKULL, "Dangerous steps reached!...", "The world wants to kill you", "dangerous_steps", 20);
         final var evilSteps = create(consumer, dangerousSteps, Items.WITHER_SKELETON_SKULL, "Evil steps reached...", "Please stops dying", "evil_steps", 28);
-        final var noReturnsSteps = create(consumer, evilSteps, Items.WITHER_ROSE, "No return is possible now...", "Your nightmares are true...", "no_return_steps", 37);
+        final var noReturnsSteps = create(consumer, evilSteps, Items.WITHER_ROSE, "No return is possible now...", "Your nightmares become true...", "no_return_steps", 37);
     }
 
     private AdvancementEntry create(Consumer<AdvancementEntry> consumer, AdvancementEntry parent, Item item, String title, String subtitle, String id, int difficulty) {

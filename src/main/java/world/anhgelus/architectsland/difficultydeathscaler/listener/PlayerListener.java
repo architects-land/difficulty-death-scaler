@@ -1,12 +1,9 @@
 package world.anhgelus.architectsland.difficultydeathscaler.listener;
 
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -14,6 +11,7 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
@@ -44,20 +42,24 @@ public class PlayerListener {
         bounty.onDeath();
     }
 
-    public static void onConnection(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
-        final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(server, handler.player);
+    public static void onConnection(ServerPlayerEntity player) {
+        final var server = player.getServer();
+        final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(server, player);
         playerDifficulty.applyModifiers();
 
         final var difficultyManager = Getters.GLOBAL_DIFFICULTY_GETTER.get();
-        difficultyManager.applyModifiers(handler.player);
+        difficultyManager.applyModifiers(player);
 
-        handler.player.sendMessage(Bounty.getBountiesMessage());
+        for (int i = 0; i <= difficultyManager.getNumberOfDeath(); i++)
+            ModCriteria.REACH_DIFFICULTY.trigger(player, i);
+
+        player.sendMessage(Bounty.getBountiesMessage());
 
         Bounty.newBounty(server, difficultyManager, playerDifficulty);
     }
 
-    public static void onDisconnection(ServerPlayNetworkHandler handler, MinecraftServer server) {
-        final var bounty = Bounty.get(handler.player.getUuid());
+    public static void onDisconnection(ServerPlayerEntity player) {
+        final var bounty = Bounty.get(player.getUuid());
         if (bounty == null) return;
         bounty.onDisconnect();
     }

@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -134,9 +133,9 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerPlayerEvents.AFTER_RESPAWN.register(PlayerListener::afterRespawn);
 
-        ServerPlayConnectionEvents.JOIN.register(PlayerListener::onConnection);
+        ServerPlayerEvents.JOIN.register(PlayerListener::onConnection);
 
-        ServerPlayConnectionEvents.DISCONNECT.register(PlayerListener::onDisconnection);
+        ServerPlayerEvents.LEAVE.register(PlayerListener::onDisconnection);
 
         UseEntityCallback.EVENT.register(PlayerListener::useItemCallback);
 

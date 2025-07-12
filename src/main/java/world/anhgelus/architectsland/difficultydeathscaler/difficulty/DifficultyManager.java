@@ -65,6 +65,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
     public void setNumberOfDeath(int n) {
         final var before = numberOfDeath;
         numberOfDeath = n;
+        // this order is required because without it will break the counter
+        // BUT this provokes a bad timer to be displayed after restart (not really important)
         updateDeath(UpdateType.SET, before);
         updateTimerTask();
     }

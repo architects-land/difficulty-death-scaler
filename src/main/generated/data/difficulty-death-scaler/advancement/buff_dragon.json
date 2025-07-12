@@ -1,0 +1,26 @@
+{
+  "parent": "difficulty-death-scaler:buff_boss",
+  "criteria": {
+    "buff_dragon": {
+      "conditions": {
+        "entity": "net.minecraft.entity.boss.dragon.EnderDragonEntity",
+        "killed": false
+      },
+      "trigger": "difficulty-death-scaler:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Buff the Ender Dragon with a netherite ingot",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:ender_eye"
+    },
+    "title": "Buff the Ender Dragon"
+  },
+  "requirements": [
+    [
+      "buff_dragon"
+    ]
+  ]
+}

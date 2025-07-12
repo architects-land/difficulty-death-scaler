@@ -10,7 +10,7 @@
     }
   },
   "display": {
-    "description": "Debuff are starting...",
+    "description": "You are weak",
     "icon": {
       "count": 1,
       "id": "minecraft:piglin_head"

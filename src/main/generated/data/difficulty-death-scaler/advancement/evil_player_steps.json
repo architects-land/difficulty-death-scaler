@@ -10,7 +10,7 @@
     }
   },
   "display": {
-    "description": "Debuff are starting...",
+    "description": "You are really weak, proceed with caution",
     "icon": {
       "count": 1,
       "id": "minecraft:zombie_head"

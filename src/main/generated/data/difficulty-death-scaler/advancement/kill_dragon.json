@@ -1,0 +1,26 @@
+{
+  "parent": "difficulty-death-scaler:buff_dragon",
+  "criteria": {
+    "kill_dragon": {
+      "conditions": {
+        "entity": "net.minecraft.entity.boss.dragon.EnderDragonEntity",
+        "killed": true
+      },
+      "trigger": "difficulty-death-scaler:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Kill the buffed Ender Dragon to decrease the difficulty",
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:ender_eye"
+    },
+    "title": "Kill the buffed Ender Dragon"
+  },
+  "requirements": [
+    [
+      "kill_dragon"
+    ]
+  ]
+}

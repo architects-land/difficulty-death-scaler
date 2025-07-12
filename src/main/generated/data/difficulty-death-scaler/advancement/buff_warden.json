@@ -1,0 +1,26 @@
+{
+  "parent": "difficulty-death-scaler:buff_boss",
+  "criteria": {
+    "buff_warden": {
+      "conditions": {
+        "entity": "net.minecraft.entity.mob.WardenEntity",
+        "killed": false
+      },
+      "trigger": "difficulty-death-scaler:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Buff a warden with a netherite ingot",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:sculk_shrieker"
+    },
+    "title": "Buff a warden"
+  },
+  "requirements": [
+    [
+      "buff_warden"
+    ]
+  ]
+}

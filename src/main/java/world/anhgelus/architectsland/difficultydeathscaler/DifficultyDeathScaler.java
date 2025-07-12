@@ -125,7 +125,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (!(entity instanceof ServerPlayerEntity player)) {
-                BossManager.handleKill(entity, difficultyManager);
+                BossManager.handleKill(entity, damageSource, difficultyManager);
                 return;
             }
             PlayerListener.afterDeath(player, damageSource);

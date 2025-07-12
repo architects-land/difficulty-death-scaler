@@ -65,8 +65,9 @@ public class PlayerListener {
     }
 
     public static ActionResult useItemCallback(PlayerEntity player, World world, Hand hand, Entity entity, @Nullable EntityHitResult hitResult) {
+        if (!(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
         return entity instanceof LivingEntity
-                ? BossManager.handleBuff(player, world, hand, (LivingEntity) entity)
+                ? BossManager.handleBuff((ServerPlayerEntity) player, world, hand, (LivingEntity) entity)
                 : ActionResult.PASS;
     }
 }

@@ -225,9 +225,8 @@ public abstract class DifficultyManager extends DifficultyTimer {
     protected Text generateFooterUpdate(Step[] steps, String beginning, UpdateType updateType) {
         final var txt = Text.empty();
         if (numberOfDeath < steps[1].level()) {
-            return txt.append("The difficulty cannot get lower. Congratulations!\n")
-                    .append("=============================================")
-                    .formatted(Formatting.DARK_GRAY);
+            return txt.append(Text.literal("The difficulty cannot get lower. Congratulations!\n").formatted(Formatting.DARK_GREEN))
+                    .append(Text.literal("=============================================").formatted(Formatting.DARK_GRAY));
         }
 
         if (updateType == UpdateType.DECREASE) {

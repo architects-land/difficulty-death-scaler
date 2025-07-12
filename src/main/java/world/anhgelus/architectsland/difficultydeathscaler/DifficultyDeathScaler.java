@@ -24,6 +24,7 @@ import net.minecraft.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyCommand;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
@@ -92,7 +93,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Difficulty Death Scaler initialized");
+        ModCriteria.init();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             DifficultyCommand.register(dispatcher);
@@ -171,6 +172,8 @@ public class DifficultyDeathScaler implements ModInitializer {
             if (!(entity instanceof PlayerEntity)) return ActionResult.PASS;
             return Sleeper.canSleep() ? ActionResult.PASS : ActionResult.FAIL;
         });
+
+        LOGGER.info("Difficulty Death Scaler initialized");
     }
 
     /**

@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
@@ -196,6 +197,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 else if (m instanceof final FallDamageMultiplierModifier mod) mod.apply(p);
             });
             playSoundUpdate(updateType, p);
+            ModCriteria.REACH_DIFFICULTY.trigger(p, numberOfDeath);
         });
 
         BossManager.onDifficultyUpdate(this);

@@ -288,6 +288,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
         BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);
         MovementSpeedModifier.apply(player, movementSpeedModifier);
         WaypointTransmitModifier.apply(player, waypointTransmitModifier);
+        applyBonusHearts();
     }
 
     public void setDeathDay(int n) {

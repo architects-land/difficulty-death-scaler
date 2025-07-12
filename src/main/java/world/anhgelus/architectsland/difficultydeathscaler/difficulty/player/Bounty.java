@@ -117,7 +117,7 @@ public class Bounty extends DifficultyTimer {
         txt.append("\n\n");
         txt.append("If you kill ");
         txt.append(Text.empty().append(player.getDisplayName()).formatted(Constants.COLOR_DANGER));
-        txt.append(", you will swap your personal difficulty!\n\n");
+        txt.append(", you will swap your personal difficulty and gain a bonus heart!\n\n");
         txt.append("Good luck!\n");
         txt.append(getBountyFooter());
 
@@ -134,7 +134,6 @@ public class Bounty extends DifficultyTimer {
         txt.append(" killed ");
         txt.append(Text.empty().append(player.getDisplayName()).formatted(Constants.COLOR_DANGER));
         txt.append("!\n");
-        txt.append("They swap their player difficulty!\n");
         txt.append(getBountyFooter());
 
         if (player.getServer() == null) {

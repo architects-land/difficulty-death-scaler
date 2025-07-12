@@ -10,7 +10,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
@@ -22,6 +21,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 import java.util.List;
@@ -230,27 +230,27 @@ public class GlobalDifficultyManager extends DifficultyManager {
         txt.append(generateHeaderUpdate(updateType));
         txt.append("World Difficulty: ");
         if (difficulty == Difficulty.EASY) {
-            txt.append(Text.literal("Easy").formatted(Formatting.DARK_GREEN));
+            txt.append(Text.literal("Easy").formatted(Constants.COLOR_OK));
         } else if (difficulty == Difficulty.NORMAL) {
-            txt.append(Text.literal("Normal").formatted(Formatting.YELLOW));
+            txt.append(Text.literal("Normal").formatted(Constants.COLOR_WARNING));
         } else {
-            txt.append(Text.literal("Hard").formatted(Formatting.RED));
+            txt.append(Text.literal("Hard").formatted(Constants.COLOR_DANGER));
         }
         if (numberOfDeath >= STEPS[1].level()) {
             txt.append("\n\n");
         }
         if (numberOfDeath >= STEPS[STEPS.length - 1].level()) {
-            txt.append(Text.literal("Well... Good luck... you dont have regen anymore").formatted(Formatting.RED));
+            txt.append(Text.literal("Well... Good luck... you dont have regen anymore").formatted(Constants.COLOR_DANGER));
         } else if (numberOfDeath >= STEPS[21].level()) {
-            txt.append(Text.literal("Nether is gonna be very dangerous").formatted(Formatting.RED));
+            txt.append(Text.literal("Nether is gonna be very dangerous").formatted(Constants.COLOR_DANGER));
         } else if (numberOfDeath >= STEPS[9].level()) {
-            txt.append(Text.literal("This is so fcking annoying!").formatted(Formatting.YELLOW));
+            txt.append(Text.literal("This is so fcking annoying!").formatted(Constants.COLOR_WARNING));
         } else if (numberOfDeath >= STEPS[5].level()) {
-            txt.append(Text.literal("Mobs are modified, right?...").formatted(Formatting.YELLOW));
+            txt.append(Text.literal("Mobs are modified, right?...").formatted(Constants.COLOR_WARNING));
         } else if (numberOfDeath >= STEPS[3].level()) {
-            txt.append(Text.literal("Normal difficulty is back!").formatted(Formatting.DARK_GREEN));
+            txt.append(Text.literal("Normal difficulty is back!").formatted(Constants.COLOR_OK));
         } else if (numberOfDeath >= STEPS[1].level()) {
-            txt.append(Text.literal("Oh no, the difficulty is becoming harder.").formatted(Formatting.DARK_GREEN));
+            txt.append(Text.literal("Oh no, the difficulty is becoming harder.").formatted(Constants.COLOR_OK));
         }
         txt.append("\n\n");
 

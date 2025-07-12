@@ -6,7 +6,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +17,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -191,11 +191,11 @@ public class PlayerDifficultyManager extends DifficultyManager {
             txt.append("You died ");
             final var t = Text.empty();
             if (deathDay >= 4) {
-                t.formatted(Formatting.RED);
+                t.formatted(Constants.COLOR_DANGER);
             } else if (deathDay >= 2) {
-                t.formatted(Formatting.YELLOW);
+                t.formatted(Constants.COLOR_WARNING);
             } else {
-                t.formatted(Formatting.DARK_GREEN);
+                t.formatted(Constants.COLOR_OK);
             }
             t.append(String.format("%d", deathDay));
             txt.append(t).append(" time");
@@ -203,7 +203,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
                 txt.append("s");
             }
             txt.append(" in 24 hours. You will lose one of these in ");
-            txt.append(Text.literal(formatSecondsBig(deathDayEnd.getFirst() - System.currentTimeMillis() / 1000)).formatted(Formatting.GOLD));
+            txt.append(Text.literal(formatSecondsBig(deathDayEnd.getFirst() - System.currentTimeMillis() / 1000)).formatted(Constants.COLOR_TIME));
             txt.append(".\n");
         }
         txt.append("\n");
@@ -211,11 +211,11 @@ public class PlayerDifficultyManager extends DifficultyManager {
         txt.append("Max hearts: ");
         final var t = Text.empty();
         if (heartAmount == 10) {
-            t.formatted(Formatting.DARK_GREEN);
+            t.formatted(Constants.COLOR_OK);
         } else if (heartAmount >= 8) {
-            t.formatted(Formatting.YELLOW);
+            t.formatted(Constants.COLOR_WARNING);
         } else {
-            t.formatted(Formatting.RED);
+            t.formatted(Constants.COLOR_DANGER);
         }
         t.append(String.format("%.0f ❤", heartAmount));
         txt.append(t).append("\n\n");

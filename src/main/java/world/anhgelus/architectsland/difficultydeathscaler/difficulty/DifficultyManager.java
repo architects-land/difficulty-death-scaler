@@ -5,7 +5,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
+import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 
 import java.util.Arrays;
 import java.util.List;
@@ -204,7 +204,7 @@ public abstract class DifficultyManager extends DifficultyTimer {
 
     protected Text generateHeaderUpdate(@Nullable UpdateType updateType) {
         final var txt = Text.empty();
-        txt.append(Text.literal("============== ").formatted(Formatting.DARK_GRAY));
+        txt.append(Text.literal("============== ").formatted(Constants.COLOR_SEPARATOR));
         if (updateType == null) txt.append(Text.literal("Current difficulty:"));
         else {
             switch (updateType) {
@@ -214,10 +214,10 @@ public abstract class DifficultyManager extends DifficultyTimer {
                 default -> txt.append("Current difficulty:");
             }
         }
-        txt.append(Text.literal(" ==============").formatted(Formatting.DARK_GRAY));
+        txt.append(Text.literal(" ==============").formatted(Constants.COLOR_SEPARATOR));
         txt.append("\n");
         txt.append("Death step: ")
-                .append(Text.literal(String.format("%d", numberOfDeath)).formatted(Formatting.LIGHT_PURPLE))
+                .append(Text.literal(String.format("%d", numberOfDeath)).formatted(Constants.COLOR_ACCENT))
                 .append("\n");
         return txt;
     }
@@ -225,34 +225,34 @@ public abstract class DifficultyManager extends DifficultyTimer {
     protected Text generateFooterUpdate(Step[] steps, String beginning, UpdateType updateType) {
         final var txt = Text.empty();
         if (numberOfDeath < steps[1].level()) {
-            return txt.append(Text.literal("The difficulty cannot get lower. Congratulations!\n").formatted(Formatting.DARK_GREEN))
-                    .append(Text.literal("=============================================").formatted(Formatting.DARK_GRAY));
+            return txt.append(Text.literal("The difficulty cannot get lower. Congratulations!\n").formatted(Constants.COLOR_OK))
+                    .append(Text.literal("=============================================").formatted(Constants.COLOR_SEPARATOR));
         }
 
         if (updateType == UpdateType.DECREASE) {
             txt.append("You only need to survive for ")
-                    .append(Text.literal(formatSeconds(secondsBeforeDecreased)).formatted(Formatting.GOLD))
+                    .append(Text.literal(formatSeconds(secondsBeforeDecreased)).formatted(Constants.COLOR_TIME))
                     .append(" to make the difficulty decrease again.");
         } else if (updateType == UpdateType.AUTOMATIC_INCREASE) {
             txt.append("The difficulty is increasing automatically!");
         } else if (updateType != UpdateType.INCREASE) {
             txt.append("You only need to survive for ");
-            final var t = Text.empty().formatted(Formatting.GOLD);
+            final var t = Text.empty().formatted(Constants.COLOR_TIME);
             if (updateType == UpdateType.SET) t.append(formatSeconds(secondsBeforeDecreased));
             else t.append(formatSecondsBeforeRun(reducerTask));
             txt.append(t);
             txt.append(" to make the difficulty decrease.");
         } else if (numberOfDeath == steps[1].level()) {
             txt.append("You were on the lowest difficulty for ")
-                    .append(Text.literal(formatSeconds(secondsLowerDifficulty)).formatted(Formatting.GOLD))
+                    .append(Text.literal(formatSeconds(secondsLowerDifficulty)).formatted(Constants.COLOR_TIME))
                     .append(", but you had to die and ruin everything, hadn't you?");
         } else {
             txt.append("If ").append(beginning).append(" for")
-                    .append(Text.literal(formatSecondsBeforeRun(reducerTask)).formatted(Formatting.GOLD))
+                    .append(Text.literal(formatSecondsBeforeRun(reducerTask)).formatted(Constants.COLOR_TIME))
                     .append(", then the difficulty would’ve decreased... But you chose your fate.");
         }
         txt.append("\n");
-        txt.append(Text.literal("=============================================").formatted(Formatting.DARK_GRAY));
+        txt.append(Text.literal("=============================================").formatted(Constants.COLOR_SEPARATOR));
         return txt;
     }
 

@@ -3,7 +3,8 @@
   "criteria": {
     "evil_steps": {
       "conditions": {
-        "requiredDifficulty": 28
+        "max": 37,
+        "min": 28
       },
       "trigger": "difficulty-death-scaler:difficulty"
     }

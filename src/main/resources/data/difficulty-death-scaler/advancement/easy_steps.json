@@ -3,7 +3,8 @@
   "criteria": {
     "easy_steps": {
       "conditions": {
-        "requiredDifficulty": 0
+        "max": 7,
+        "min": 0
       },
       "trigger": "difficulty-death-scaler:difficulty"
     }

@@ -38,14 +38,14 @@ public class AdvancementProvider extends FabricAdvancementProvider {
                 .criterion("joined", TickCriterion.Conditions.createTick())
                 .build(consumer, getId("dds_world"));
 
-        final var easySteps = create(consumer, ddsWorld, Items.POPPY, "Easy steps reached!", "The world is easier than vanilla", "easy_steps", 0);
-        final var ominousSteps = create(consumer, easySteps, Items.SHIELD, "Ominous steps reached!", "The world is becoming harder", "ominous_steps", 7);
-        final var dangerousSteps = create(consumer, ominousSteps, Items.SKELETON_SKULL, "Dangerous steps reached!...", "The world wants to kill you", "dangerous_steps", 20);
-        final var evilSteps = create(consumer, dangerousSteps, Items.WITHER_SKELETON_SKULL, "Evil steps reached...", "Please stops dying", "evil_steps", 28);
-        final var noReturnsSteps = create(consumer, evilSteps, Items.WITHER_ROSE, "No return is possible now...", "Your nightmares become true...", "no_return_steps", 37);
+        final var easySteps = create(consumer, ddsWorld, Items.POPPY, "Easy steps reached!", "The world is easier than vanilla", "easy_steps", 0, 7);
+        final var ominousSteps = create(consumer, easySteps, Items.SHIELD, "Ominous steps reached!", "The world is becoming harder", "ominous_steps", 7, 20);
+        final var dangerousSteps = create(consumer, ominousSteps, Items.SKELETON_SKULL, "Dangerous steps reached!...", "The world wants to kill you", "dangerous_steps", 20, 28);
+        final var evilSteps = create(consumer, dangerousSteps, Items.WITHER_SKELETON_SKULL, "Evil steps reached...", "Please stops dying", "evil_steps", 28, 37);
+        final var noReturnsSteps = create(consumer, evilSteps, Items.WITHER_ROSE, "No return is possible now...", "Your nightmares become true...", "no_return_steps", 37, -1);
     }
 
-    private AdvancementEntry create(Consumer<AdvancementEntry> consumer, AdvancementEntry parent, Item item, String title, String subtitle, String id, int difficulty) {
+    private AdvancementEntry create(Consumer<AdvancementEntry> consumer, AdvancementEntry parent, Item item, String title, String subtitle, String id, int min, int max) {
         return Advancement.Builder.createUntelemetered()
                 .parent(parent)
                 .display(
@@ -58,7 +58,7 @@ public class AdvancementProvider extends FabricAdvancementProvider {
                         true,
                         false
                 )
-                .criterion(id, ModCriteria.REACH_DIFFICULTY.create(new ReachDifficultyCriterion.Conditions(Optional.empty(), difficulty)))
+                .criterion(id, ModCriteria.REACH_DIFFICULTY.create(new ReachDifficultyCriterion.Conditions(Optional.empty(), min, max)))
                 .build(consumer, getId(id));
     }
 

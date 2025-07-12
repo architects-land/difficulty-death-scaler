@@ -3,7 +3,8 @@
   "criteria": {
     "ominous_steps": {
       "conditions": {
-        "requiredDifficulty": 7
+        "max": 20,
+        "min": 7
       },
       "trigger": "difficulty-death-scaler:difficulty"
     }

@@ -3,7 +3,8 @@
   "criteria": {
     "dangerous_steps": {
       "conditions": {
-        "requiredDifficulty": 20
+        "max": 28,
+        "min": 20
       },
       "trigger": "difficulty-death-scaler:difficulty"
     }

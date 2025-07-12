@@ -19,11 +19,12 @@ public class ReachDifficultyCriterion extends AbstractCriterion<ReachDifficultyC
     }
 
     public record Conditions(Optional<LootContextPredicate> playerPredicate,
-                             int requiredDifficulty) implements AbstractCriterion.Conditions {
+                             int min, int max) implements AbstractCriterion.Conditions {
 
         public static Codec<ReachDifficultyCriterion.Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 LootContextPredicate.CODEC.optionalFieldOf("player").forGetter(Conditions::player),
-                Codec.INT.fieldOf("requiredDifficulty").forGetter(Conditions::requiredDifficulty)
+                Codec.INT.fieldOf("min").forGetter(Conditions::min),
+                Codec.INT.fieldOf("max").forGetter(Conditions::max)
         ).apply(instance, Conditions::new));
 
         @Override
@@ -32,7 +33,7 @@ public class ReachDifficultyCriterion extends AbstractCriterion<ReachDifficultyC
         }
 
         public boolean requirementsMet(int difficulty) {
-            return difficulty >= requiredDifficulty;
+            return max < 0 ? difficulty >= min : difficulty >= min && difficulty < max;
         }
     }
 }

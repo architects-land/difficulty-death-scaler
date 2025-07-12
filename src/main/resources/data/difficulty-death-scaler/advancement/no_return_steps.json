@@ -3,7 +3,8 @@
   "criteria": {
     "no_return_steps": {
       "conditions": {
-        "requiredDifficulty": 37
+        "max": -1,
+        "min": 37
       },
       "trigger": "difficulty-death-scaler:difficulty"
     }

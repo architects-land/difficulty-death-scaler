@@ -91,6 +91,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
     //    protected double luckModifier = 0;
     protected double blockBreakSpeedModifier = 0;
     protected double movementSpeedModifier = 0;
+    protected double waypointTransmitModifier = 0;
     private int deathDay;
     private int bonusHearts = 0;
 
@@ -207,6 +208,9 @@ public class PlayerDifficultyManager extends DifficultyManager {
             } else if (m instanceof final MovementSpeedModifier mod) {
                 movementSpeedModifier = mod.getValue();
                 if (player != null) mod.apply(player);
+            } else if (m instanceof final WaypointTransmitModifier mod) {
+                waypointTransmitModifier = mod.getValue();
+                if (player != null) mod.apply(player);
             }
         });
         applyBonusHearts();
@@ -283,6 +287,7 @@ public class PlayerDifficultyManager extends DifficultyManager {
 //        LuckModifier.apply(player, luckModifier);
         BlockBreakSpeedModifier.apply(player, blockBreakSpeedModifier);
         MovementSpeedModifier.apply(player, movementSpeedModifier);
+        WaypointTransmitModifier.apply(player, waypointTransmitModifier);
     }
 
     public void setDeathDay(int n) {

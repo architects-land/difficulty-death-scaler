@@ -70,6 +70,7 @@ public class BossManager {
             ModCriteria.BOSS.trigger(p, entity.getClass(), true);
         buffedBosses.remove(entity.getUuid());
         manager.decreaseDeath();
+        manager.updateTimerTask(); // reset timer task
     }
 
     public static void playerEntersEnd(ServerPlayerEntity player, ServerWorld world) {

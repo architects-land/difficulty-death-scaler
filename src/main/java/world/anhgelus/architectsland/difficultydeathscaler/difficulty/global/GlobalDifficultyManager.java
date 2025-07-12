@@ -157,6 +157,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     protected double stepHeightModifier = 0;
     protected double spawnReinforcementModifier = 0;
     protected double fallDamageMultiplierModifier = 0;
+    protected double waypointReceiveModifier = 0;
 
     public GlobalDifficultyManager(MinecraftServer server) {
         super(server, STEPS, SECONDS_BEFORE_DECREASED);
@@ -225,6 +226,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 spawnReinforcementModifier = mod.getValue();
             } else if (m instanceof final FallDamageMultiplierModifier mod) {
                 fallDamageMultiplierModifier = mod.getValue();
+            } else if (m instanceof final WaypointReceiveModifier mod) {
+                waypointReceiveModifier = mod.getValue();
             }
         });
     }
@@ -269,6 +272,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
     public void applyModifiers(ServerPlayerEntity player) {
         HealthModifier.apply(player, healthModifier);
         FallDamageMultiplierModifier.apply(player, fallDamageMultiplierModifier);
+        WaypointReceiveModifier.apply(player, waypointReceiveModifier);
     }
 
     public void onEntitySpawn(HostileEntity hostile) {

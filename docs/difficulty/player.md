@@ -1,7 +1,7 @@
 # Player difficulty
 
 The player difficulty is split into steps.
-The activated steps is determined by the player' deaths.
+The activated steps is determined by the player's deaths.
 This difficulty is *per player*.
 
 Each time a player dies, the number of deaths is increased.

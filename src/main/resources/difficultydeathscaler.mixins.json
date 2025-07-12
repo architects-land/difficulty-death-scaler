@@ -12,7 +12,6 @@
     "AnnoyingSkeleton",
     "AnnoyingZombie",
     "PhantomsSpawnerMixin",
-    "PlayerManagerMixin",
     "StrongerDragon",
     "WorldTimerAccess"
   ],

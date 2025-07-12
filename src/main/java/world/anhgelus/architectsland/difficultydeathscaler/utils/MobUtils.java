@@ -6,6 +6,7 @@ import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.entity.ai.goal.RevengeGoal;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.random.Random;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 import java.util.concurrent.Callable;
@@ -25,12 +26,12 @@ public class MobUtils {
         targetSelector.add(1, new ActiveTargetGoal<>(e, PlayerEntity.class, true));
     }
 
-    public static void customSpawn(float proba, float max, Callable<Object> exec) {
+    public static void customSpawn(Random random, float proba, float max, Callable<Object> exec) {
         if (proba <= 0) return;
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
         if (difficulty.getNumberOfDeath() >= 40) proba = max;
         try {
-            if (Getters.RANDOM.nextFloat() * 100 < proba) exec.call();
+            if (random.nextFloat() * 100 < proba) exec.call();
         } catch (Exception e) {
             DifficultyDeathScaler.LOGGER.error("An error occurred while executing the custom spawn", e);
         }

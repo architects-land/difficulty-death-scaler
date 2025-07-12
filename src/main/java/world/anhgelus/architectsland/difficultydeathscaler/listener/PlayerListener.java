@@ -17,14 +17,17 @@ import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
-import java.util.Map;
-import java.util.UUID;
-
 public class PlayerListener {
-    public static void onKill(ServerPlayerEntity player, DamageSource damageSource) {
-        Getters.GLOBAL_DIFFICULTY_GETTER.get().increaseDeath();
+    public static void afterDeath(ServerPlayerEntity player, DamageSource damageSource) {
+        final var globalDifficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+        globalDifficulty.increaseDeath();
+        globalDifficulty.save();
 
-        final var bounty = Getters.BOUNTY_GETTER.get(player.getUuid());
+        final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(player.getServer(), player);
+        playerDifficulty.increaseDeath();
+        playerDifficulty.save();
+
+        final var bounty = Bounty.get(player.getUuid());
         if (bounty == null || !(damageSource.getAttacker() instanceof final ServerPlayerEntity killer)) return;
         bounty.onKill(Getters.PLAYER_DIFFICULTY_GETTER.get(killer.getServer(), killer));
     }
@@ -34,36 +37,34 @@ public class PlayerListener {
 
         final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(newPlayer.getServer(), newPlayer);
         playerDifficulty.player = newPlayer;
-        playerDifficulty.increaseDeath();
         playerDifficulty.applyModifiers();
 
-        final var bounty = Getters.BOUNTY_GETTER.get(newPlayer.getUuid());
+        final var bounty = Bounty.get(newPlayer.getUuid());
         if (bounty == null) return;
         bounty.onDeath();
     }
 
-    public static void onConnection(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server, Map<UUID, Bounty> bountyMap) {
+    public static void onConnection(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
         final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(server, handler.player);
         playerDifficulty.applyModifiers();
 
         final var difficultyManager = Getters.GLOBAL_DIFFICULTY_GETTER.get();
-
         difficultyManager.applyModifiers(handler.player);
 
-        final var bounty = Bounty.newBounty(server, difficultyManager, playerDifficulty);
-        if (bounty != null) bountyMap.put(handler.player.getUuid(), bounty);
+        handler.player.sendMessage(Bounty.getBountiesMessage());
+
+        Bounty.newBounty(server, difficultyManager, playerDifficulty);
     }
 
     public static void onDisconnection(ServerPlayNetworkHandler handler, MinecraftServer server) {
-        final var bounty = Getters.BOUNTY_GETTER.get(handler.player.getUuid());
+        final var bounty = Bounty.get(handler.player.getUuid());
         if (bounty == null) return;
         bounty.onDisconnect();
     }
 
     public static ActionResult useItemCallback(PlayerEntity player, World world, Hand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-        if (!(entity instanceof LivingEntity)) {
-            return ActionResult.PASS;
-        }
-        return BossManager.handleBuff(player, world, hand, (LivingEntity) entity);
+        return entity instanceof LivingEntity
+                ? BossManager.handleBuff(player, world, hand, (LivingEntity) entity)
+                : ActionResult.PASS;
     }
 }

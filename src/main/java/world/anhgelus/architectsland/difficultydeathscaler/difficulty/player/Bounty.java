@@ -3,20 +3,24 @@ package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyTimer;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class Bounty extends DifficultyTimer {
-    public static final double BOUNTY_DEATH_PERCENTAGE = 0.04;
+    public static final double BOUNTY_DEATH_PERCENTAGE = 0.03;
     public static final int BOUNTY_ENABLED_AFTER = 20;
-
+    private static final Map<UUID, Bounty> bounties = new HashMap<>();
     public static boolean ENABLED = true;
-
     private final GlobalDifficultyManager globalDifficulty;
     private final PlayerDifficultyManager playerDifficulty;
     private ServerPlayerEntity player;
@@ -30,7 +34,7 @@ public class Bounty extends DifficultyTimer {
         this.playerDifficulty = playerDifficulty;
         this.player = playerDifficulty.player;
 
-        final var delay = Getters.RANDOM.nextInt(2) + 1;
+        final var delay = server.getOverworld().getRandom().nextInt(2) + 1;
 
         DifficultyDeathScaler.LOGGER.info("New bounty {} broadcast in {} minutes", this, delay * 5);
 
@@ -43,70 +47,97 @@ public class Bounty extends DifficultyTimer {
     @Nullable
     public static Bounty newBounty(MinecraftServer server, GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
         if (!ENABLED) return null;
+        assert playerDifficulty.player != null;
+        if (bounties.containsKey(playerDifficulty.player.getUuid())) {
+            DifficultyDeathScaler.LOGGER.warn("Bounty already exists for player {}", playerDifficulty.player.getUuid());
+            return null;
+        }
         if (globalDifficulty.getTotalOfDeath() >= BOUNTY_ENABLED_AFTER &&
                 (double) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath() <= BOUNTY_DEATH_PERCENTAGE
         ) {
-            return new Bounty(server, globalDifficulty, playerDifficulty);
+            final var b = new Bounty(server, globalDifficulty, playerDifficulty);
+            bounties.put(playerDifficulty.player.getUuid(), b);
+            return b;
         }
         return null;
     }
 
-    private void bountyBroadcast() {
-        final var sb = new StringBuilder();
-        sb.append("§8==================== §rBounty! §8====================§r\n");
-        sb.append("A bounty is put on ");
+    @Nullable
+    public static Bounty get(UUID uuid) {
+        return bounties.get(uuid);
+    }
 
-        var name = "";
-        if (player.getDisplayName() == null) name = player.getName().getString();
-        else name = player.getDisplayName().getString();
+    public static Collection<Bounty> get() {
+        return bounties.values();
+    }
 
-        sb.append(name);
-        sb.append(" because he ");
-        if (playerDifficulty.getTotalOfDeath() == 0) {
-            sb.append("never died!");
-        } else if (playerDifficulty.getTotalOfDeath() == 1) {
-            sb.append("died only once!");
-        } else {
-            sb.append("died only ").append(playerDifficulty.getTotalOfDeath()).append(" times!");
+    public static Text getBountiesMessage() {
+        final var txt = Text.empty().append(Bounty.getBountyHeader());
+        if (bounties.values().stream().noneMatch(Bounty::isEnabled)) {
+            txt.append("Currently, there are no bounties.\n");
+            txt.append(Bounty.getBountyFooter());
+            return txt;
         }
+        txt.append("Bounties:\n");
+        get().forEach(bounty -> {
+            if (!bounty.isEnabled()) return;
+            final var name = Text.empty().formatted(Formatting.RED).append(bounty.getPlayer().getDisplayName());
+            txt.append("- ").append(name).append("\n");
+        });
+        txt.append(Bounty.getBountyFooter());
+        return txt;
+    }
 
-        sb.append("\n\n");
-        sb.append("If you kill ").append(name).append(", you will swap your personal difficulty!\n\n");
-        sb.append("Good luck!\n");
-        sb.append("§8=============================================§r");
+    private static Text getBountyHeader() {
+        final var txt = Text.empty();
+        txt.append(Text.literal("==================== ").formatted(Formatting.DARK_GRAY));
+        txt.append("Bounty!");
+        return txt.append(Text.literal(" ====================\n").formatted(Formatting.DARK_GRAY));
+    }
+
+    private static Text getBountyFooter() {
+        return Text.literal("===============================================").formatted(Formatting.DARK_GRAY);
+    }
+
+    private void bountyBroadcast() {
+        final var txt = Text.empty().append(getBountyHeader());
+        txt.append("A bounty is put on ");
+        txt.append(Text.empty().append(player.getDisplayName()).formatted(Formatting.RED));
+        txt.append(" because they ");
+        if (playerDifficulty.getTotalOfDeath() == 0) txt.append("never died!");
+        else if (playerDifficulty.getTotalOfDeath() == 1) txt.append("died only once!");
+        else txt.append(String.format("died only %d times!", playerDifficulty.getTotalOfDeath()));
+
+        txt.append("\n\n");
+        txt.append("If you kill ").append(player.getDisplayName()).append(", you will swap your personal difficulty!\n\n");
+        txt.append("Good luck!\n");
+        txt.append(getBountyFooter());
 
         if (player.getServer() == null) return;
-        player.getServer().getPlayerManager().broadcast(Text.of(sb.toString()), false);
+        player.getServer().getPlayerManager().broadcast(txt, false);
     }
 
     public void onKill(PlayerDifficultyManager attackerDifficulty) {
         if (!enabled) return;
         enabled = false;
         assert attackerDifficulty.player != null;
-        final var sb = new StringBuilder();
-        sb.append("§8==================== §rBounty! §8====================§r\n");
-
-        var name = "";
-        if (player.getDisplayName() == null) name = player.getName().getString();
-        else name = player.getDisplayName().getString();
-
-        var attackerName = "";
-        if (attackerDifficulty.player.getDisplayName() == null) attackerName = player.getName().getString();
-        else attackerName = attackerDifficulty.player.getDisplayName().getString();
-
-        sb.append(attackerName).append(" killed ").append(name).append("!\n");
-        sb.append("They swap their player difficulty!\n");
-        sb.append("§8=============================================§r");
+        final var txt = Text.empty().append(getBountyHeader());
+        txt.append(Text.empty().append(attackerDifficulty.player.getDisplayName()).formatted(Formatting.YELLOW));
+        txt.append(" killed ");
+        txt.append(Text.empty().append(player.getDisplayName()).formatted(Formatting.RED));
+        txt.append("!\n");
+        txt.append("They swap their player difficulty!\n");
+        txt.append(getBountyFooter());
 
         if (player.getServer() == null) {
             DifficultyDeathScaler.LOGGER.warn("Server is null");
             return;
         }
-        player.getServer().getPlayerManager().broadcast(Text.of(sb.toString()), false);
+        player.getServer().getPlayerManager().broadcast(txt, false);
 
         final var n = attackerDifficulty.getNumberOfDeath();
-        attackerDifficulty.setNumberOfDeath(playerDifficulty.getNumberOfDeath(), false);
-        playerDifficulty.setNumberOfDeath(n, false);
+        attackerDifficulty.setNumberOfDeath(playerDifficulty.getNumberOfDeath());
+        playerDifficulty.setNumberOfDeath(n);
     }
 
     public void onDeath() {
@@ -119,31 +150,28 @@ public class Bounty extends DifficultyTimer {
     public void onDisconnect() {
         if (!enabled) return;
         enabled = false;
-        final var sb = new StringBuilder();
-        sb.append("§8==================== §rBounty! §8====================§r\n");
-
-        var name = "";
-        if (player.getDisplayName() == null) name = player.getName().getString();
-        else name = player.getDisplayName().getString();
-
-        sb.append(name).append(" disconnected. The bounty will be back when he/she is next connected!\n");
-        sb.append("§8=============================================§r");
+        final var txt = Text.empty().append(getBountyHeader());
+        txt.append(Text.empty().append(player.getDisplayName()).formatted(Formatting.RED));
+        txt.append(" disconnected. The bounty will be back when they are next connected!\n");
+        txt.append(getBountyFooter());
 
         if (player.getServer() == null) return;
-        player.getServer().getPlayerManager().broadcast(Text.of(sb.toString()), false);
+        player.getServer().getPlayerManager().broadcast(txt, false);
+    }
+
+    public ServerPlayerEntity getPlayer() {
+        return player;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public String toString() {
-        final var sb = new StringBuilder();
-        sb.append("Bounty(")
-                .append("bountyDeathPercentage=").append(BOUNTY_DEATH_PERCENTAGE)
-                .append(", bountyEnabledAfter=").append(BOUNTY_ENABLED_AFTER)
-                .append(", player=").append(player.getName().getString())
-                .append(", player_uuid=").append(player.getUuid())
-                .append(", player_totalDeath=").append(playerDifficulty.getTotalOfDeath())
-                .append(", global_totalDeath=").append(globalDifficulty.getTotalOfDeath())
-                .append(", player_deathPercentage=").append((float) playerDifficulty.getTotalOfDeath() / globalDifficulty.getTotalOfDeath())
-                .append(")");
-        return sb.toString();
+        return String.format(
+                "Bounty(bountyDeathPercentage=%f, bountyEnabledAfter=%d, player=%s, player_totalDeath=%s, global_totalDeath=%s, player_deathPercentage=%f)",
+                BOUNTY_DEATH_PERCENTAGE, BOUNTY_ENABLED_AFTER, player.getName().getString(), playerDifficulty.getTotalOfDeath(), globalDifficulty.getTotalOfDeath(),
+                playerDifficulty.getTotalOfDeath() / (double) globalDifficulty.getTotalOfDeath()
+        );
     }
 }

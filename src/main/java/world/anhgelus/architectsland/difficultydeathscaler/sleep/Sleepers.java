@@ -23,7 +23,7 @@ public class Sleepers {
         GlobalDifficultyManager.POLAR_NIGHT = false;
         rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
-        difficulty.setNumberOfDeath(difficulty.getNumberOfDeath(), true);
+        difficulty.setNumberOfDeath(difficulty.getNumberOfDeath());
     }, false);
 
     public static final Sleeper BRUTAL_HELL = new Sleeper("Wendy, I'm home.", server -> {
@@ -45,7 +45,7 @@ public class Sleepers {
             final var now = System.currentTimeMillis() / 50;
 
             RegistryEntry<StatusEffect> effect;
-            if (Getters.RANDOM.nextFloat() * 100 > 90) effect = StatusEffects.RESISTANCE;
+            if (living.getRandom().nextFloat() * 100 > 90) effect = StatusEffects.RESISTANCE;
             else effect = StatusEffects.INVISIBILITY;
 
             final var diff = (int) (Sleeper.EVENT_DURATION - now + since);

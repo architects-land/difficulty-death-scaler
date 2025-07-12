@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
@@ -28,7 +27,7 @@ public abstract class AnnoyingDrowned extends HostileEntity {
     protected void init(EntityType<? extends ZombieEntity> entityType, World world, CallbackInfo ci) {
         if (Getters.GLOBAL_DIFFICULTY_GETTER == null) return;
         final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
-        MobUtils.customSpawn(difficulty.getNumberOfDeath() - 9, 30, () -> {
+        MobUtils.customSpawn(getRandom(), difficulty.getNumberOfDeath() - 9, 30, () -> {
             // drowned with more tridents
             this.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.TRIDENT));
             return null;

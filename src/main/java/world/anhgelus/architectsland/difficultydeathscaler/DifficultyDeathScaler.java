@@ -21,7 +21,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
@@ -29,10 +28,13 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.BountyCommand;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.listener.PlayerListener;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.PassiveDifficulty;
 import world.anhgelus.architectsland.difficultydeathscaler.sleep.Sleeper;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
+import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
@@ -86,7 +88,6 @@ public class DifficultyDeathScaler implements ModInitializer {
             })
     );
     private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
-    private final Map<UUID, Bounty> bountyMap = new HashMap<>();
     private GlobalDifficultyManager difficultyManager;
 
     @Override
@@ -95,6 +96,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             DifficultyCommand.register(dispatcher);
+            BountyCommand.register(dispatcher);
         });
 
         // set up base difficulty and player difficulty fetcher
@@ -107,16 +109,18 @@ public class DifficultyDeathScaler implements ModInitializer {
 
             Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
             Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
-            Getters.PROFILE_DIFFICULTY_GETTER = (profile) -> getPlayerDifficultyManager(server, profile);
-            Getters.BOUNTY_GETTER = this::getPlayerBounty;
-            Getters.RANDOM = server.getOverworld().getRandom();
+
+            TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> {
+                LOGGER.info("Difficulty Death Scaler is saving...");
+                difficultyManager.save();
+                playerDifficultyManagerMap.forEach((player, manager) -> manager.save());
+                LOGGER.info("Difficulty Death Scaler saved");
+            }, 20 * 60 * 20, 20 * 60 * 20));
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             difficultyManager.save();
-            playerDifficultyManagerMap.forEach((player, manager) -> {
-                manager.save();
-            });
+            playerDifficultyManagerMap.forEach((player, manager) -> manager.save());
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
@@ -124,14 +128,12 @@ public class DifficultyDeathScaler implements ModInitializer {
                 BossManager.handleKill(entity, difficultyManager);
                 return;
             }
-            PlayerListener.onKill(player, damageSource);
+            PlayerListener.afterDeath(player, damageSource);
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register(PlayerListener::afterRespawn);
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            PlayerListener.onConnection(handler, sender, server, bountyMap);
-        });
+        ServerPlayConnectionEvents.JOIN.register(PlayerListener::onConnection);
 
         ServerPlayConnectionEvents.DISCONNECT.register(PlayerListener::onDisconnection);
 
@@ -154,7 +156,7 @@ public class DifficultyDeathScaler implements ModInitializer {
             if (!Sleeper.ENABLED) return;
             if (!(entity instanceof PlayerEntity)) return;
             // if the number is too high, return
-            if (Getters.RANDOM.nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
+            if (entity.getRandom().nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
                 return;
             // try starting a new event
             final var server = entity.getServer();
@@ -184,22 +186,11 @@ public class DifficultyDeathScaler implements ModInitializer {
      * Does not set player in difficulty manager!
      */
     private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, GameProfile profile) {
-        if (playerDifficultyManagerMap.containsKey(profile.getId())) {
-            return playerDifficultyManagerMap.get(profile.getId());
-        }
-        final var playerDifficulty = new PlayerDifficultyManager(
-                server,
-                difficultyManager,
-                profile.getId(),
-                StateSaver.getPlayerState(server, profile.getId())
-        );
-        playerDifficultyManagerMap.put(profile.getId(), playerDifficulty);
-        return playerDifficulty;
-    }
-
-    @Nullable
-    private Bounty getPlayerBounty(UUID uuid) {
-        return bountyMap.get(uuid);
+        return playerDifficultyManagerMap.computeIfAbsent(profile.getId(), id -> {
+            return new PlayerDifficultyManager(
+                    server, difficultyManager, id, StateSaver.getPlayerState(server, profile.getId())
+            );
+        });
     }
 
     private void loadAllPlayerManagers(MinecraftServer server) {

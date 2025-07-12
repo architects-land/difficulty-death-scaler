@@ -13,13 +13,12 @@ public class PassiveDifficulty {
         if (!ENABLED) return;
         final var level = difficultyLevel(entity);
         if (level == 0) return;
-        PassiveArmorModifier.apply(entity, adjustLevelMax(level, 15)); // is add
         PassiveBurningTimeModifier.apply(entity, adjustLevelMax(level, -0.75)); // is percentage
-        PassiveDamageModifier.apply(entity, adjustLevelMax(level, 1)); // is percentage
-        PassiveHealthModifier.apply(entity, adjustLevelMax(level, 1)); // is percentage
+        PassiveDamageModifier.apply(entity, adjustLevelMax(level, 0.5)); // is percentage
+        PassiveHealthModifier.apply(entity, adjustLevelMax(level, 0.5)); // is percentage
         PassiveKnockbackResistanceModifier.apply(entity, adjustLevelMax(level, 0.6)); // is add
-        PassiveMovementEfficiencyModifier.apply(entity, adjustLevelMax(level, 0.5)); // is add
-        PassiveSpeedModifier.apply(entity, adjustLevelMax(level, 0.3)); // is percentage
+        PassiveMovementEfficiencyModifier.apply(entity, adjustLevelMax(level, 0.3)); // is add
+        PassiveSpeedModifier.apply(entity, adjustLevelMax(level, 0.15)); // is percentage
         entity.setHealth(entity.getMaxHealth());
     }
 
@@ -28,7 +27,7 @@ public class PassiveDifficulty {
         final var timePassed = MathHelper.floor((double) entity.getWorld().getTime() / 20000);
         return Math.min(
                 MathHelper.floor((dis / 5000) * (dis / 1000)) +
-                        MathHelper.floorDiv(timePassed * timePassed, 1000),
+                        MathHelper.floorDiv(timePassed * timePassed, 8000),
                 LEVEL_MAX
         );
     }

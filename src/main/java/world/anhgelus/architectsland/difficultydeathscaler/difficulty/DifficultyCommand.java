@@ -25,7 +25,7 @@ public class DifficultyCommand {
             final var source = context.getSource();
             final var server = source.getServer();
             source.sendFeedback(() -> {
-                return Text.literal(GLOBAL_DIFFICULTY_GETTER.get().getDifficultyUpdate(server.getOverworld().getDifficulty()));
+                return GLOBAL_DIFFICULTY_GETTER.get().getDifficultyUpdate(server.getOverworld().getDifficulty());
             }, false);
             return Command.SINGLE_SUCCESS;
         };
@@ -41,7 +41,7 @@ public class DifficultyCommand {
         final var setGlobalCommand = literal("global").then(
                 argument("number of death", IntegerArgumentType.integer()).executes(context -> {
                     final var source = context.getSource();
-                    GLOBAL_DIFFICULTY_GETTER.get().setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
+                    GLOBAL_DIFFICULTY_GETTER.get().setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"));
                     source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
                     return Command.SINGLE_SUCCESS;
                 })
@@ -54,7 +54,7 @@ public class DifficultyCommand {
                             final var source = context.getSource();
                             final var server = source.getServer();
                             final var target = EntityArgumentType.getPlayer(context, "player");
-                            PLAYER_DIFFICULTY_GETTER.get(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"), false);
+                            PLAYER_DIFFICULTY_GETTER.get(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"));
                             source.sendFeedback(() -> {
                                 return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
                             }, true);
@@ -126,10 +126,10 @@ public class DifficultyCommand {
     private static int sendPlayerDifficulty(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) {
         final var source = context.getSource();
         final var server = source.getServer();
-        source.sendFeedback(() -> Text.literal(
+        source.sendFeedback(() ->
                 PLAYER_DIFFICULTY_GETTER.get(server, target)
-                        .getDifficultyUpdate(server.getOverworld().getDifficulty())
-        ), false);
+                        .getDifficultyUpdate(server.getOverworld().getDifficulty()
+                        ), false);
         return Command.SINGLE_SUCCESS;
     }
 }

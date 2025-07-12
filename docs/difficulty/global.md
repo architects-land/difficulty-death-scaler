@@ -87,7 +87,7 @@ Disable infinite water source.
 Increase mobs' reinforcement by 50%.
 
 **26 deaths**
-Increase mpbs' step height to `1.5`.
+Increase mobs' step height to `1.5`.
 
 ## Evil steps
 

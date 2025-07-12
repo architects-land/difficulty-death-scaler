@@ -139,7 +139,7 @@ public class AdvancementProvider extends FabricAdvancementProvider {
 
         final var bountyBePresent = createBounty(consumer, ddsWorld, Items.DIAMOND_SWORD, "Bounty aware", "Be present during a bounty", AdvancementFrame.TASK, "bounty_be_present", BOUNTY_BE_PRESENT);
         final var bountyReceive = createBounty(consumer, bountyBePresent, Items.DIAMOND_CHESTPLATE, "Be hunted", "Receive a bounty on you", AdvancementFrame.GOAL, "bounty_receive", BOUNTY_RECEIVE);
-        final var bountyKilled = createBounty(consumer, bountyReceive, Items.CHAINMAIL_CHESTPLATE, "Loose everything", "Killed to gain the reward", AdvancementFrame.GOAL, "be_present", BOUNTY_KILLED);
+        final var bountyKilled = createBounty(consumer, bountyReceive, Items.CHAINMAIL_CHESTPLATE, "Lose everything", "Killed for the reward", AdvancementFrame.GOAL, "bounty_killed", BOUNTY_KILLED);
         final var bountyKill = createBounty(consumer, bountyBePresent, Items.NETHERITE_SWORD, "Hunter", "Hunt for the bounty", AdvancementFrame.CHALLENGE, "bounty_kill", BOUNTY_KILLER);
     }
 

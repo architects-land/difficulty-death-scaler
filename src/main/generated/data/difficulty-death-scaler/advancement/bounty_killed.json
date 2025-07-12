@@ -1,7 +1,7 @@
 {
   "parent": "difficulty-death-scaler:bounty_receive",
   "criteria": {
-    "be_present": {
+    "bounty_killed": {
       "conditions": {
         "id": 3
       },
@@ -9,17 +9,17 @@
     }
   },
   "display": {
-    "description": "Killed to gain the reward",
+    "description": "Killed for the reward",
     "frame": "goal",
     "icon": {
       "count": 1,
       "id": "minecraft:chainmail_chestplate"
     },
-    "title": "Loose everything"
+    "title": "Lose everything"
   },
   "requirements": [
     [
-      "be_present"
+      "bounty_killed"
     ]
   ]
 }

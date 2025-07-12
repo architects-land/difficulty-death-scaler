@@ -1,0 +1,24 @@
+{
+  "parent": "difficulty-death-scaler:dds_world",
+  "criteria": {
+    "bounty_be_present": {
+      "conditions": {
+        "id": 0
+      },
+      "trigger": "difficulty-death-scaler:bounty"
+    }
+  },
+  "display": {
+    "description": "Be present during a bounty",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:diamond_sword"
+    },
+    "title": "Bounty aware"
+  },
+  "requirements": [
+    [
+      "bounty_be_present"
+    ]
+  ]
+}

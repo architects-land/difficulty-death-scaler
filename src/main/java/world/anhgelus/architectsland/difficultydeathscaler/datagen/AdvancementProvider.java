@@ -17,6 +17,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.*;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -27,6 +28,12 @@ public class AdvancementProvider extends FabricAdvancementProvider {
     public static final int LEAVE_NO_RETURN_PLAYER = 1;
     public static final int DIFFICULTY_INCREASE = 2;
     public static final int BUFF_BOSS = 3;
+
+    public final static int BOUNTY_BE_PRESENT = 0;
+    public final static int BOUNTY_RECEIVE = 1;
+    public final static int BOUNTY_KILLER = 2;
+    public final static int BOUNTY_KILLED = 3;
+
 
     protected AdvancementProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
         super(output, registryLookup);
@@ -129,6 +136,11 @@ public class AdvancementProvider extends FabricAdvancementProvider {
         final var killWither = createBoss(consumer, buffWither, Items.WITHER_SKELETON_SKULL, "Kill the buffed Wither", "Kill the buffed Wither to decrease the difficulty", AdvancementFrame.CHALLENGE, "kill_wither", WitherEntity.class, true);
         final var buffElderGuardian = createBoss(consumer, buffBoss, Items.PRISMARINE, "Buff an elder guardian", "Buff an elder guardian with a netherite ingot", AdvancementFrame.GOAL, "buff_elder_guardian", ElderGuardianEntity.class, false);
         final var killElderGuardian = createBoss(consumer, buffElderGuardian, Items.PRISMARINE, "Kill an elder guardian", "Kill an buffed elder guardian to decrease the difficulty", AdvancementFrame.CHALLENGE, "kill_elder_guardian", ElderGuardianEntity.class, true);
+
+        final var bountyBePresent = createBounty(consumer, ddsWorld, Items.DIAMOND_SWORD, "Bounty aware", "Be present during a bounty", AdvancementFrame.TASK, "bounty_be_present", BOUNTY_BE_PRESENT);
+        final var bountyReceive = createBounty(consumer, bountyBePresent, Items.DIAMOND_CHESTPLATE, "Be hunted", "Receive a bounty on you", AdvancementFrame.GOAL, "bounty_receive", BOUNTY_RECEIVE);
+        final var bountyKilled = createBounty(consumer, bountyReceive, Items.CHAINMAIL_CHESTPLATE, "Loose everything", "Killed to gain the reward", AdvancementFrame.GOAL, "be_present", BOUNTY_KILLED);
+        final var bountyKill = createBounty(consumer, bountyBePresent, Items.NETHERITE_SWORD, "Hunter", "Hunt for the bounty", AdvancementFrame.CHALLENGE, "bounty_kill", BOUNTY_KILLER);
     }
 
     private AdvancementEntry create(Consumer<AdvancementEntry> consumer, ReachDifficultyCriterion crit, AdvancementEntry parent, Item item, String title, String subtitle, String id, int min, int max) {
@@ -162,6 +174,23 @@ public class AdvancementProvider extends FabricAdvancementProvider {
                         false
                 )
                 .criterion(id, ModCriteria.BOSS.create(new BossCriterion.Conditions(Optional.empty(), entity.getName(), killed)))
+                .build(consumer, getId(id));
+    }
+
+    private AdvancementEntry createBounty(Consumer<AdvancementEntry> consumer, AdvancementEntry parent, Item item, String title, String subtitle, AdvancementFrame frame, String id, int type) {
+        return Advancement.Builder.createUntelemetered()
+                .parent(parent)
+                .display(
+                        item,
+                        Text.literal(title),
+                        Text.literal(subtitle),
+                        null,
+                        frame,
+                        true,
+                        true,
+                        false
+                )
+                .criterion(id, ModCriteria.BOUNTY.create(new BountyCriterion.Conditions(Optional.empty(), type)))
                 .build(consumer, getId(id));
     }
 

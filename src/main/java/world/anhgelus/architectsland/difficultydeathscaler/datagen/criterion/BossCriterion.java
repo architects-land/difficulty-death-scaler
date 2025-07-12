@@ -1,4 +1,4 @@
-package world.anhgelus.architectsland.difficultydeathscaler.datagen;
+package world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

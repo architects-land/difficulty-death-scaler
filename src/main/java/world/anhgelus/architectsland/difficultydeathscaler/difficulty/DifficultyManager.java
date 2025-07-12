@@ -10,7 +10,7 @@ import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
-import world.anhgelus.architectsland.difficultydeathscaler.datagen.ModCriteria;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;

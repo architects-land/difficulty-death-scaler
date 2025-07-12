@@ -1,4 +1,4 @@
-package world.anhgelus.architectsland.difficultydeathscaler.datagen;
+package world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion;
 
 import net.minecraft.advancement.criterion.Criteria;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
@@ -10,6 +10,8 @@ public class ModCriteria {
     public static final ArbitraryCriterion ARBITRARY = Criteria.register(DifficultyDeathScaler.MOD_ID + ":arbitrary", new ArbitraryCriterion());
 
     public static final BossCriterion BOSS = Criteria.register(DifficultyDeathScaler.MOD_ID + ":warden_buffed", new BossCriterion());
+
+    public static final BountyCriterion BOUNTY = Criteria.register(DifficultyDeathScaler.MOD_ID + ":bounty", new BountyCriterion());
 
     public static void init() {
     }

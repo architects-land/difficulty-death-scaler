@@ -1,0 +1,25 @@
+{
+  "parent": "difficulty-death-scaler:bounty_receive",
+  "criteria": {
+    "be_present": {
+      "conditions": {
+        "id": 3
+      },
+      "trigger": "difficulty-death-scaler:bounty"
+    }
+  },
+  "display": {
+    "description": "Killed to gain the reward",
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:chainmail_chestplate"
+    },
+    "title": "Loose everything"
+  },
+  "requirements": [
+    [
+      "be_present"
+    ]
+  ]
+}

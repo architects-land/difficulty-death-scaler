@@ -5,6 +5,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
+import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyTimer;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
@@ -41,6 +43,10 @@ public class Bounty extends DifficultyTimer {
         timer.dds_runTask(new TickTask(() -> {
             enabled = true;
             bountyBroadcast();
+            server.getPlayerManager().getPlayerList().forEach(p -> {
+                ModCriteria.BOUNTY.trigger(p, AdvancementProvider.BOUNTY_BE_PRESENT);
+            });
+            ModCriteria.BOUNTY.trigger(player, AdvancementProvider.BOUNTY_RECEIVE);
         }, Math.round(delay * 5 * 60 * 20L)));
     }
 
@@ -140,6 +146,9 @@ public class Bounty extends DifficultyTimer {
         final var n = attackerDifficulty.getNumberOfDeath();
         attackerDifficulty.setNumberOfDeath(playerDifficulty.getNumberOfDeath());
         playerDifficulty.setNumberOfDeath(n);
+
+        ModCriteria.BOUNTY.trigger(player, AdvancementProvider.BOUNTY_KILLED);
+        ModCriteria.BOUNTY.trigger(attackerDifficulty.player, AdvancementProvider.BOUNTY_KILLER);
     }
 
     public void onDeath() {

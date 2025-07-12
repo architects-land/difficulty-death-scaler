@@ -74,7 +74,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(true, server);
             }),
             new Step(7, (server, gamerules, updater) -> {
-                updater.getModifier(WaypointReceiveModifier.class).update(2500);
+                updater.getModifier(WaypointReceiveModifier.class).update(10000);
                 updater.getModifier(FollowRangeModifier.class).update(0.25);
                 BETTER_SKELETON = true;
             }),
@@ -82,7 +82,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(FallDamageMultiplierModifier.class).update(0.25);
             }),
             new Step(10, (server, gamerules, updater) -> {
-                updater.getModifier(WaypointReceiveModifier.class).update(1000);
+                updater.getModifier(WaypointReceiveModifier.class).update(7500);
                 updater.getModifier(HealthModifier.class).update(-2);
             }),
             new Step(12, (server, gamerules, updater) -> {
@@ -97,7 +97,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 BETTER_ZOMBIES = true;
             }),
             new Step(16, (server, gamerules, updater) -> {
-                updater.getModifier(WaypointReceiveModifier.class).update(500);
+                updater.getModifier(WaypointReceiveModifier.class).update(5000);
                 gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(true, server);
             }),
             new Step(18, (server, gamerules, updater) -> {
@@ -110,7 +110,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(FallDamageMultiplierModifier.class).update(0.5);
             }),
             new Step(22, (server, gamerules, updater) -> {
-                updater.getModifier(WaypointReceiveModifier.class).update(250);
+                updater.getModifier(WaypointReceiveModifier.class).update(3000);
                 gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
             }),
             new Step(23, (server, gamerules, updater) -> {
@@ -126,7 +126,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
                 updater.getModifier(StepHeightModifier.class).update(1);
             }),
             new Step(28, (server, gamerules, updater) -> {
-                updater.getModifier(WaypointReceiveModifier.class).update(100);
+                updater.getModifier(WaypointReceiveModifier.class).update(2000);
                 gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(true, server);
             }),
             new Step(30, (server, gamerules, updater) -> {

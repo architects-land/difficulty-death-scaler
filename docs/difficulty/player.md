@@ -24,31 +24,31 @@ Increase movement speed by 10% (is like a speed 1 effect).
 **1 death**
 Reset movement speed.
 Set block break speed's increase to 20% (is like a haste 1 effect).
-Limit waypoint transmit range to 2500.
+Limit waypoint transmit range to 15000.
 
 ## Ominous steps
 
 **2 deaths**
 Remove one heart.
-Limit waypoint transmit range to 1000.
+Limit waypoint transmit range to 10000.
 
 **3 deaths**
 Reset block break speed.
 Remove another heart (two removed).
-Limit waypoint transmit range to 500.
+Limit waypoint transmit range to 7500.
 
 ## Dangerous steps
 
 **5 deaths**
 Remove another heart (three removed).
-Limit waypoint transmit range to 250.
+Limit waypoint transmit range to 5000.
 
 **7 deaths**
 Decrease movement speed by 10% (is like a slowness 1 effect).
 
 **8 deaths**
 Decrease block break speed by 20% (is like a mining fatigue 1 effect).
-Limit waypoint transmit range to 150.
+Limit waypoint transmit range to 2500.
 
 ## Evil steps
 
@@ -57,10 +57,9 @@ Remove another heart (four removed).
 
 **12 deaths**
 Decrease movement speed by 20% (is like a slowness 2 effect).
-Limit waypoint transmit range to 100.
+Limit waypoint transmit range to 1000.
 
 ## No returns steps
 
 **15 deaths**
 Remove another heart (five removed).
-Limit waypoint transmit range to 50.

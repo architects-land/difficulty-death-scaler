@@ -9,7 +9,7 @@
     "description": "Welcome to a world governed by Difficulty Death Scaler!",
     "icon": {
       "count": 1,
-      "id": "minecraft:grass_block"
+      "id": "minecraft:respawn_anchor"
     },
     "title": "Difficulty Death Scaler"
   },

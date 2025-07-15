@@ -43,7 +43,7 @@ public class AdvancementProvider extends FabricAdvancementProvider {
     public void generateAdvancement(RegistryWrapper.WrapperLookup wrapperLookup, Consumer<AdvancementEntry> consumer) {
         final var ddsWorld = Advancement.Builder.createUntelemetered()
                 .display(
-                        Items.GRASS_BLOCK,
+                        Items.RESPAWN_ANCHOR,
                         Text.literal("Difficulty Death Scaler"),
                         Text.literal("Welcome to a world governed by Difficulty Death Scaler!"),
                         Identifier.of(""), // force the "no texture"

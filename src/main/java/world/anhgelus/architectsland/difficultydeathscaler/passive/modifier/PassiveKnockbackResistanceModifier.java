@@ -8,15 +8,15 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 
 public class PassiveKnockbackResistanceModifier extends PassiveModifier<HostileEntity> {
-    public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.KNOCKBACK_RESISTANCE;
-    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
-    public static final Identifier ID = Identifier.of(PREFIX + "knockback_resistance");
+	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.KNOCKBACK_RESISTANCE;
+	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
+	public static final Identifier ID = Identifier.of(PREFIX + "knockback_resistance");
 
-    private PassiveKnockbackResistanceModifier() {
-        super(ID, ATTRIBUTE, OPERATION);
-    }
+	private PassiveKnockbackResistanceModifier() {
+		super(ID, ATTRIBUTE, OPERATION);
+	}
 
-    public static void apply(HostileEntity entity, double value) {
-        apply(ID, ATTRIBUTE, OPERATION, entity, value);
-    }
+	public static void apply(HostileEntity entity, double value) {
+		apply(ID, ATTRIBUTE, OPERATION, entity, value);
+	}
 }

@@ -8,15 +8,15 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 
 public class StepHeightModifier extends Modifier<HostileEntity> {
-    public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.STEP_HEIGHT;
-    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
-    protected static final Identifier ID = Identifier.of(PREFIX + "step_height_modifier");
+	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.STEP_HEIGHT;
+	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
+	protected static final Identifier ID = Identifier.of(PREFIX + "step_height_modifier");
 
-    public StepHeightModifier() {
-        super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
-    }
+	public StepHeightModifier() {
+		super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
+	}
 
-    public static void apply(HostileEntity player, double value) {
-        apply(ID, ATTRIBUTE, OPERATION, player, value);
-    }
+	public static void apply(HostileEntity player, double value) {
+		apply(ID, ATTRIBUTE, OPERATION, player, value);
+	}
 }

@@ -9,70 +9,71 @@ import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 public class Modifier<T extends LivingEntity> {
-    public static final String PREFIX = "dds_";
-    protected final Identifier id;
-    protected final RegistryEntry<EntityAttribute> attribute;
-    protected final EntityAttributeModifier.Operation operation;
-    protected final Check check;
-    protected double value = 0;
-    protected boolean valueSet = false;
-    protected Modifier(Identifier id, RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier.Operation operation, Check check) {
-        this.id = id;
-        this.attribute = attribute;
-        this.operation = operation;
-        this.check = check;
-    }
+	public static final String PREFIX = "dds_";
+	protected final Identifier id;
+	protected final RegistryEntry<EntityAttribute> attribute;
+	protected final EntityAttributeModifier.Operation operation;
+	protected final Check check;
+	protected double value = 0;
+	protected boolean valueSet = false;
 
-    public static void apply(
-            Identifier id,
-            RegistryEntry<EntityAttribute> attribute,
-            EntityAttributeModifier.Operation operation,
-            LivingEntity entity,
-            double value
-    ) {
-        final var attr = entity.getAttributeInstance(attribute);
-        if (attr == null) {
-            DifficultyDeathScaler.LOGGER.warn("Attribute {} not found for {}", attribute, entity.getClass().getSimpleName());
-            return;
-        }
+	protected Modifier(Identifier id, RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier.Operation operation, Check check) {
+		this.id = id;
+		this.attribute = attribute;
+		this.operation = operation;
+		this.check = check;
+	}
 
-        attr.removeModifier(id);
-        if (value == 0) return;
+	public static void apply(
+		Identifier id,
+		RegistryEntry<EntityAttribute> attribute,
+		EntityAttributeModifier.Operation operation,
+		LivingEntity entity,
+		double value
+	) {
+		final var attr = entity.getAttributeInstance(attribute);
+		if (attr == null) {
+			DifficultyDeathScaler.LOGGER.warn("Attribute {} not found for {}", attribute, entity.getClass().getSimpleName());
+			return;
+		}
 
-        final var playerHealthModifier = new EntityAttributeModifier(id, value, operation);
-        attr.addPersistentModifier(playerHealthModifier);
-    }
+		attr.removeModifier(id);
+		if (value == 0) return;
 
-    /**
-     * Update the value if needed
-     *
-     * @param newValue newValue
-     */
-    public void update(double newValue) {
-        if (!valueSet) {
-            value = newValue;
-            valueSet = true;
-            return;
-        }
-        if (check == Check.SMALLER && newValue < value) value = newValue;
-        else if (check == Check.BIGGER && newValue > value) value = newValue;
-    }
+		final var playerHealthModifier = new EntityAttributeModifier(id, value, operation);
+		attr.addPersistentModifier(playerHealthModifier);
+	}
 
-    /**
-     * Apply modifier to player
-     *
-     * @param entity Entity to apply the modifier
-     */
-    public void apply(@Nullable T entity) {
-        if (entity == null) return;
-        apply(id, attribute, operation, entity, value);
-    }
+	/**
+	 * Update the value if needed
+	 *
+	 * @param newValue newValue
+	 */
+	public void update(double newValue) {
+		if (!valueSet) {
+			value = newValue;
+			valueSet = true;
+			return;
+		}
+		if (check == Check.SMALLER && newValue < value) value = newValue;
+		else if (check == Check.BIGGER && newValue > value) value = newValue;
+	}
 
-    public double getValue() {
-        return value;
-    }
+	/**
+	 * Apply modifier to player
+	 *
+	 * @param entity Entity to apply the modifier
+	 */
+	public void apply(@Nullable T entity) {
+		if (entity == null) return;
+		apply(id, attribute, operation, entity, value);
+	}
 
-    protected enum Check {
-        BIGGER, SMALLER
-    }
+	public double getValue() {
+		return value;
+	}
+
+	protected enum Check {
+		BIGGER, SMALLER
+	}
 }

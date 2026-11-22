@@ -15,22 +15,22 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.Glo
 
 @Mixin(MobEntity.class)
 public abstract class AnnoyingMobEntity extends LivingEntity {
-    protected AnnoyingMobEntity(EntityType<? extends LivingEntity> entityType, World world) {
-        super(entityType, world);
-    }
+	protected AnnoyingMobEntity(EntityType<? extends LivingEntity> entityType, World world) {
+		super(entityType, world);
+	}
 
-    @Inject(at = @At("HEAD"), method = "getSafeFallDistance", cancellable = true)
-    public void newSafeFallDistance(CallbackInfoReturnable<Integer> cir) {
-        final var t = (MobEntity) (Object) this;
-        if (t instanceof SkeletonEntity && GlobalDifficultyManager.areSkeletonsBetter()) {
-            cir.setReturnValue(safeFallDistance(t.getTarget()));
-        } else if (t instanceof ZombieEntity && GlobalDifficultyManager.areZombiesBetter()) {
-            cir.setReturnValue(safeFallDistance(t.getTarget()));
-        }
-    }
+	@Inject(at = @At("HEAD"), method = "getSafeFallDistance", cancellable = true)
+	public void newSafeFallDistance(CallbackInfoReturnable<Integer> cir) {
+		final var t = (MobEntity) (Object) this;
+		if (t instanceof SkeletonEntity && GlobalDifficultyManager.areSkeletonsBetter()) {
+			cir.setReturnValue(safeFallDistance(t.getTarget()));
+		} else if (t instanceof ZombieEntity && GlobalDifficultyManager.areZombiesBetter()) {
+			cir.setReturnValue(safeFallDistance(t.getTarget()));
+		}
+	}
 
-    @Unique
-    private int safeFallDistance(LivingEntity target) {
-        return target == null ? getSafeFallDistance(0.0F) : getSafeFallDistance(this.getHealth() - 3.0F);
-    }
+	@Unique
+	private int safeFallDistance(LivingEntity target) {
+		return target == null ? getSafeFallDistance(0.0F) : getSafeFallDistance(this.getHealth() - 3.0F);
+	}
 }

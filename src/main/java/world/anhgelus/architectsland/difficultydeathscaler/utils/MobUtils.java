@@ -12,28 +12,28 @@ import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler
 import java.util.concurrent.Callable;
 
 public class MobUtils {
-    public static boolean HOSTILE_MOBS_BURN = true;
-    public static boolean PHANTOMS_NIGHTMARE = false;
+	public static boolean HOSTILE_MOBS_BURN = true;
+	public static boolean PHANTOMS_NIGHTMARE = false;
 
-    public static void commonBetterGoals(HostileEntity e, GoalSelector targetSelector) {
-        for (Goal g : targetSelector.getGoals()) {
-            if (g instanceof RevengeGoal) {
-                targetSelector.remove(g);
-            }
-        }
-        // kill player become more important than defending itself
-        targetSelector.add(2, new RevengeGoal(e));
-        targetSelector.add(1, new ActiveTargetGoal<>(e, PlayerEntity.class, true));
-    }
+	public static void commonBetterGoals(HostileEntity e, GoalSelector targetSelector) {
+		for (Goal g : targetSelector.getGoals()) {
+			if (g instanceof RevengeGoal) {
+				targetSelector.remove(g);
+			}
+		}
+		// kill player become more important than defending itself
+		targetSelector.add(2, new RevengeGoal(e));
+		targetSelector.add(1, new ActiveTargetGoal<>(e, PlayerEntity.class, true));
+	}
 
-    public static void customSpawn(Random random, float proba, float max, Callable<Object> exec) {
-        if (proba <= 0) return;
-        final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
-        if (difficulty.getNumberOfDeath() >= 40) proba = max;
-        try {
-            if (random.nextFloat() * 100 < proba) exec.call();
-        } catch (Exception e) {
-            DifficultyDeathScaler.LOGGER.error("An error occurred while executing the custom spawn", e);
-        }
-    }
+	public static void customSpawn(Random random, float proba, float max, Callable<Object> exec) {
+		if (proba <= 0) return;
+		final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+		if (difficulty.getNumberOfDeath() >= 40) proba = max;
+		try {
+			if (random.nextFloat() * 100 < proba) exec.call();
+		} catch (Exception e) {
+			DifficultyDeathScaler.LOGGER.error("An error occurred while executing the custom spawn", e);
+		}
+	}
 }

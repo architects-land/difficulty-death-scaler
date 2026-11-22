@@ -20,116 +20,116 @@ import static world.anhgelus.architectsland.difficultydeathscaler.utils.Getters.
 import static world.anhgelus.architectsland.difficultydeathscaler.utils.Getters.PLAYER_DIFFICULTY_GETTER;
 
 public class DifficultyCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        final Command<ServerCommandSource> globalGetExecute = context -> {
-            final var source = context.getSource();
-            final var server = source.getServer();
-            source.sendFeedback(() -> {
-                return GLOBAL_DIFFICULTY_GETTER.get().getDifficultyUpdate(server.getOverworld().getDifficulty());
-            }, false);
-            return Command.SINGLE_SUCCESS;
-        };
+	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+		final Command<ServerCommandSource> globalGetExecute = context -> {
+			final var source = context.getSource();
+			final var server = source.getServer();
+			source.sendFeedback(() -> {
+				return GLOBAL_DIFFICULTY_GETTER.get().getDifficultyUpdate(server.getOverworld().getDifficulty());
+			}, false);
+			return Command.SINGLE_SUCCESS;
+		};
 
-        // is /dds get [none|player]
-        final var getCommand = literal("get").then(
-                argument("player", EntityArgumentType.player()).executes(context -> {
-                    return sendPlayerDifficulty(context, EntityArgumentType.getPlayer(context, "player"));
-                })
-        ).executes(globalGetExecute);
+		// is /dds get [none|player]
+		final var getCommand = literal("get").then(
+			argument("player", EntityArgumentType.player()).executes(context -> {
+				return sendPlayerDifficulty(context, EntityArgumentType.getPlayer(context, "player"));
+			})
+		).executes(globalGetExecute);
 
-        // is /dds set global [int]
-        final var setGlobalCommand = literal("global").then(
-                argument("number of death", IntegerArgumentType.integer()).executes(context -> {
-                    final var source = context.getSource();
-                    GLOBAL_DIFFICULTY_GETTER.get().setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"));
-                    source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
-                    return Command.SINGLE_SUCCESS;
-                })
-        );
+		// is /dds set global [int]
+		final var setGlobalCommand = literal("global").then(
+			argument("number of death", IntegerArgumentType.integer()).executes(context -> {
+				final var source = context.getSource();
+				GLOBAL_DIFFICULTY_GETTER.get().setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"));
+				source.sendFeedback(() -> Text.literal("The difficulty has been changed"), true);
+				return Command.SINGLE_SUCCESS;
+			})
+		);
 
-        // is /dds set player [player] [difficulty|daily-death] [int]
-        final var setPlayerCommand = literal("player").then(argument("player", EntityArgumentType.player())
-                .then(
-                        literal("difficulty").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
-                            final var source = context.getSource();
-                            final var server = source.getServer();
-                            final var target = EntityArgumentType.getPlayer(context, "player");
-                            PLAYER_DIFFICULTY_GETTER.get(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"));
-                            source.sendFeedback(() -> {
-                                return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
-                            }, true);
-                            target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
-                            return Command.SINGLE_SUCCESS;
-                        }))
-                ).then(
-                        literal("daily-death").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
-                            final var source = context.getSource();
-                            final var server = source.getServer();
-                            final var target = EntityArgumentType.getPlayer(context, "player");
-                            PLAYER_DIFFICULTY_GETTER.get(server, target).setDeathDay(IntegerArgumentType.getInteger(context, "number of death"));
-                            source.sendFeedback(() -> {
-                                return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
-                            }, true);
-                            target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
-                            return Command.SINGLE_SUCCESS;
-                        }))
-                ));
+		// is /dds set player [player] [difficulty|daily-death] [int]
+		final var setPlayerCommand = literal("player").then(argument("player", EntityArgumentType.player())
+			.then(
+				literal("difficulty").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
+					final var source = context.getSource();
+					final var server = source.getServer();
+					final var target = EntityArgumentType.getPlayer(context, "player");
+					PLAYER_DIFFICULTY_GETTER.get(server, target).setNumberOfDeath(IntegerArgumentType.getInteger(context, "number of death"));
+					source.sendFeedback(() -> {
+						return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
+					}, true);
+					target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
+					return Command.SINGLE_SUCCESS;
+				}))
+			).then(
+				literal("daily-death").then(argument("number of death", IntegerArgumentType.integer()).executes(context -> {
+					final var source = context.getSource();
+					final var server = source.getServer();
+					final var target = EntityArgumentType.getPlayer(context, "player");
+					PLAYER_DIFFICULTY_GETTER.get(server, target).setDeathDay(IntegerArgumentType.getInteger(context, "number of death"));
+					source.sendFeedback(() -> {
+						return Text.literal("The difficulty has been changed for ").append(target.getDisplayName());
+					}, true);
+					target.sendMessage(Text.literal("Your difficulty has been changed by ").append(source.getDisplayName()));
+					return Command.SINGLE_SUCCESS;
+				}))
+			));
 
-        // is /dds set [global|player]
-        final var setCommand = literal("set")
-                .requires(source -> source.hasPermissionLevel(2))
-                .then(setGlobalCommand)
-                .then(setPlayerCommand);
+		// is /dds set [global|player]
+		final var setCommand = literal("set")
+			.requires(source -> source.hasPermissionLevel(2))
+			.then(setGlobalCommand)
+			.then(setPlayerCommand);
 
-        // is /dds help
-        final var helpCommand = literal("help").executes(context -> {
-            final var url = "https://architects-land.github.io/difficulty-death-scaler/";
-            final var link = Text.literal(url);
-            link.fillStyle(
-                    link.getStyle()
-                            .withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))
-                            .withFormatting(Formatting.UNDERLINE)
-            );
-            context.getSource().sendFeedback(() ->
-                            Text.literal("The wiki is available at ").append(link),
-                    false);
-            return Command.SINGLE_SUCCESS;
-        });
+		// is /dds help
+		final var helpCommand = literal("help").executes(context -> {
+			final var url = "https://architects-land.github.io/difficulty-death-scaler/";
+			final var link = Text.literal(url);
+			link.fillStyle(
+				link.getStyle()
+					.withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))
+					.withFormatting(Formatting.UNDERLINE)
+			);
+			context.getSource().sendFeedback(() ->
+					Text.literal("The wiki is available at ").append(link),
+				false);
+			return Command.SINGLE_SUCCESS;
+		});
 
-        // is long /dds
-        final LiteralArgumentBuilder<ServerCommandSource> command = literal("difficultydeathscaler");
-        command.then(setCommand);
-        command.then(getCommand);
-        command.then(helpCommand);
+		// is long /dds
+		final LiteralArgumentBuilder<ServerCommandSource> command = literal("difficultydeathscaler");
+		command.then(setCommand);
+		command.then(getCommand);
+		command.then(helpCommand);
 
-        // is /dds
-        final LiteralArgumentBuilder<ServerCommandSource> commandShort = literal("dds");
-        commandShort.then(setCommand);
-        commandShort.then(getCommand);
-        commandShort.then(helpCommand);
+		// is /dds
+		final LiteralArgumentBuilder<ServerCommandSource> commandShort = literal("dds");
+		commandShort.then(setCommand);
+		commandShort.then(getCommand);
+		commandShort.then(helpCommand);
 
-        dispatcher.register(command);
-        dispatcher.register(commandShort);
-        // is shortcut /dds
-        dispatcher.register(literal("ddsg").executes(globalGetExecute));
-        dispatcher.register(literal("ddsp").executes(context -> {
-            final var source = context.getSource();
-            final var target = source.getPlayer();
-            if (target == null) {
-                source.sendFeedback(() -> Text.literal("You are not a player"), false);
-                return 2;
-            }
-            return sendPlayerDifficulty(context, target);
-        }));
-    }
+		dispatcher.register(command);
+		dispatcher.register(commandShort);
+		// is shortcut /dds
+		dispatcher.register(literal("ddsg").executes(globalGetExecute));
+		dispatcher.register(literal("ddsp").executes(context -> {
+			final var source = context.getSource();
+			final var target = source.getPlayer();
+			if (target == null) {
+				source.sendFeedback(() -> Text.literal("You are not a player"), false);
+				return 2;
+			}
+			return sendPlayerDifficulty(context, target);
+		}));
+	}
 
-    private static int sendPlayerDifficulty(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) {
-        final var source = context.getSource();
-        final var server = source.getServer();
-        source.sendFeedback(() ->
-                PLAYER_DIFFICULTY_GETTER.get(server, target)
-                        .getDifficultyUpdate(server.getOverworld().getDifficulty()
-                        ), false);
-        return Command.SINGLE_SUCCESS;
-    }
+	private static int sendPlayerDifficulty(CommandContext<ServerCommandSource> context, ServerPlayerEntity target) {
+		final var source = context.getSource();
+		final var server = source.getServer();
+		source.sendFeedback(() ->
+			PLAYER_DIFFICULTY_GETTER.get(server, target)
+				.getDifficultyUpdate(server.getOverworld().getDifficulty()
+				), false);
+		return Command.SINGLE_SUCCESS;
+	}
 }

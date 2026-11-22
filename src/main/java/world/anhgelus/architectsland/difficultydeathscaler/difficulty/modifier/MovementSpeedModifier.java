@@ -8,15 +8,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 public class MovementSpeedModifier extends Modifier<ServerPlayerEntity> {
-    public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.MOVEMENT_SPEED;
-    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
-    protected static final Identifier ID = Identifier.of(PREFIX + "movement_speed_modifier");
+	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.MOVEMENT_SPEED;
+	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+	protected static final Identifier ID = Identifier.of(PREFIX + "movement_speed_modifier");
 
-    public MovementSpeedModifier() {
-        super(ID, ATTRIBUTE, OPERATION, Check.SMALLER);
-    }
+	public MovementSpeedModifier() {
+		super(ID, ATTRIBUTE, OPERATION, Check.SMALLER);
+	}
 
-    public static void apply(ServerPlayerEntity player, double value) {
-        apply(ID, ATTRIBUTE, OPERATION, player, value);
-    }
+	public static void apply(ServerPlayerEntity player, double value) {
+		apply(ID, ATTRIBUTE, OPERATION, player, value);
+	}
 }

@@ -1,21 +1,21 @@
 {
-  "criteria": {
-    "joined": {
-      "trigger": "minecraft:tick"
-    }
-  },
-  "display": {
-    "background": "minecraft:",
-    "description": "Welcome to a world governed by Difficulty Death Scaler!",
-    "icon": {
-      "count": 1,
-      "id": "minecraft:respawn_anchor"
-    },
-    "title": "Difficulty Death Scaler"
-  },
-  "requirements": [
-    [
-      "joined"
-    ]
-  ]
+	"criteria": {
+		"joined": {
+			"trigger": "minecraft:tick"
+		}
+	},
+	"display": {
+		"background": "minecraft:",
+		"description": "Welcome to a world governed by Difficulty Death Scaler!",
+		"icon": {
+			"count": 1,
+			"id": "minecraft:respawn_anchor"
+		},
+		"title": "Difficulty Death Scaler"
+	},
+	"requirements": [
+		[
+			"joined"
+		]
+	]
 }

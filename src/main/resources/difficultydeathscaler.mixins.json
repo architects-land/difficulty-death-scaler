@@ -1,21 +1,21 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "world.anhgelus.architectsland.difficultydeathscaler.mixin",
-  "compatibilityLevel": "JAVA_21",
-  "mixins": [
-    "AnnoyingCreeper$Creeper",
-    "AnnoyingCreeper$IgniteGoal",
-    "AnnoyingDrowned",
-    "AnnoyingHostileMobs",
-    "AnnoyingMobEntity",
-    "AnnoyingSkeleton",
-    "AnnoyingZombie",
-    "PhantomsSpawnerMixin",
-    "StrongerDragon",
-    "WorldTimerAccess"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  }
+	"required": true,
+	"minVersion": "0.8",
+	"package": "world.anhgelus.architectsland.difficultydeathscaler.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"AnnoyingCreeper$Creeper",
+		"AnnoyingCreeper$IgniteGoal",
+		"AnnoyingDrowned",
+		"AnnoyingHostileMobs",
+		"AnnoyingMobEntity",
+		"AnnoyingSkeleton",
+		"AnnoyingZombie",
+		"PhantomsSpawnerMixin",
+		"StrongerDragon",
+		"WorldTimerAccess"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
 }

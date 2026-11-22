@@ -14,31 +14,31 @@ import java.util.function.BooleanSupplier;
 
 @Mixin(ServerWorld.class)
 public class WorldTimerAccess implements TimerAccess {
-    @Unique
-    private final List<TimerAccess.TickTask> tasks = new ArrayList<>();
+	@Unique
+	private final List<TimerAccess.TickTask> tasks = new ArrayList<>();
 
-    @Unique
-    private final List<TimerAccess.TickTask> tasksToAdd = new ArrayList<>();
+	@Unique
+	private final List<TimerAccess.TickTask> tasksToAdd = new ArrayList<>();
 
-    @Inject(method = "tick", at = @At("TAIL"))
-    private void onTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        tasks.stream().filter(TickTask::isRunning).forEach(TickTask::tick);
-        tasks.addAll(tasksToAdd);
-        tasksToAdd.clear();
-    }
+	@Inject(method = "tick", at = @At("TAIL"))
+	private void onTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
+		tasks.stream().filter(TickTask::isRunning).forEach(TickTask::tick);
+		tasks.addAll(tasksToAdd);
+		tasksToAdd.clear();
+	}
 
-    @Override
-    public void dds_runTask(TimerAccess.TickTask task) {
-        tasksToAdd.add(task);
-    }
+	@Override
+	public void dds_runTask(TimerAccess.TickTask task) {
+		tasksToAdd.add(task);
+	}
 
-    @Override
-    public void dds_cancel() {
-        tasks.stream().filter(TickTask::isRunning).forEach(TickTask::cancel);
-    }
+	@Override
+	public void dds_cancel() {
+		tasks.stream().filter(TickTask::isRunning).forEach(TickTask::cancel);
+	}
 
-    @Override
-    public List<TickTask> dds_getTasks() {
-        return tasks.stream().filter(TickTask::isRunning).toList();
-    }
+	@Override
+	public List<TickTask> dds_getTasks() {
+		return tasks.stream().filter(TickTask::isRunning).toList();
+	}
 }

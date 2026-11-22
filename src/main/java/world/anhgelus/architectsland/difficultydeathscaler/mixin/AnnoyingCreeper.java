@@ -22,78 +22,78 @@ import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 public abstract class AnnoyingCreeper {
-    @Mixin(CreeperIgniteGoal.class)
-    private abstract static class IgniteGoal {
-        @Shadow
-        @Final
-        private CreeperEntity creeper;
+	@Mixin(CreeperIgniteGoal.class)
+	private abstract static class IgniteGoal {
+		@Shadow
+		@Final
+		private CreeperEntity creeper;
 
-        @Shadow
-        private LivingEntity target;
+		@Shadow
+		private LivingEntity target;
 
-        @Inject(at = @At("RETURN"), method = "canStart", cancellable = true)
-        public void canStart(CallbackInfoReturnable<Boolean> cir) {
-            if (!GlobalDifficultyManager.areCreepersBetter()) return;
-            final var livingEntity = creeper.getTarget();
-            cir.setReturnValue(creeper.getFuseSpeed() > 0 || livingEntity != null && creeper.squaredDistanceTo(livingEntity) < 6.0);
-        }
+		@Inject(at = @At("RETURN"), method = "canStart", cancellable = true)
+		public void canStart(CallbackInfoReturnable<Boolean> cir) {
+			if (!GlobalDifficultyManager.areCreepersBetter()) return;
+			final var livingEntity = creeper.getTarget();
+			cir.setReturnValue(creeper.getFuseSpeed() > 0 || livingEntity != null && creeper.squaredDistanceTo(livingEntity) < 6.0);
+		}
 
-        @Inject(at = @At("HEAD"), method = "tick", cancellable = true)
-        public void tick(CallbackInfo ci) {
-            if (!GlobalDifficultyManager.areCreepersBetter()) return;
-            ci.cancel();
-            if (this.target == null) {
-                this.creeper.setFuseSpeed(-1);
-                return;
-            }
-            if (this.creeper.isCharged()) {
-                if (this.creeper.squaredDistanceTo(this.target) > 49.0 || !this.creeper.getVisibilityCache().canSee(this.target)) {
-                    this.creeper.setFuseSpeed(-1);
-                } else {
-                    creeper.setFuseSpeed(1);
-                }
-                return;
-            }
-            if (this.creeper.squaredDistanceTo(this.target) > 20.0 ||
-                    (!this.creeper.getVisibilityCache().canSee(this.target) && this.creeper.squaredDistanceTo(this.target) > 49.0)
-            ) {
-                this.creeper.setFuseSpeed(-1);
-                return;
-            }
-            creeper.setFuseSpeed(2);
-        }
-    }
+		@Inject(at = @At("HEAD"), method = "tick", cancellable = true)
+		public void tick(CallbackInfo ci) {
+			if (!GlobalDifficultyManager.areCreepersBetter()) return;
+			ci.cancel();
+			if (this.target == null) {
+				this.creeper.setFuseSpeed(-1);
+				return;
+			}
+			if (this.creeper.isCharged()) {
+				if (this.creeper.squaredDistanceTo(this.target) > 49.0 || !this.creeper.getVisibilityCache().canSee(this.target)) {
+					this.creeper.setFuseSpeed(-1);
+				} else {
+					creeper.setFuseSpeed(1);
+				}
+				return;
+			}
+			if (this.creeper.squaredDistanceTo(this.target) > 20.0 ||
+				(!this.creeper.getVisibilityCache().canSee(this.target) && this.creeper.squaredDistanceTo(this.target) > 49.0)
+			) {
+				this.creeper.setFuseSpeed(-1);
+				return;
+			}
+			creeper.setFuseSpeed(2);
+		}
+	}
 
-    @Mixin(CreeperEntity.class)
-    private abstract static class Creeper extends HostileEntity {
-        @Shadow
-        @Final
-        private static TrackedData<Boolean> CHARGED;
+	@Mixin(CreeperEntity.class)
+	private abstract static class Creeper extends HostileEntity {
+		@Shadow
+		@Final
+		private static TrackedData<Boolean> CHARGED;
 
-        protected Creeper(EntityType<? extends HostileEntity> entityType, World world) {
-            super(entityType, world);
-        }
+		protected Creeper(EntityType<? extends HostileEntity> entityType, World world) {
+			super(entityType, world);
+		}
 
-        @Inject(at = @At("RETURN"), method = "<init>")
-        protected void init(EntityType<? extends HostileEntity> entityType, World world, CallbackInfo ci) {
-            if (Getters.GLOBAL_DIFFICULTY_GETTER == null) return;
-            final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
-            if (difficulty.getNumberOfDeath() < 21) return;
-            MobUtils.customSpawn(getRandom(), 2 * (difficulty.getNumberOfDeath() - 21), 40, () -> {
-                this.dataTracker.set(CHARGED, true);
-                return null;
-            });
-        }
+		@Inject(at = @At("RETURN"), method = "<init>")
+		protected void init(EntityType<? extends HostileEntity> entityType, World world, CallbackInfo ci) {
+			if (Getters.GLOBAL_DIFFICULTY_GETTER == null) return;
+			final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+			if (difficulty.getNumberOfDeath() < 21) return;
+			MobUtils.customSpawn(getRandom(), 2 * (difficulty.getNumberOfDeath() - 21), 40, () -> {
+				this.dataTracker.set(CHARGED, true);
+				return null;
+			});
+		}
 
-        @Inject(at = @At("RETURN"), method = "initGoals")
-        protected void initGoals(CallbackInfo ci) {
-            if (!GlobalDifficultyManager.areCreepersBetter()) return;
-            for (Goal g : targetSelector.getGoals()) {
-                if (g instanceof ActiveTargetGoal) {
-                    targetSelector.remove(g);
-                }
-            }
-            targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, false));
-        }
-    }
+		@Inject(at = @At("RETURN"), method = "initGoals")
+		protected void initGoals(CallbackInfo ci) {
+			if (!GlobalDifficultyManager.areCreepersBetter()) return;
+			for (Goal g : targetSelector.getGoals()) {
+				if (g instanceof ActiveTargetGoal) {
+					targetSelector.remove(g);
+				}
+			}
+			targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, false));
+		}
+	}
 }

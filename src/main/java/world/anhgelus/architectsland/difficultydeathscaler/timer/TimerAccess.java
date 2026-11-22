@@ -6,60 +6,60 @@ import net.minecraft.world.World;
 import java.util.List;
 
 public interface TimerAccess {
-    interface TickTask {
-        /**
-         * Tick the task
-         */
-        void tick();
+	/**
+	 * Get the timer linked to the overworld
+	 *
+	 * @param server Current server
+	 * @return TimerAccess linked to the overworld
+	 */
+	static TimerAccess getTimerFromOverworld(MinecraftServer server) {
+		final var timer = (TimerAccess) server.getWorld(World.OVERWORLD);
+		if (timer == null)
+			throw new NullPointerException("Impossible to get TimerAccess from the overworld (it is null)");
+		return timer;
+	}
 
-        /**
-         * Cancel the task
-         *
-         * @return the remaining ticks before the run of the Task
-         * @throws IllegalStateException if the task is already cancelled
-         */
-        long cancel();
+	/**
+	 * Run a task (called each tick ticked)
+	 *
+	 * @param task Task to run
+	 */
+	void dds_runTask(TimerAccess.TickTask task);
 
-        boolean isRunning();
+	void dds_cancel();
 
-        /**
-         * @return the number of ticks before run of the task (if the task is cancelled, returns -1)
-         */
-        long getTickingBeforeRun();
-    }
+	/**
+	 * @return All non-cancelled tasks
+	 */
+	List<TickTask> dds_getTasks();
 
-    /**
-     * Represents a task to run after ticking
-     */
-    @FunctionalInterface
-    interface Task {
-        void run();
-    }
+	interface TickTask {
+		/**
+		 * Tick the task
+		 */
+		void tick();
 
-    /**
-     * Run a task (called each tick ticked)
-     *
-     * @param task Task to run
-     */
-    void dds_runTask(TimerAccess.TickTask task);
+		/**
+		 * Cancel the task
+		 *
+		 * @return the remaining ticks before the run of the Task
+		 * @throws IllegalStateException if the task is already cancelled
+		 */
+		long cancel();
 
-    void dds_cancel();
+		boolean isRunning();
 
-    /**
-     * @return All non-cancelled tasks
-     */
-    List<TickTask> dds_getTasks();
+		/**
+		 * @return the number of ticks before run of the task (if the task is cancelled, returns -1)
+		 */
+		long getTickingBeforeRun();
+	}
 
-    /**
-     * Get the timer linked to the overworld
-     *
-     * @param server Current server
-     * @return TimerAccess linked to the overworld
-     */
-    static TimerAccess getTimerFromOverworld(MinecraftServer server) {
-        final var timer = (TimerAccess) server.getWorld(World.OVERWORLD);
-        if (timer == null)
-            throw new NullPointerException("Impossible to get TimerAccess from the overworld (it is null)");
-        return timer;
-    }
+	/**
+	 * Represents a task to run after ticking
+	 */
+	@FunctionalInterface
+	interface Task {
+		void run();
+	}
 }

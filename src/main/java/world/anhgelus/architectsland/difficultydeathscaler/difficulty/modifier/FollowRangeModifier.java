@@ -8,15 +8,15 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 
 public class FollowRangeModifier extends Modifier<HostileEntity> {
-    public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.FOLLOW_RANGE;
-    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
-    protected static final Identifier ID = Identifier.of(PREFIX + "follow_range_modifier");
+	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.FOLLOW_RANGE;
+	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+	protected static final Identifier ID = Identifier.of(PREFIX + "follow_range_modifier");
 
-    public FollowRangeModifier() {
-        super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
-    }
+	public FollowRangeModifier() {
+		super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
+	}
 
-    public static void apply(HostileEntity entity, double value) {
-        apply(ID, ATTRIBUTE, OPERATION, entity, value);
-    }
+	public static void apply(HostileEntity entity, double value) {
+		apply(ID, ATTRIBUTE, OPERATION, entity, value);
+	}
 }

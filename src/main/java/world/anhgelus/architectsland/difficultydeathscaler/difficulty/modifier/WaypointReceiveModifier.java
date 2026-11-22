@@ -8,17 +8,17 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 public class WaypointReceiveModifier extends Modifier<ServerPlayerEntity> {
-    public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.WAYPOINT_RECEIVE_RANGE;
-    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
-    public static final double BASE_VALUE = 60_000_000;
-    protected static final Identifier ID = Identifier.of(PREFIX + "waypoint_receive_modifier");
+	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.WAYPOINT_RECEIVE_RANGE;
+	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
+	public static final double BASE_VALUE = 60_000_000;
+	protected static final Identifier ID = Identifier.of(PREFIX + "waypoint_receive_modifier");
 
-    public WaypointReceiveModifier() {
-        super(ID, ATTRIBUTE, OPERATION, Check.SMALLER);
-    }
+	public WaypointReceiveModifier() {
+		super(ID, ATTRIBUTE, OPERATION, Check.SMALLER);
+	}
 
-    public static void apply(ServerPlayerEntity player, double value) {
-        // works like a set
-        apply(ID, ATTRIBUTE, OPERATION, player, -BASE_VALUE + value);
-    }
+	public static void apply(ServerPlayerEntity player, double value) {
+		// works like a set
+		apply(ID, ATTRIBUTE, OPERATION, player, -BASE_VALUE + value);
+	}
 }

@@ -1,32 +1,32 @@
 {
-  "schemaVersion": 1,
-  "id": "difficulty-death-scaler",
-  "version": "${version}",
-  "name": "Difficulty Death Scaler",
-  "description": "Scaling difficulty on number of death like Demon's Soul",
-  "authors": [
-    "Anhgelus Morhtuuzh"
-  ],
-  "contact": {
-    "sources": "https://github.com/anhgelus/architects-land/"
-  },
-  "license": "AGPL-3.0",
-  "icon": "assets/difficultydeathscaler/icon.png",
-  "environment": "server",
-  "entrypoints": {
-    "main": [
-      "world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler"
-    ],
-    "fabric-datagen": [
-      "world.anhgelus.architectsland.difficultydeathscaler.datagen.DataGenerator"
-    ]
-  },
-  "mixins": [
-    "difficultydeathscaler.mixins.json"
-  ],
-  "depends": {
-    "fabricloader": ">=${loader_version}",
-    "fabric-api": "*",
-    "minecraft": "<=${minecraft_version} >=1.21.6"
-  }
+	"schemaVersion": 1,
+	"id": "difficulty-death-scaler",
+	"version": "${version}",
+	"name": "Difficulty Death Scaler",
+	"description": "Scaling difficulty on number of death like Demon's Soul",
+	"authors": [
+		"Anhgelus Morhtuuzh"
+	],
+	"contact": {
+		"sources": "https://github.com/anhgelus/architects-land/"
+	},
+	"license": "AGPL-3.0",
+	"icon": "assets/difficultydeathscaler/icon.png",
+	"environment": "server",
+	"entrypoints": {
+		"main": [
+			"world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler"
+		],
+		"fabric-datagen": [
+			"world.anhgelus.architectsland.difficultydeathscaler.datagen.DataGenerator"
+		]
+	},
+	"mixins": [
+		"difficultydeathscaler.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"fabric-api": "*",
+		"minecraft": "<=${minecraft_version} >=1.21.6"
+	}
 }

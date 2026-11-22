@@ -15,25 +15,26 @@ import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 @Mixin(AbstractSkeletonEntity.class)
 public abstract class AnnoyingSkeleton extends HostileEntity {
-    protected AnnoyingSkeleton(EntityType<? extends HostileEntity> entityType, World world) {
-        super(entityType, world);
-    }
+	protected AnnoyingSkeleton(EntityType<? extends HostileEntity> entityType, World world) {
+		super(entityType, world);
+	}
 
-    @Inject(at = @At("HEAD"), method = "initGoals")
-    protected void newGoals(CallbackInfo ci) {
-        if (!GlobalDifficultyManager.areSkeletonsBetter()) return;
-        // flee Player
-        goalSelector.add(3, new FleeEntityGoal<>(
-                (AbstractSkeletonEntity) (Object) this,
-                PlayerEntity.class,
-                1.5f,
-                1.2,
-                1.3)
-        );
-    }
+	@Inject(at = @At("HEAD"), method = "initGoals")
+	protected void newGoals(CallbackInfo ci) {
+		if (!GlobalDifficultyManager.areSkeletonsBetter()) return;
+		// flee Player
+		goalSelector.add(3, new FleeEntityGoal<>(
+			(AbstractSkeletonEntity) (Object) this,
+			PlayerEntity.class,
+			1.5f,
+			1.2,
+			1.3)
+		);
+	}
 
-    @Inject(at = @At("RETURN"), method = "initGoals")
-    protected void betterGoals(CallbackInfo ci) {
-        if (GlobalDifficultyManager.areSkeletonsBetter()) MobUtils.commonBetterGoals(this, targetSelector);
-    }
+	@Inject(at = @At("RETURN"), method = "initGoals")
+	protected void betterGoals(CallbackInfo ci) {
+		if (GlobalDifficultyManager.areSkeletonsBetter())
+			MobUtils.commonBetterGoals(this, targetSelector);
+	}
 }

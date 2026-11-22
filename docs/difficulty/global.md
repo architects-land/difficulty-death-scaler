@@ -31,8 +31,7 @@ Difficulty is hard.
 
 **5 deaths**
 All blocks do not drop after a block explosion like bed (except TNT) or mob explosion like creeper.
-Phantoms are back.
-(This the vanilla "Hard" difficulty.)
+Phantoms are back. (This the vanilla "Hard" difficulty.)
 
 ## Ominous steps
 

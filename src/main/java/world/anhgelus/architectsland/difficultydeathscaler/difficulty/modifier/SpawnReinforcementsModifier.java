@@ -9,15 +9,15 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 
 public class SpawnReinforcementsModifier extends Modifier<HostileEntity> {
-    public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.SPAWN_REINFORCEMENTS;
-    public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
-    protected static final Identifier ID = Identifier.of(PREFIX + "spawn_reinforcements_modifier");
+	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.SPAWN_REINFORCEMENTS;
+	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+	protected static final Identifier ID = Identifier.of(PREFIX + "spawn_reinforcements_modifier");
 
-    public SpawnReinforcementsModifier() {
-        super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
-    }
+	public SpawnReinforcementsModifier() {
+		super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
+	}
 
-    public static void apply(ZombieEntity player, double value) {
-        apply(ID, ATTRIBUTE, OPERATION, player, value);
-    }
+	public static void apply(ZombieEntity player, double value) {
+		apply(ID, ATTRIBUTE, OPERATION, player, value);
+	}
 }

@@ -28,77 +28,77 @@ import java.util.List;
 import java.util.UUID;
 
 public class BossManager {
-    public static final Item BUFFING_ITEM = Items.NETHERITE_INGOT;
+	public static final Item BUFFING_ITEM = Items.NETHERITE_INGOT;
 
-    private static final List<UUID> buffedBosses = new ArrayList<>();
+	private static final List<UUID> buffedBosses = new ArrayList<>();
 
-    private static DragonBuff dragonBuff = null;
+	private static DragonBuff dragonBuff = null;
 
-    public static ActionResult handleBuff(ServerPlayerEntity player, World world, Hand hand, LivingEntity e) {
-        if (!(e instanceof WitherEntity ||
-                e instanceof EnderDragonEntity ||
-                e instanceof ElderGuardianEntity ||
-                e instanceof WardenEntity)) return ActionResult.PASS;
+	public static ActionResult handleBuff(ServerPlayerEntity player, World world, Hand hand, LivingEntity e) {
+		if (!(e instanceof WitherEntity ||
+			e instanceof EnderDragonEntity ||
+			e instanceof ElderGuardianEntity ||
+			e instanceof WardenEntity)) return ActionResult.PASS;
 
-        if (buffedBosses.contains(e.getUuid())) return ActionResult.PASS;
+		if (buffedBosses.contains(e.getUuid())) return ActionResult.PASS;
 
-        final ItemStack itemStack = player.getStackInHand(hand);
-        if (!itemStack.isOf(BUFFING_ITEM)) return ActionResult.PASS;
-        itemStack.decrementUnlessCreative(1, player);
+		final ItemStack itemStack = player.getStackInHand(hand);
+		if (!itemStack.isOf(BUFFING_ITEM)) return ActionResult.PASS;
+		itemStack.decrementUnlessCreative(1, player);
 
-        ModCriteria.BOSS.trigger(player, e.getClass(), false);
-        ModCriteria.ARBITRARY.trigger(player, AdvancementProvider.BUFF_BOSS);
+		ModCriteria.BOSS.trigger(player, e.getClass(), false);
+		ModCriteria.ARBITRARY.trigger(player, AdvancementProvider.BUFF_BOSS);
 
-        Boss.fromEntity(e, dragonBuff).buff();
-        buffedBosses.add(e.getUuid());
+		Boss.fromEntity(e, dragonBuff).buff();
+		buffedBosses.add(e.getUuid());
 
-        e.setHealth(e.getMaxHealth());
+		e.setHealth(e.getMaxHealth());
 
-        final var lightingBolt = new LightningEntity(EntityType.LIGHTNING_BOLT, world);
-        lightingBolt.setPosition(e.getPos());
+		final var lightingBolt = new LightningEntity(EntityType.LIGHTNING_BOLT, world);
+		lightingBolt.setPosition(e.getPos());
 
-        world.spawnEntity(lightingBolt);
-        e.setHealth(e.getMaxHealth());
+		world.spawnEntity(lightingBolt);
+		e.setHealth(e.getMaxHealth());
 
-        return ActionResult.SUCCESS;
-    }
+		return ActionResult.SUCCESS;
+	}
 
-    public static void handleKill(Entity entity, DamageSource source, DifficultyManager manager) {
-        if (entity instanceof EnderDragonEntity) dragonDies();
-        if (!buffedBosses.contains(entity.getUuid())) return;
-        if (source.getAttacker() instanceof final ServerPlayerEntity p)
-            ModCriteria.BOSS.trigger(p, entity.getClass(), true);
-        buffedBosses.remove(entity.getUuid());
-        manager.decreaseDeath();
-        manager.updateTimerTask(); // reset timer task
-    }
+	public static void handleKill(Entity entity, DamageSource source, DifficultyManager manager) {
+		if (entity instanceof EnderDragonEntity) dragonDies();
+		if (!buffedBosses.contains(entity.getUuid())) return;
+		if (source.getAttacker() instanceof final ServerPlayerEntity p)
+			ModCriteria.BOSS.trigger(p, entity.getClass(), true);
+		buffedBosses.remove(entity.getUuid());
+		manager.decreaseDeath();
+		manager.updateTimerTask(); // reset timer task
+	}
 
-    public static void playerEntersEnd(ServerPlayerEntity player, ServerWorld world) {
-        if (dragonBuff == null || !dragonBuff.isDragonAlive()) {
-            final var l = world.getAliveEnderDragons();
-            if (l == null || l.isEmpty()) {
-                DifficultyDeathScaler.LOGGER.info("No dragons found");
-                return;
-            }
-            dragonBuff = new DragonBuff(l.getFirst());
-        }
-        DifficultyDeathScaler.LOGGER.info("Player {} enters the end", player.getName().getLiteralString());
-        dragonBuff.playerEntersEnd(player);
-    }
+	public static void playerEntersEnd(ServerPlayerEntity player, ServerWorld world) {
+		if (dragonBuff == null || !dragonBuff.isDragonAlive()) {
+			final var l = world.getAliveEnderDragons();
+			if (l == null || l.isEmpty()) {
+				DifficultyDeathScaler.LOGGER.info("No dragons found");
+				return;
+			}
+			dragonBuff = new DragonBuff(l.getFirst());
+		}
+		DifficultyDeathScaler.LOGGER.info("Player {} enters the end", player.getName().getLiteralString());
+		dragonBuff.playerEntersEnd(player);
+	}
 
-    public static void dragonLoaded(EnderDragonEntity dragon, ServerWorld world) {
-        if (dragonBuff != null && dragonBuff.isDragonAlive()) return;
-        if (world.getRegistryKey().getValue() != World.END.getValue()) return;
-        dragonBuff = new DragonBuff(dragon);
-        world.getPlayers().forEach(player -> playerEntersEnd(player, world));
-    }
+	public static void dragonLoaded(EnderDragonEntity dragon, ServerWorld world) {
+		if (dragonBuff != null && dragonBuff.isDragonAlive()) return;
+		if (world.getRegistryKey().getValue() != World.END.getValue()) return;
+		dragonBuff = new DragonBuff(dragon);
+		world.getPlayers().forEach(player -> playerEntersEnd(player, world));
+	}
 
-    public static void onDifficultyUpdate(GlobalDifficultyManager difficultyManager) {
-        if (dragonBuff == null || !dragonBuff.isDragonAlive()) return;
-        dragonBuff.updateDragonHealth(difficultyManager.getNumberOfDeath(), true);
-    }
+	public static void onDifficultyUpdate(GlobalDifficultyManager difficultyManager) {
+		if (dragonBuff == null || !dragonBuff.isDragonAlive()) return;
+		dragonBuff.updateDragonHealth(difficultyManager.getNumberOfDeath(), true);
+	}
 
-    private static void dragonDies() {
-        dragonBuff = null;
-    }
+	private static void dragonDies() {
+		dragonBuff = null;
+	}
 }

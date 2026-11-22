@@ -26,22 +26,14 @@ public class PhantomsSpawnerMixin {
 	@Inject(method = "spawn", at = @At("HEAD"), cancellable = true)
 	public void spawnPhantoms(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals, CallbackInfo ci) {
 		if (!MobUtils.PHANTOMS_NIGHTMARE) return;
-		if (!spawnMonsters) {
-			ci.cancel();
-			return;
-		}
+		ci.cancel();
+		if (!spawnMonsters) return;
 		final var rand = world.random;
 		cooldown--;
-		if (cooldown > 0) {
-			ci.cancel();
-			return;
-		}
+		if (cooldown > 0) return;
 		cooldown += (15 + rand.nextInt(30)) * 20;
 		// limit to 75 phantoms *per world*
-		if (world.getEntitiesByType(EntityType.PHANTOM, LivingEntity::isAlive).size() > 75) {
-			ci.cancel();
-			return;
-		}
+		if (world.getEntitiesByType(EntityType.PHANTOM, LivingEntity::isAlive).size() > 75) return;
 		var i = new AtomicInteger(0);
 		world.getPlayers()
 			.stream()
@@ -71,6 +63,5 @@ public class PhantomsSpawnerMixin {
 					}
 				}
 			});
-		ci.cancel();
 	}
 }

@@ -1,5 +1,6 @@
 package world.anhgelus.architectsland.difficultydeathscaler.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
@@ -16,7 +17,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
@@ -31,11 +31,11 @@ public abstract class AnnoyingCreeper {
 		@Shadow
 		private LivingEntity target;
 
-		@Inject(at = @At("RETURN"), method = "canStart", cancellable = true)
-		public void canStart(CallbackInfoReturnable<Boolean> cir) {
-			if (!GlobalDifficultyManager.areCreepersBetter()) return;
+		@ModifyReturnValue(at = @At("RETURN"), method = "canStart()Z")
+		public boolean canStart(boolean original) {
+			if (!GlobalDifficultyManager.areCreepersBetter()) return original;
 			final var livingEntity = creeper.getTarget();
-			cir.setReturnValue(creeper.getFuseSpeed() > 0 || livingEntity != null && creeper.squaredDistanceTo(livingEntity) < 6.0);
+			return creeper.getFuseSpeed() > 0 || livingEntity != null && creeper.squaredDistanceTo(livingEntity) < 6.0;
 		}
 
 		@Inject(at = @At("HEAD"), method = "tick", cancellable = true)

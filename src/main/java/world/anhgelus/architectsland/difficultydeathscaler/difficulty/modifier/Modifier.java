@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 public class Modifier<T extends LivingEntity> {
-	public static final String PREFIX = "dds_";
 	protected final Identifier id;
 	protected final RegistryEntry<EntityAttribute> attribute;
 	protected final EntityAttributeModifier.Operation operation;

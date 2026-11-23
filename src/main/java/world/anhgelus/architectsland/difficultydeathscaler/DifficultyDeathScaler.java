@@ -1,6 +1,5 @@
 package world.anhgelus.architectsland.difficultydeathscaler;
 
-import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
@@ -18,6 +17,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
@@ -25,16 +25,13 @@ import org.slf4j.LoggerFactory;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyCommand;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyState;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.BountyCommand;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.listener.PlayerListener;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.PassiveDifficulty;
 import world.anhgelus.architectsland.difficultydeathscaler.sleep.Sleeper;
-import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
-import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
@@ -90,6 +87,10 @@ public class DifficultyDeathScaler implements ModInitializer {
 	private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
 	private GlobalDifficultyManager difficultyManager;
 
+	public static Identifier id(String id) {
+		return Identifier.of(MOD_ID, id);
+	}
+
 	@Override
 	public void onInitialize() {
 		ModCriteria.init();
@@ -109,18 +110,10 @@ public class DifficultyDeathScaler implements ModInitializer {
 
 			Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
 			Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
-
-			TimerAccess.getTimerFromOverworld(server).dds_runTask(new TickTask(() -> {
-				LOGGER.info("Difficulty Death Scaler is saving...");
-				difficultyManager.save();
-				playerDifficultyManagerMap.forEach((player, manager) -> manager.save());
-				LOGGER.info("Difficulty Death Scaler saved");
-			}, 20 * 60 * 20, 20 * 60 * 20));
 		});
 
-		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+		ServerLifecycleEvents.BEFORE_SAVE.register((server, flush, force) -> {
 			difficultyManager.save();
-			playerDifficultyManagerMap.forEach((player, manager) -> manager.save());
 		});
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
@@ -180,26 +173,16 @@ public class DifficultyDeathScaler implements ModInitializer {
 	 * Set player in difficulty manager
 	 */
 	private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, ServerPlayerEntity player) {
-		final var difficulty = getPlayerDifficultyManager(server, player.getGameProfile());
-		difficulty.player = player;
+		final var difficulty = playerDifficultyManagerMap.computeIfAbsent(player.getUuid(), id ->
+			new PlayerDifficultyManager(server, difficultyManager, player)
+		);
 		return difficulty;
 	}
 
-	/**
-	 * Does not set player in difficulty manager!
-	 */
-	private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, GameProfile profile) {
-		return playerDifficultyManagerMap.computeIfAbsent(profile.getId(), id -> {
-			return new PlayerDifficultyManager(
-				server, difficultyManager, id, StateSaver.getPlayerState(server, profile.getId())
-			);
-		});
-	}
-
 	private void loadAllPlayerManagers(MinecraftServer server) {
-		final var state = StateSaver.getServerState(server);
-		state.players.forEach((uuid, data) -> {
-			playerDifficultyManagerMap.computeIfAbsent(uuid, u -> new PlayerDifficultyManager(server, difficultyManager, uuid, data));
+		DifficultyState.get(server).getPlayers().forEach(it -> {
+			playerDifficultyManagerMap.put(it.getLeft(),
+				new PlayerDifficultyManager(server, difficultyManager, it.getRight()));
 		});
 	}
 }

@@ -15,13 +15,11 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
-import world.anhgelus.architectsland.difficultydeathscaler.difficulty.StateSaver;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
@@ -162,12 +160,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
 	public GlobalDifficultyManager(MinecraftServer server) {
 		super(server, STEPS, SECONDS_BEFORE_DECREASED);
 
-		// get state
-		DifficultyDeathScaler.LOGGER.info("Loading global difficulty data");
-		final var state = StateSaver.getServerState(server);
-		// load data
-		increaser = new DifficultyIncrease(this, timer, state.difficulty.timeBeforeIncrease, state.difficulty.increaseEnabled);
-		load(state.difficulty);
+		increaser = new DifficultyIncrease(this, timer, 0, false);
 		// update difficulty after restart
 		server.setDifficulty(getUpdater().getDifficulty(), true);
 	}
@@ -297,24 +290,13 @@ public class GlobalDifficultyManager extends DifficultyManager {
 		}
 	}
 
-	public void save() {
-		// get state
-		DifficultyDeathScaler.LOGGER.info("Saving global difficulty data");
-		final var state = StateSaver.getServerState(server);
-		// save state
-		save(state.difficulty);
-
-		state.difficulty.timeBeforeIncrease = DifficultyIncrease.SECONDS_BEFORE_INCREASE * 20 - increaser.getTickingBeforeRun();
-		state.difficulty.increaseEnabled = increaser.isEnabled();
-	}
-
 	public double getHealthModifier() {
 		return healthModifier;
 	}
 
 	@Override
 	public String toString() {
-		String sb = "GlobalDifficultyManager(number of death=" + numberOfDeath +
+		return "GlobalDifficultyManager(number of death=" + numberOfDeath +
 			", total of death=" + totalOfDeath +
 			", piglin brutes boost=" + PIGLIN_BRUTES_BOOST +
 			") {better skeletons=" + BETTER_SKELETON +
@@ -326,7 +308,6 @@ public class GlobalDifficultyManager extends DifficultyManager {
 			", spawn reinforcement modifier=" + spawnReinforcementModifier +
 			", fall damage multiplier modifier=" + fallDamageMultiplierModifier +
 			"}";
-		return sb;
 	}
 
 	@FunctionalInterface

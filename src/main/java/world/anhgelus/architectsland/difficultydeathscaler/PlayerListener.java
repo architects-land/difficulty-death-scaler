@@ -1,4 +1,4 @@
-package world.anhgelus.architectsland.difficultydeathscaler.listener;
+package world.anhgelus.architectsland.difficultydeathscaler;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -19,11 +19,9 @@ public class PlayerListener {
 	public static void afterDeath(ServerPlayerEntity player, DamageSource damageSource) {
 		final var globalDifficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
 		globalDifficulty.increaseDeath();
-		globalDifficulty.save();
 
 		final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(player.getServer(), player);
 		playerDifficulty.increaseDeath();
-		playerDifficulty.save();
 
 		final var bounty = Bounty.get(player.getUuid());
 		if (bounty == null || !(damageSource.getAttacker() instanceof final ServerPlayerEntity killer))

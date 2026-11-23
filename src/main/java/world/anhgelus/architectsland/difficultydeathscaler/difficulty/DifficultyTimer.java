@@ -5,18 +5,18 @@ import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
-public abstract class DifficultyTimer {
+public class DifficultyTimer {
 	protected TimerAccess timer;
 	private long initialDelay = 0;
 
 	private static long[] getFormatInfo(long time) {
-		long hours = 0;
+		var hours = 0L;
 		if (time > 3600) hours = Math.floorDiv(time, 3600);
 
-		long minutes = 0;
+		var minutes = 0L;
 		if (hours != 0 || time > 60) minutes = Math.floorDiv(time - hours * 3600, 60);
 
-		final long seconds = (long) Math.floor(time - hours * 3600 - minutes * 60);
+		final var seconds = (long) Math.floor(time - hours * 3600 - minutes * 60);
 
 		return new long[]{hours, minutes, seconds};
 	}

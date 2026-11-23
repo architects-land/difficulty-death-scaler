@@ -6,12 +6,13 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 public class WaypointReceiveModifier extends Modifier<ServerPlayerEntity> {
 	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.WAYPOINT_RECEIVE_RANGE;
 	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
 	public static final double BASE_VALUE = 60_000_000;
-	protected static final Identifier ID = Identifier.of(PREFIX + "waypoint_receive_modifier");
+	protected static final Identifier ID = DifficultyDeathScaler.id("waypoint_receive_modifier");
 
 	public WaypointReceiveModifier() {
 		super(ID, ATTRIBUTE, OPERATION, Check.SMALLER);

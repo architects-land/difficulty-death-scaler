@@ -6,11 +6,12 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 public class MovementSpeedModifier extends Modifier<ServerPlayerEntity> {
 	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.MOVEMENT_SPEED;
 	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
-	protected static final Identifier ID = Identifier.of(PREFIX + "movement_speed_modifier");
+	protected static final Identifier ID = DifficultyDeathScaler.id("movement_speed_modifier");
 
 	public MovementSpeedModifier() {
 		super(ID, ATTRIBUTE, OPERATION, Check.SMALLER);

@@ -4,7 +4,7 @@ In vanilla, there are three bosses: the Ender Dragon, the Wither and the Elder G
 For Difficulty Death Scaler, the Warden is also a boss.
 
 Every boss can be buffed with a netherite ingot (right click on them).
-The buff depends of the boss.
+The buff depends on the boss.
 
 When you kill a buffed boss, the [global difficulty](/difficulty/global) is decreased, like no one
 dies during 12 hours.

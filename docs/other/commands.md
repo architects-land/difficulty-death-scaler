@@ -8,8 +8,7 @@ You can get the [global difficulty](/difficulty/global) with `/difficultydeathsc
 You can also use the alias `/ddsg` (which is for Difficulty Death Scaler Global).
 
 You can get the [player difficulty](/difficulty/player) with `/difficultydeathscaler get [player]`.
-
-You can also use the alias `/ddsp` to get your own difficulty (which is for Difficulty Death Scaler Player).
+You can also use the alias `/ddsp [player]` to get someone's difficulty (which is for Difficulty Death Scaler Player).
 
 ## Setting difficulty
 

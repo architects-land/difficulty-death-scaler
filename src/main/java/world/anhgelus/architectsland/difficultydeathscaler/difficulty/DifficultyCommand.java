@@ -122,7 +122,11 @@ public class DifficultyCommand {
 				return 2;
 			}
 			return sendPlayerDifficulty(context, target);
-		}));
+		}).then(
+			argument("player", EntityArgument.player())
+				.executes(context ->
+					sendPlayerDifficulty(context, EntityArgument.getPlayer(context, "player")))
+		));
 	}
 
 	private static int sendPlayerDifficulty(CommandContext<CommandSourceStack> context, ServerPlayer target) {

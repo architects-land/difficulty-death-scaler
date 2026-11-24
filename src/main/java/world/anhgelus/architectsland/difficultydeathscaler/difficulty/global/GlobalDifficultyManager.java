@@ -20,14 +20,18 @@ import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyManager;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyState;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
+import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-public class GlobalDifficultyManager extends DifficultyManager {
+public class GlobalDifficultyManager extends DifficultyManager<DifficultyState.ServerData> {
 	public static final int SECONDS_BEFORE_DECREASED = 12 * 60 * 60; // 12 hours
 	public static final Step[] STEPS = new Step[]{
 		new Step(0, (server, gamerules, updater) -> {
@@ -161,7 +165,9 @@ public class GlobalDifficultyManager extends DifficultyManager {
 	public GlobalDifficultyManager(MinecraftServer server) {
 		super(server, STEPS, SECONDS_BEFORE_DECREASED);
 
-		increaser = new DifficultyIncrease(this, timer, 0, false);
+		data = DifficultyState.get(server);
+
+		increaser = new DifficultyIncrease(this, timer, data.timeBeforeIncrease(), data.increaseEnabled());
 		// update difficulty after restart
 		server.setDifficulty(getUpdater().getDifficulty(), true);
 	}
@@ -289,6 +295,15 @@ public class GlobalDifficultyManager extends DifficultyManager {
 					hostile.discard();
 					return null;
 				});
+		}
+	}
+
+	public void save(Map<UUID, PlayerDifficultyManager> players) {
+		var base = save();
+		base.increaseEnabled(increaser.isEnabled())
+			.timeBeforeIncrease(increaser.getTickingBeforeRun());
+		for (var p : players.entrySet()) {
+			base.setPlayer(p.getKey(), p.getValue().save());
 		}
 	}
 

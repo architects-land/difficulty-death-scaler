@@ -95,7 +95,7 @@ public class DifficultyDeathScaler implements ModInitializer {
 		});
 
 		ServerLifecycleEvents.BEFORE_SAVE.register((server, flush, force) -> {
-			difficultyManager.save();
+			difficultyManager.save(playerDifficultyManagerMap);
 		});
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {

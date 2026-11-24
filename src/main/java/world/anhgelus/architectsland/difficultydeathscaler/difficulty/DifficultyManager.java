@@ -96,7 +96,7 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 			secondsLowerDifficultyCounterTask = new TickTask(() -> {
 				if (data.deaths() > 0 && secondsLowerDifficultyCounterTask.isRunning())
 					secondsLowerDifficultyCounterTask.cancel();
-				data.increaseSecondsLowerDifficulty();
+				data = data.increaseSecondsLowerDifficulty();
 			}, 20, 20);
 			timer.dds_runTask(secondsLowerDifficultyCounterTask);
 			return;

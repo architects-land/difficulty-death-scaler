@@ -39,6 +39,6 @@ public class DifficultyIncrease extends DifficultyTimer {
 	}
 
 	public long getTickingBeforeRun() {
-		return increaseTask.getTickingBeforeRun();
+		return enabled ? increaseTask.getTickingBeforeRun() : 0L;
 	}
 }

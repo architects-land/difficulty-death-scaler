@@ -1,22 +1,23 @@
 package world.anhgelus.architectsland.difficultydeathscaler.passive.modifier;
 
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Monster;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
-public class PassiveMovementEfficiencyModifier extends PassiveModifier<HostileEntity> {
-	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.MOVEMENT_EFFICIENCY;
-	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
-	public static final Identifier ID = Identifier.of(PREFIX + "movement_efficiency");
+public class PassiveMovementEfficiencyModifier extends PassiveModifier<Monster> {
+	public static final Holder<Attribute> ATTRIBUTE = Attributes.MOVEMENT_EFFICIENCY;
+	public static final AttributeModifier.Operation OPERATION = AttributeModifier.Operation.ADD_VALUE;
+	public static final Identifier ID = DifficultyDeathScaler.id("movement_efficiency");
 
 	private PassiveMovementEfficiencyModifier() {
 		super(ID, ATTRIBUTE, OPERATION);
 	}
 
-	public static void apply(HostileEntity entity, double value) {
+	public static void apply(Monster entity, double value) {
 		apply(ID, ATTRIBUTE, OPERATION, entity, value);
 	}
 }

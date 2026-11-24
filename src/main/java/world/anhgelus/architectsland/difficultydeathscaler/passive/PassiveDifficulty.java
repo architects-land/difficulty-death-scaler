@@ -1,15 +1,15 @@
 package world.anhgelus.architectsland.difficultydeathscaler.passive;
 
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.phys.Vec3;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.modifier.*;
 
 public class PassiveDifficulty {
 	public static final int LEVEL_MAX = 20;
 	public static boolean ENABLED = true;
 
-	public static void onEntitySpawn(HostileEntity entity) {
+	public static void onEntitySpawn(Monster entity) {
 		if (!ENABLED) return;
 		final var level = difficultyLevel(entity);
 		if (level == 0) return;
@@ -22,12 +22,12 @@ public class PassiveDifficulty {
 		entity.setHealth(entity.getMaxHealth());
 	}
 
-	private static int difficultyLevel(HostileEntity entity) {
-		final var dis = entity.getPos().distanceTo(new Vec3d(0, 62, 0));
-		final var timePassed = MathHelper.floor((double) entity.getWorld().getTime() / 20000);
+	private static int difficultyLevel(Monster entity) {
+		final var dis = entity.getPosition(0).distanceTo(new Vec3(0, 62, 0));
+		final var timePassed = Mth.floor((double) entity.level().getGameTime() / 20000);
 		return Math.min(
-			MathHelper.floor((dis / 5000) * (dis / 1000)) +
-				MathHelper.floorDiv(timePassed * timePassed, 8000),
+			Mth.floor((dis / 5000) * (dis / 1000)) +
+				Mth.floorDiv(timePassed * timePassed, 8000),
 			LEVEL_MAX
 		);
 	}

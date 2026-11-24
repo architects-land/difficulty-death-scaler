@@ -1,12 +1,11 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty;
 
+import com.mojang.datafixers.util.Pair;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Pair;
-import net.minecraft.world.GameRules;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
@@ -38,19 +37,11 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 		this.secondsBeforeDecreased = secondsBeforeDecreased;
 	}
 
-	protected static void playSoundUpdate(UpdateType updateType, ServerPlayerEntity player) {
+	protected static void playSoundUpdate(UpdateType updateType, ServerPlayer player) {
 		if (updateType == UpdateType.INCREASE || updateType == UpdateType.SET) {
-			player.playSoundToPlayer(SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
-				SoundCategory.AMBIENT,
-				1,
-				1.2f
-			);
+			player.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 1, 1.2f);
 		} else if (updateType == UpdateType.DECREASE) {
-			player.playSoundToPlayer(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
-				SoundCategory.AMBIENT,
-				1,
-				1
-			);
+			player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
 		}
 	}
 
@@ -90,7 +81,7 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 		final var before = data.deaths();
 		data = data.increaseDeath();
 		if (automaticIncrease) {
-			server.getPlayerManager().getPlayerList().forEach(p -> {
+			server.getPlayerList().getPlayers().forEach(p -> {
 				ModCriteria.ARBITRARY.trigger(p, AdvancementProvider.DIFFICULTY_INCREASE);
 			});
 			updateDeath(UpdateType.AUTOMATIC_INCREASE, before);
@@ -177,7 +168,7 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 		if (reducerTask != null) reducerTask.cancel();
 	}
 
-	public Text getDifficultyUpdate(net.minecraft.world.Difficulty difficulty) {
+	public Component getDifficultyUpdate(net.minecraft.world.Difficulty difficulty) {
 		return generateDifficultyUpdate(null, difficulty);
 	}
 
@@ -193,9 +184,9 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 	 * @param difficulty Difficulty of the game
 	 * @return Message to print
 	 */
-	protected abstract @NotNull Text generateDifficultyUpdate(@Nullable UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
+	protected abstract @NotNull Component generateDifficultyUpdate(@Nullable UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
 
-	public abstract void applyModifiers(ServerPlayerEntity player);
+	public abstract void applyModifiers(ServerPlayer player);
 
 	protected List<Modifier<?>> getModifiers(int level) {
 		final var updater = new DifficultyUpdater();
@@ -212,10 +203,10 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 
 	protected abstract void updateModifiersValue(List<Modifier<?>> modifiers);
 
-	protected Text generateHeaderUpdate(@Nullable UpdateType updateType) {
-		final var txt = Text.empty();
-		txt.append(Text.literal("============== ").formatted(Constants.COLOR_SEPARATOR));
-		if (updateType == null) txt.append(Text.literal("Current difficulty:"));
+	protected Component generateHeaderUpdate(@Nullable UpdateType updateType) {
+		final var txt = Component.empty();
+		txt.append(Component.literal("============== ").withStyle(Constants.COLOR_SEPARATOR));
+		if (updateType == null) txt.append(Component.literal("Current difficulty:"));
 		else {
 			switch (updateType) {
 				case INCREASE -> txt.append("Difficulty increase!");
@@ -224,45 +215,45 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 				default -> txt.append("Current difficulty:");
 			}
 		}
-		txt.append(Text.literal(" ==============").formatted(Constants.COLOR_SEPARATOR));
+		txt.append(Component.literal(" ==============").withStyle(Constants.COLOR_SEPARATOR));
 		txt.append("\n");
 		txt.append("Death step: ")
-			.append(Text.literal(String.format("%d", data.deaths())).formatted(Constants.COLOR_ACCENT))
+			.append(Component.literal(String.format("%d", data.deaths())).withStyle(Constants.COLOR_ACCENT))
 			.append("\n");
 		return txt;
 	}
 
-	protected Text generateFooterUpdate(Step[] steps, String beginning, UpdateType updateType) {
-		final var txt = Text.empty();
+	protected Component generateFooterUpdate(Step[] steps, String beginning, UpdateType updateType) {
+		final var txt = Component.empty();
 		if (data.deaths() < steps[1].level()) {
-			return txt.append(Text.literal("The difficulty cannot get lower. Congratulations!\n").formatted(Constants.COLOR_OK))
-				.append(Text.literal("=============================================").formatted(Constants.COLOR_SEPARATOR));
+			return txt.append(Component.literal("The difficulty cannot get lower. Congratulations!\n").withStyle(Constants.COLOR_OK))
+				.append(Component.literal("=============================================").withStyle(Constants.COLOR_SEPARATOR));
 		}
 
 		if (updateType == UpdateType.DECREASE) {
 			txt.append("You only need to survive for ")
-				.append(Text.literal(formatSeconds(secondsBeforeDecreased)).formatted(Constants.COLOR_TIME))
+				.append(Component.literal(formatSeconds(secondsBeforeDecreased)).withStyle(Constants.COLOR_TIME))
 				.append(" to make the difficulty decrease again.");
 		} else if (updateType == UpdateType.AUTOMATIC_INCREASE) {
 			txt.append("The difficulty is increasing automatically!");
 		} else if (updateType != UpdateType.INCREASE) {
 			txt.append("You only need to survive for ");
-			final var t = Text.empty().formatted(Constants.COLOR_TIME);
+			final var t = Component.empty().withStyle(Constants.COLOR_TIME);
 			if (updateType == UpdateType.SET) t.append(formatSeconds(secondsBeforeDecreased));
 			else t.append(formatSecondsBeforeRun(reducerTask));
 			txt.append(t);
 			txt.append(" to make the difficulty decrease.");
 		} else if (data.deaths() == steps[1].level()) {
 			txt.append("You were on the lowest difficulty for ")
-				.append(Text.literal(formatSeconds(data.secondsLowerDifficulty())).formatted(Constants.COLOR_TIME))
+				.append(Component.literal(formatSeconds(data.secondsLowerDifficulty())).withStyle(Constants.COLOR_TIME))
 				.append(", but you had to die and ruin everything, hadn't you?");
 		} else {
 			txt.append("If ").append(beginning).append(" for")
-				.append(Text.literal(formatSecondsBeforeRun(reducerTask)).formatted(Constants.COLOR_TIME))
+				.append(Component.literal(formatSecondsBeforeRun(reducerTask)).withStyle(Constants.COLOR_TIME))
 				.append(", then the difficulty would’ve decreased... But you chose your fate.");
 		}
 		txt.append("\n");
-		txt.append(Text.literal("=============================================").formatted(Constants.COLOR_SEPARATOR));
+		txt.append(Component.literal("=============================================").withStyle(Constants.COLOR_SEPARATOR));
 		return txt;
 	}
 
@@ -302,11 +293,11 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 		}
 
 		public int level() {
-			return getLeft();
+			return getFirst();
 		}
 
 		public void reached(MinecraftServer server, GameRules rules, DifficultyUpdater updater) {
-			getRight().reached(server, rules, updater);
+			getSecond().reached(server, rules, updater);
 		}
 	}
 }

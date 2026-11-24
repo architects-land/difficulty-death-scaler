@@ -1,16 +1,14 @@
 package world.anhgelus.architectsland.difficultydeathscaler.passive.modifier;
 
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.monster.Monster;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.Modifier;
 
-public class PassiveModifier<T extends HostileEntity> extends Modifier<T> {
-	public static final String PREFIX = Modifier.PREFIX + "passive_";
-
-	protected PassiveModifier(Identifier id, RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier.Operation operation) {
+public class PassiveModifier<T extends Monster> extends Modifier<T> {
+	protected PassiveModifier(Identifier id, Holder<Attribute> attribute, AttributeModifier.Operation operation) {
 		super(id, attribute, operation, Check.SMALLER);
 	}
 }

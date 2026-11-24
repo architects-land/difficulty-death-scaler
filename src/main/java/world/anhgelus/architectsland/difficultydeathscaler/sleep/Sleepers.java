@@ -1,11 +1,11 @@
 package world.anhgelus.architectsland.difficultydeathscaler.sleep;
 
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.core.Holder;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.level.gamerules.GameRules;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
@@ -13,15 +13,13 @@ import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 public class Sleepers {
 	public static final Sleeper LONG_NIGHT = new Sleeper("Polar night.", server -> {
 		final var rules = server.getGameRules();
-		if (rules == null) return;
 		GlobalDifficultyManager.POLAR_NIGHT = true;
-		rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(false, server);
+		rules.set(GameRules.ADVANCE_TIME, false, server);
 		server.setDifficulty(Difficulty.HARD, true);
 	}, server -> {
 		final var rules = server.getGameRules();
-		if (rules == null) return;
 		GlobalDifficultyManager.POLAR_NIGHT = false;
-		rules.get(GameRules.DO_DAYLIGHT_CYCLE).set(true, server);
+		rules.set(GameRules.ADVANCE_TIME, true, server);
 		final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
 		difficulty.setNumberOfDeath(difficulty.getNumberOfDeath());
 	}, false);
@@ -44,14 +42,14 @@ public class Sleepers {
 		GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {
 			final var now = System.currentTimeMillis() / 50;
 
-			RegistryEntry<StatusEffect> effect;
-			if (living.getRandom().nextFloat() * 100 > 90) effect = StatusEffects.RESISTANCE;
-			else effect = StatusEffects.INVISIBILITY;
+			Holder<MobEffect> effect;
+			if (living.getRandom().nextFloat() * 100 > 90) effect = MobEffects.RESISTANCE;
+			else effect = MobEffects.INVISIBILITY;
 
 			final var diff = (int) (Sleeper.EVENT_DURATION - now + since);
 			if (diff < 0) throw new IllegalStateException("Difference in event RUN is below zero");
 
-			living.addStatusEffect(new StatusEffectInstance(effect, diff, 2, false, false));
+			living.addEffect(new MobEffectInstance(effect, diff, 2, false, false));
 		};
 	}, server -> {
 		GlobalDifficultyManager.CUSTOM_SPAWN_EFFECTS = living -> {

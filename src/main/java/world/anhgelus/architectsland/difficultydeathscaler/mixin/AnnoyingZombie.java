@@ -1,11 +1,11 @@
 package world.anhgelus.architectsland.difficultydeathscaler.mixin;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.goal.LongDoorInteractGoal;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.entity.mob.ZombifiedPiglinEntity;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.entity.monster.zombie.ZombifiedPiglin;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,17 +14,17 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.Glo
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
-@Mixin(ZombieEntity.class)
-public abstract class AnnoyingZombie extends HostileEntity {
-	protected AnnoyingZombie(EntityType<? extends HostileEntity> entityType, World world) {
+@Mixin(Zombie.class)
+public abstract class AnnoyingZombie extends Monster {
+	protected AnnoyingZombie(EntityType<? extends Monster> entityType, Level world) {
 		super(entityType, world);
 	}
 
 	@Inject(
 		at = @At("RETURN"),
-		method = "<init>(Lnet/minecraft/entity/EntityType;Lnet/minecraft/world/World;)V"
+		method = "<init>(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/Level;)V"
 	)
-	protected void init(EntityType<? extends ZombieEntity> entityType, World world, CallbackInfo ci) {
+	protected void init(EntityType<? extends Zombie> entityType, Level world, CallbackInfo ci) {
 		if (Getters.GLOBAL_DIFFICULTY_GETTER == null) return;
 		final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
 		MobUtils.customSpawn(getRandom(), difficulty.getNumberOfDeath() - 9, 30, () -> {
@@ -34,15 +34,15 @@ public abstract class AnnoyingZombie extends HostileEntity {
 		});
 	}
 
-	@Inject(at = @At("HEAD"), method = "initGoals")
+	@Inject(at = @At("HEAD"), method = "registerGoals")
 	protected void newGoals(CallbackInfo ci) {
 		if (!GlobalDifficultyManager.areZombiesBetter()) return;
-		goalSelector.add(3, new LongDoorInteractGoal(this, false));
+		goalSelector.addGoal(3, new OpenDoorGoal(this, false));
 	}
 
-	@Inject(at = @At("RETURN"), method = "initGoals")
+	@Inject(at = @At("RETURN"), method = "registerGoals")
 	protected void betterGoals(CallbackInfo ci) {
-		if ((ZombieEntity) (Object) this instanceof ZombifiedPiglinEntity) return;
+		if ((Zombie) (Object) this instanceof ZombifiedPiglin) return;
 		if (GlobalDifficultyManager.areZombiesBetter())
 			MobUtils.commonBetterGoals(this, targetSelector);
 	}

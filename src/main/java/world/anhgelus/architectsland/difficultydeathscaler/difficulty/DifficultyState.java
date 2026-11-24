@@ -5,8 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
+import net.minecraft.server.level.ServerPlayer;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 import java.util.*;
@@ -16,8 +15,8 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 		return new ServerData(server);
 	}
 
-	static PlayerData get(ServerPlayerEntity player) {
-		return new ServerData(player.getEntityWorld().getServer()).getPlayer(player.getUuid());
+	static PlayerData get(ServerPlayer player) {
+		return new ServerData(player.level().getServer()).getPlayer(player.getUUID());
 	}
 
 	T increaseDeath();
@@ -69,17 +68,20 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 				Codec.BOOL
 			);
 		private static final AttachmentType<Map<String, PlayerData>> PLAYERS =
-			AttachmentRegistry.createPersistent(
+			AttachmentRegistry.create(
 				DifficultyDeathScaler.id("players"),
-				Codec.unboundedMap(Codec.STRING, PlayerData.CODEC)
+				builder -> builder
+					.initializer(HashMap::new)
+					.persistent(Codec.unboundedMap(Codec.STRING, PlayerData.CODEC))
 			);
 
 		public PlayerData getPlayer(UUID uuid) {
-			//
+			final var players = server.globalAttachments().getAttached(PLAYERS);
+			return players.getOrDefault(uuid.toString(), new PlayerData());
 		}
 
-		public Collection<Pair<UUID, PlayerData>> getPlayers() {
-			//
+		public Collection<Map.Entry<String, PlayerData>> getPlayers() {
+			return server.globalAttachments().getAttached(PLAYERS).entrySet();
 		}
 	}
 

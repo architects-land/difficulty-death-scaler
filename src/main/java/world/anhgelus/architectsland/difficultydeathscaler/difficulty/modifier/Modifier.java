@@ -1,22 +1,22 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
 public class Modifier<T extends LivingEntity> {
 	protected final Identifier id;
-	protected final RegistryEntry<EntityAttribute> attribute;
-	protected final EntityAttributeModifier.Operation operation;
+	protected final Holder<Attribute> attribute;
+	protected final AttributeModifier.Operation operation;
 	protected final Check check;
 	protected double value = 0;
 	protected boolean valueSet = false;
 
-	protected Modifier(Identifier id, RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier.Operation operation, Check check) {
+	protected Modifier(Identifier id, Holder<Attribute> attribute, AttributeModifier.Operation operation, Check check) {
 		this.id = id;
 		this.attribute = attribute;
 		this.operation = operation;
@@ -25,12 +25,12 @@ public class Modifier<T extends LivingEntity> {
 
 	public static void apply(
 		Identifier id,
-		RegistryEntry<EntityAttribute> attribute,
-		EntityAttributeModifier.Operation operation,
+		Holder<Attribute> attribute,
+		AttributeModifier.Operation operation,
 		LivingEntity entity,
 		double value
 	) {
-		final var attr = entity.getAttributeInstance(attribute);
+		final var attr = entity.getAttribute(attribute);
 		if (attr == null) {
 			DifficultyDeathScaler.LOGGER.warn("Attribute {} not found for {}", attribute, entity.getClass().getSimpleName());
 			return;
@@ -39,8 +39,8 @@ public class Modifier<T extends LivingEntity> {
 		attr.removeModifier(id);
 		if (value == 0) return;
 
-		final var playerHealthModifier = new EntityAttributeModifier(id, value, operation);
-		attr.addPersistentModifier(playerHealthModifier);
+		final var playerHealthModifier = new AttributeModifier(id, value, operation);
+		attr.addPermanentModifier(playerHealthModifier);
 	}
 
 	/**

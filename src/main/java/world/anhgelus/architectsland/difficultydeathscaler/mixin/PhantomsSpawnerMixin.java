@@ -1,12 +1,12 @@
 package world.anhgelus.architectsland.difficultydeathscaler.mixin;
 
-import net.minecraft.entity.EntityData;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.SpawnHelper;
-import net.minecraft.world.spawner.PhantomSpawner;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.levelgen.PhantomSpawner;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,43 +21,43 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PhantomsSpawnerMixin {
 
 	@Shadow
-	private int cooldown;
+	private int nextTick;
 
-	@Inject(method = "spawn", at = @At("HEAD"), cancellable = true)
-	public void spawnPhantoms(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals, CallbackInfo ci) {
+	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
+	public void spawnPhantoms(ServerLevel level, boolean spawnEnemies, CallbackInfo ci) {
 		if (!MobUtils.PHANTOMS_NIGHTMARE) return;
 		ci.cancel();
-		if (!spawnMonsters) return;
-		final var rand = world.random;
-		cooldown--;
-		if (cooldown > 0) return;
-		cooldown += (15 + rand.nextInt(30)) * 20;
+		if (!spawnEnemies) return;
+		final var rand = level.getRandom();
+		nextTick--;
+		if (nextTick > 0) return;
+		nextTick += (15 + rand.nextInt(30)) * 20;
 		// limit to 75 phantoms *per world*
-		if (world.getEntitiesByType(EntityType.PHANTOM, LivingEntity::isAlive).size() > 75) return;
+		if (level.getEntities(EntityTypes.PHANTOM, LivingEntity::isAlive).size() > 75) return;
 		var i = new AtomicInteger(0);
-		world.getPlayers()
+		level.players()
 			.stream()
 			.filter(p -> !p.isSpectator() && !p.isCreative())
 			.filter(p -> {
-				final var pos = p.getBlockPos();
-				return pos.getY() >= world.getSeaLevel() &&
-					world.isSkyVisible(pos);
+				final var pos = p.blockPosition();
+				return pos.getY() >= level.getSeaLevel() &&
+					level.canSeeSky(pos);
 			}).forEach(p -> {
-				final var pos = p.getBlockPos();
-				final var pos2 = pos.up(20 + rand.nextInt(15))
+				final var pos = p.blockPosition();
+				final var pos2 = pos.above(20 + rand.nextInt(15))
 					.east(-10 + rand.nextInt(21))
 					.south(-10 + rand.nextInt(21));
-				final var bState = world.getBlockState(pos2);
-				final var fState = world.getFluidState(pos2);
-				if (SpawnHelper.isClearForSpawn(world, pos2, bState, fState, EntityType.PHANTOM)) {
-					var l = 1 + rand.nextInt(Getters.PLAYER_DIFFICULTY_GETTER.get(world.getServer(), p).getNumberOfDeath() + 1);
-					EntityData entityData = null;
+				final var bState = level.getBlockState(pos2);
+				final var fState = level.getFluidState(pos2);
+				if (NaturalSpawner.isValidEmptySpawnBlock(level, pos2, bState, fState, EntityTypes.PHANTOM)) {
+					var l = 1 + rand.nextInt(Getters.PLAYER_DIFFICULTY_GETTER.get(level.getServer(), p).getNumberOfDeath() + 1);
+					SpawnGroupData entityData = null;
 					for (int m = 0; m < l; ++m) {
-						final var phantom = EntityType.PHANTOM.create(world, SpawnReason.NATURAL);
+						final var phantom = EntityTypes.PHANTOM.create(level, EntitySpawnReason.NATURAL);
 						if (phantom != null) {
-							phantom.refreshPositionAndAngles(pos2, 0.0F, 0.0F);
-							entityData = phantom.initialize(world, world.getLocalDifficulty(pos), SpawnReason.NATURAL, entityData);
-							world.spawnEntityAndPassengers(phantom);
+							phantom.snapTo(pos2, 0.0F, 0.0F);
+							entityData = phantom.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.NATURAL, entityData);
+							level.addFreshEntityWithPassengers(phantom);
 							i.addAndGet(1);
 						}
 					}

@@ -1,27 +1,27 @@
 package world.anhgelus.architectsland.difficultydeathscaler.boss;
 
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashSet;
 import java.util.Set;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 
 public class DragonBuff {
-	public final static Identifier MODIFIER_ID = Identifier.of("dds_health");
+	public final static Identifier MODIFIER_ID = Identifier.parse("dds_health");
 	// variables for function
 	private final static int ALPHA = 15;
 	private final static int BETA = 5;
 	private final static int BASE = 200;
-	private final EnderDragonEntity enderDragon;
-	private final Set<ServerPlayerEntity> players = new HashSet<>();
+	private final EnderDragon enderDragon;
+	private final Set<ServerPlayer> players = new HashSet<>();
 	private int oldHealth;
 
-	public DragonBuff(EnderDragonEntity enderDragon) {
+	public DragonBuff(EnderDragon enderDragon) {
 		this.enderDragon = enderDragon;
 	}
 
@@ -32,18 +32,18 @@ public class DragonBuff {
 		); // alpha*( ln(players+1) * (difficulty/beta + 1)^2 - ln(2) ) + base
 	}
 
-	private static void buff(EnderDragonEntity enderDragon, float val) {
-		final var attr = enderDragon.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+	private static void buff(EnderDragon enderDragon, float val) {
+		final var attr = enderDragon.getAttribute(Attributes.MAX_HEALTH);
 		if (attr == null) {
 			DifficultyDeathScaler.LOGGER.warn("Dragon's health attribute is null");
 			return;
 		}
 		if (attr.hasModifier(MODIFIER_ID)) attr.removeModifier(MODIFIER_ID);
-		final var modifier = new EntityAttributeModifier(MODIFIER_ID, val, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
-		attr.addTemporaryModifier(modifier);
+		final var modifier = new AttributeModifier(MODIFIER_ID, val, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+		attr.addTransientModifier(modifier);
 	}
 
-	public void playerEntersEnd(ServerPlayerEntity player) {
+	public void playerEntersEnd(ServerPlayer player) {
 		if (players.contains(player)) return;
 		players.add(player);
 

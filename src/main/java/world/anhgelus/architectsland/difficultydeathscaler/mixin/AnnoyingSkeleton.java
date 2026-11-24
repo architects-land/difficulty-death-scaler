@@ -1,11 +1,11 @@
 package world.anhgelus.architectsland.difficultydeathscaler.mixin;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.goal.FleeEntityGoal;
-import net.minecraft.entity.mob.AbstractSkeletonEntity;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.skeleton.AbstractSkeleton;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,26 +13,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
-@Mixin(AbstractSkeletonEntity.class)
-public abstract class AnnoyingSkeleton extends HostileEntity {
-	protected AnnoyingSkeleton(EntityType<? extends HostileEntity> entityType, World world) {
+@Mixin(AbstractSkeleton.class)
+public abstract class AnnoyingSkeleton extends Monster {
+	protected AnnoyingSkeleton(EntityType<? extends Monster> entityType, Level world) {
 		super(entityType, world);
 	}
 
-	@Inject(at = @At("HEAD"), method = "initGoals")
+	@Inject(at = @At("HEAD"), method = "registerGoals")
 	protected void newGoals(CallbackInfo ci) {
 		if (!GlobalDifficultyManager.areSkeletonsBetter()) return;
 		// flee Player
-		goalSelector.add(3, new FleeEntityGoal<>(
-			(AbstractSkeletonEntity) (Object) this,
-			PlayerEntity.class,
+		goalSelector.addGoal(3, new AvoidEntityGoal<>(
+			(AbstractSkeleton) (Object) this,
+			Player.class,
 			1.5f,
 			1.2,
 			1.3)
 		);
 	}
 
-	@Inject(at = @At("RETURN"), method = "initGoals")
+	@Inject(at = @At("RETURN"), method = "registerGoals")
 	protected void betterGoals(CallbackInfo ci) {
 		if (GlobalDifficultyManager.areSkeletonsBetter())
 			MobUtils.commonBetterGoals(this, targetSelector);

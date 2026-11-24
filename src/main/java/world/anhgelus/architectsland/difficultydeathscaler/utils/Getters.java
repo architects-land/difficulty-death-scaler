@@ -2,7 +2,7 @@ package world.anhgelus.architectsland.difficultydeathscaler.utils;
 
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 
@@ -31,6 +31,6 @@ public class Getters {
 	 */
 	@FunctionalInterface
 	public interface PlayerDifficultyGetter {
-		PlayerDifficultyManager get(MinecraftServer server, ServerPlayerEntity player);
+		PlayerDifficultyManager get(MinecraftServer server, ServerPlayer player);
 	}
 }

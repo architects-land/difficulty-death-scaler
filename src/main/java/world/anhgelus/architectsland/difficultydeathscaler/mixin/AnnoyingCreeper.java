@@ -1,16 +1,15 @@
 package world.anhgelus.architectsland.difficultydeathscaler.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
-import net.minecraft.entity.ai.goal.CreeperIgniteGoal;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.mob.CreeperEntity;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.world.World;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.SwellGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,20 +21,20 @@ import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 public abstract class AnnoyingCreeper {
-	@Mixin(CreeperIgniteGoal.class)
+	@Mixin(SwellGoal.class)
 	private abstract static class IgniteGoal {
 		@Shadow
 		@Final
-		private CreeperEntity creeper;
+		private net.minecraft.world.entity.monster.Creeper creeper;
 
 		@Shadow
 		private LivingEntity target;
 
-		@ModifyReturnValue(at = @At("RETURN"), method = "canStart()Z")
+		@ModifyReturnValue(at = @At("RETURN"), method = "canUse()Z")
 		public boolean canStart(boolean original) {
 			if (!GlobalDifficultyManager.areCreepersBetter()) return original;
 			final var livingEntity = creeper.getTarget();
-			return creeper.getFuseSpeed() > 0 || livingEntity != null && creeper.squaredDistanceTo(livingEntity) < 6.0;
+			return creeper.getSwellDir() > 0 || livingEntity != null && creeper.distanceToSqr(livingEntity) < 6.0;
 		}
 
 		@Inject(at = @At("HEAD"), method = "tick", cancellable = true)
@@ -43,57 +42,57 @@ public abstract class AnnoyingCreeper {
 			if (!GlobalDifficultyManager.areCreepersBetter()) return;
 			ci.cancel();
 			if (this.target == null) {
-				this.creeper.setFuseSpeed(-1);
+				this.creeper.setSwellDir(-1);
 				return;
 			}
-			if (this.creeper.isCharged()) {
-				if (this.creeper.squaredDistanceTo(this.target) > 49.0 || !this.creeper.getVisibilityCache().canSee(this.target)) {
-					this.creeper.setFuseSpeed(-1);
+			if (this.creeper.isPowered()) {
+				if (this.creeper.distanceToSqr(this.target) > 49.0 || !this.creeper.getSensing().hasLineOfSight(this.target)) {
+					this.creeper.setSwellDir(-1);
 				} else {
-					creeper.setFuseSpeed(1);
+					creeper.setSwellDir(1);
 				}
 				return;
 			}
-			if (this.creeper.squaredDistanceTo(this.target) > 20.0 ||
-				(!this.creeper.getVisibilityCache().canSee(this.target) && this.creeper.squaredDistanceTo(this.target) > 49.0)
+			if (this.creeper.distanceToSqr(this.target) > 20.0 ||
+				(!this.creeper.getSensing().hasLineOfSight(this.target) && this.creeper.distanceToSqr(this.target) > 49.0)
 			) {
-				this.creeper.setFuseSpeed(-1);
+				this.creeper.setSwellDir(-1);
 				return;
 			}
-			creeper.setFuseSpeed(2);
+			creeper.setSwellDir(2);
 		}
 	}
 
-	@Mixin(CreeperEntity.class)
-	private abstract static class Creeper extends HostileEntity {
+	@Mixin(net.minecraft.world.entity.monster.Creeper.class)
+	private abstract static class Creeper extends Monster {
 		@Shadow
 		@Final
-		private static TrackedData<Boolean> CHARGED;
+		private static EntityDataAccessor<Boolean> DATA_IS_POWERED;
 
-		protected Creeper(EntityType<? extends HostileEntity> entityType, World world) {
+		protected Creeper(EntityType<? extends Monster> entityType, Level world) {
 			super(entityType, world);
 		}
 
 		@Inject(at = @At("RETURN"), method = "<init>")
-		protected void init(EntityType<? extends HostileEntity> entityType, World world, CallbackInfo ci) {
+		protected void init(EntityType<? extends Monster> entityType, Level world, CallbackInfo ci) {
 			if (Getters.GLOBAL_DIFFICULTY_GETTER == null) return;
 			final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
 			if (difficulty.getNumberOfDeath() < 21) return;
 			MobUtils.customSpawn(getRandom(), 2 * (difficulty.getNumberOfDeath() - 21), 40, () -> {
-				this.dataTracker.set(CHARGED, true);
+				this.entityData.set(DATA_IS_POWERED, true);
 				return null;
 			});
 		}
 
-		@Inject(at = @At("RETURN"), method = "initGoals")
+		@Inject(at = @At("RETURN"), method = "registerGoals")
 		protected void initGoals(CallbackInfo ci) {
 			if (!GlobalDifficultyManager.areCreepersBetter()) return;
-			for (Goal g : targetSelector.getGoals()) {
-				if (g instanceof ActiveTargetGoal) {
-					targetSelector.remove(g);
+			for (Goal g : targetSelector.getAvailableGoals()) {
+				if (g instanceof NearestAttackableTargetGoal) {
+					targetSelector.removeGoal(g);
 				}
 			}
-			targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, false));
+			targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
 		}
 	}
 }

@@ -1,15 +1,15 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.player;
 
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.server.BannedPlayerEntry;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.PlainTextContents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.PlainTextContent;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.UserBanListEntry;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
@@ -78,14 +78,12 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 			updater.getModifier(HealthModifier.class).update(-10);
 		}),
 	};
-	public static final Identifier BONUS_HEARTS_ID = Identifier.of(Modifier.PREFIX + "bonus_hearts_modifier");
-	public static boolean ENABLE_TEMP_BAN = true;
-	public static int DEATH_BEFORE_TEMP_BAN = 5;
+	public static final Identifier BONUS_HEARTS_ID = DifficultyDeathScaler.id("bonus_hearts");
 	public static int TEMP_BAN_DURATION = 12;
 	private final GlobalDifficultyManager globalManager;
 	private final List<TickTask> deathDayTasks = new ArrayList<>();
 	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-	public Optional<ServerPlayerEntity> player = Optional.empty();
+	public Optional<ServerPlayer> player = Optional.empty();
 	protected double healthModifier = 0;
 	//    protected double luckModifier = 0;
 	protected double blockBreakSpeedModifier = 0;
@@ -121,7 +119,7 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 			if (updateType == UpdateType.DECREASE && before >= 15)
 				ModCriteria.ARBITRARY.trigger(player, AdvancementProvider.LEAVE_NO_RETURN_PLAYER);
 
-			player.sendMessage(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
+			player.sendSystemMessage(Component.translationArg(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
 			playSoundUpdate(updateType, player);
 		});
@@ -132,7 +130,6 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 		super.onDeath(updateType, updater);
 
 		player.ifPresentOrElse(player -> {
-			if (player.getWorld().isClient()) return;
 			newDeathDay(24 * 60 * 60 + System.currentTimeMillis() / 1000);
 			if (!diedTooMuch()) return;
 			// temp ban
@@ -184,8 +181,8 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 
 	private void applyBonusHearts() {
 		if (player.isEmpty()) return;
-		Modifier.apply(BONUS_HEARTS_ID, EntityAttributes.MAX_HEALTH,
-			EntityAttributeModifier.Operation.ADD_VALUE, player.get(), data.bonusHearts() * 2);
+		Modifier.apply(BONUS_HEARTS_ID, Attributes.MAX_HEALTH,
+			AttributeModifier.Operation.ADD_VALUE, player.get(), data.bonusHearts() * 2);
 	}
 
 	public void increaseBonusHearts() {
@@ -199,24 +196,29 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 	}
 
 	@Override
-	protected @NotNull Text generateDifficultyUpdate(UpdateType updateType, @Nullable Difficulty difficulty) {
+	protected @NotNull Component generateDifficultyUpdate(UpdateType updateType, @Nullable Difficulty difficulty) {
 		final var heartAmount =
 			(20 + healthModifier + globalManager.getHealthModifier()) / 2 + data.bonusHearts();
 
-		final var txt = Text.empty();
+		final var txt = Component.empty();
 		txt.append(generateHeaderUpdate(updateType));
 
 		final var deathDay = data.deathDayEnd().size();
 
+		final var deathBefore = player.orElseThrow()
+			.level()
+			.getGameRules()
+			.get(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN);
+
 		if (deathDay != 0) {
 			txt.append("You died ");
-			final var t = Text.empty();
-			if (deathDay >= 0.8f * DEATH_BEFORE_TEMP_BAN) {
-				t.formatted(Constants.COLOR_DANGER);
-			} else if (deathDay >= 0.4f * DEATH_BEFORE_TEMP_BAN) {
-				t.formatted(Constants.COLOR_WARNING);
+			final var t = Component.empty();
+			if (deathDay >= 0.8f * deathBefore) {
+				t.withStyle(Constants.COLOR_DANGER);
+			} else if (deathDay >= 0.4f * deathBefore) {
+				t.withStyle(Constants.COLOR_WARNING);
 			} else {
-				t.formatted(Constants.COLOR_OK);
+				t.withStyle(Constants.COLOR_OK);
 			}
 			t.append(String.format("%d", deathDay));
 			txt.append(t).append(" time");
@@ -224,19 +226,19 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 				txt.append("s");
 			}
 			txt.append(" in 24 hours. You will lose one of these in ");
-			txt.append(Text.literal(formatSecondsBig(data.deathDayEnd().getFirst() - System.currentTimeMillis() / 1000)).formatted(Constants.COLOR_TIME));
+			txt.append(Component.literal(formatSecondsBig(data.deathDayEnd().getFirst() - System.currentTimeMillis() / 1000)).withStyle(Constants.COLOR_TIME));
 			txt.append(".\n");
 		}
 		txt.append("\n");
 
 		txt.append("Max hearts: ");
-		final var t = Text.empty();
+		final var t = Component.empty();
 		if (heartAmount == 10) {
-			t.formatted(Constants.COLOR_OK);
+			t.withStyle(Constants.COLOR_OK);
 		} else if (heartAmount >= 8) {
-			t.formatted(Constants.COLOR_WARNING);
+			t.withStyle(Constants.COLOR_WARNING);
 		} else {
-			t.formatted(Constants.COLOR_DANGER);
+			t.withStyle(Constants.COLOR_DANGER);
 		}
 		t.append(String.format("%.0f ❤", heartAmount));
 		txt.append(t).append("\n\n");
@@ -247,7 +249,7 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 	}
 
 	@Override
-	public void applyModifiers(ServerPlayerEntity player) {
+	public void applyModifiers(ServerPlayer player) {
 		applyModifiers();
 	}
 
@@ -288,14 +290,16 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 	}
 
 	public boolean diedTooMuch() {
-		return ENABLE_TEMP_BAN && data.deathDayEnd().size() >= DEATH_BEFORE_TEMP_BAN;
+		final var rules = player.orElseThrow().level().getGameRules();
+		return rules.get(DifficultyDeathScaler.ENABLE_TEMP_BAN) &&
+			data.deathDayEnd().size() >= rules.get(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN);
 	}
 
 	/**
 	 * @throws IllegalStateException if the player is not temp banned
 	 */
-	public Text getKickedDiedTooMuchMessage() {
-		return MutableText.of(new PlainTextContent.Literal("You died too much during 24h...\nYou can log back in 12h."));
+	public Component getKickedDiedTooMuchMessage() {
+		return MutableComponent.create(new PlainTextContents.LiteralContents("You died too much during 24h...\nYou can log back in 12h."));
 	}
 
 	/**
@@ -305,18 +309,15 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 	 */
 	public boolean kickIfDiedTooMuch() {
 		final var p = player.orElseThrow();
-		final var server = p.getServer();
-		if (server == null) {
-			DifficultyDeathScaler.LOGGER.warn("Server is null");
-			return false;
-		}
+		final var server = p.level().getServer();
 		if (!diedTooMuch()) return false;
 		final var time = LocalDateTime.now();
 		final var now = Date.from(time.atZone(ZoneId.systemDefault()).toInstant());
 		final var expiry = Date.from(time.plusHours(TEMP_BAN_DURATION).atZone(ZoneId.systemDefault()).toInstant());
-		final var banEntry = new BannedPlayerEntry(p.getGameProfile(), now, "Difficulty Death Scaler", expiry, "You died too much during 24h...");
-		server.getPlayerManager().getUserBanList().add(banEntry);
-		p.networkHandler.disconnect(getKickedDiedTooMuchMessage());
+		final var banEntry = new UserBanListEntry(p.nameAndId(), now, "Difficulty Death Scaler", expiry,
+			"You died too much during 24h...");
+		server.getPlayerList().getBans().add(banEntry);
+		p.connection.disconnect(getKickedDiedTooMuchMessage());
 		return true;
 	}
 
@@ -324,7 +325,7 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 	public String toString() {
 		final var sb = new StringBuilder();
 		sb.append("PlayerDifficultyManager(uuid=");
-		player.ifPresent(player -> sb.append(player.getUuidAsString()));
+		player.ifPresent(player -> sb.append(player.getStringUUID()));
 		sb.append(", number of death=")
 			.append(data.deaths())
 			.append(", total of death=")
@@ -353,7 +354,7 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 			super(ID);
 		}
 
-		public static void apply(ServerPlayerEntity player, double value) {
+		public static void apply(ServerPlayer player, double value) {
 			apply(ID, ATTRIBUTE, OPERATION, player, value);
 		}
 	}

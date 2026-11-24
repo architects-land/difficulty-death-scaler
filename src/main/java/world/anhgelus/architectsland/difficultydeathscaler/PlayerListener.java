@@ -1,48 +1,53 @@
 package world.anhgelus.architectsland.difficultydeathscaler;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
+import java.util.Optional;
+
 public class PlayerListener {
-	public static void afterDeath(ServerPlayerEntity player, DamageSource damageSource) {
+	public static void afterDeath(ServerPlayer player, DamageSource damageSource) {
+		final var server = player.level().getServer();
+
 		final var globalDifficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
 		globalDifficulty.increaseDeath();
 
-		final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(player.getServer(), player);
+		final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(server, player);
 		playerDifficulty.increaseDeath();
 
-		final var bounty = Bounty.get(player.getUuid());
-		if (bounty == null || !(damageSource.getAttacker() instanceof final ServerPlayerEntity killer))
+		final var bounty = Bounty.get(player.getUUID());
+		if (bounty == null || !(damageSource.getEntity() instanceof final ServerPlayer killer))
 			return;
-		bounty.onKill(Getters.PLAYER_DIFFICULTY_GETTER.get(killer.getServer(), killer));
+		bounty.onKill(Getters.PLAYER_DIFFICULTY_GETTER.get(server, killer));
 	}
 
-	public static void afterRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
+	public static void afterRespawn(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive) {
 		Getters.GLOBAL_DIFFICULTY_GETTER.get().applyModifiers(newPlayer);
 
-		final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(newPlayer.getServer(), newPlayer);
-		playerDifficulty.player = newPlayer;
+		final var server = newPlayer.level().getServer();
+		final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(server, newPlayer);
+		playerDifficulty.player = Optional.of(newPlayer);
 		playerDifficulty.applyModifiers();
 
-		final var bounty = Bounty.get(newPlayer.getUuid());
+		final var bounty = Bounty.get(newPlayer.getUUID());
 		if (bounty == null) return;
 		bounty.onDeath();
 	}
 
-	public static void onConnection(ServerPlayerEntity player) {
-		final var server = player.getServer();
+	public static void onConnection(ServerPlayer player) {
+		final var server = player.level().getServer();
 		final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(server, player);
 		playerDifficulty.applyModifiers();
 
@@ -52,21 +57,21 @@ public class PlayerListener {
 		ModCriteria.REACH_GLOBAL_DIFFICULTY.trigger(player, difficultyManager.getNumberOfDeath());
 		ModCriteria.REACH_PLAYER_DIFFICULTY.trigger(player, playerDifficulty.getNumberOfDeath());
 
-		player.sendMessage(Bounty.getBountiesMessage());
+		player.sendSystemMessage(Bounty.getBountiesMessage());
 
 		Bounty.newBounty(server, difficultyManager, playerDifficulty);
 	}
 
-	public static void onDisconnection(ServerPlayerEntity player) {
-		final var bounty = Bounty.get(player.getUuid());
+	public static void onDisconnection(ServerPlayer player) {
+		final var bounty = Bounty.get(player.getUUID());
 		if (bounty == null) return;
 		bounty.onDisconnect();
 	}
 
-	public static ActionResult useItemCallback(PlayerEntity player, World world, Hand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
+	public static InteractionResult useItemCallback(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
+		if (!(player instanceof ServerPlayer)) return InteractionResult.PASS;
 		return entity instanceof LivingEntity
-			? BossManager.handleBuff((ServerPlayerEntity) player, world, hand, (LivingEntity) entity)
-			: ActionResult.PASS;
+			? BossManager.handleBuff((ServerPlayer) player, world, hand, (LivingEntity) entity)
+			: InteractionResult.PASS;
 	}
 }

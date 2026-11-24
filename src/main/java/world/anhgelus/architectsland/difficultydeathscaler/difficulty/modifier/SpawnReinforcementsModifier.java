@@ -1,24 +1,24 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier;
 
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
-public class SpawnReinforcementsModifier extends Modifier<HostileEntity> {
-	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.SPAWN_REINFORCEMENTS;
-	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+public class SpawnReinforcementsModifier extends Modifier<Monster> {
+	public static final Holder<Attribute> ATTRIBUTE = Attributes.SPAWN_REINFORCEMENTS_CHANCE;
+	public static final AttributeModifier.Operation OPERATION = AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
 	protected static final Identifier ID = DifficultyDeathScaler.id("spawn_reinforcements_modifier");
 
 	public SpawnReinforcementsModifier() {
 		super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
 	}
 
-	public static void apply(ZombieEntity player, double value) {
+	public static void apply(Zombie player, double value) {
 		apply(ID, ATTRIBUTE, OPERATION, player, value);
 	}
 }

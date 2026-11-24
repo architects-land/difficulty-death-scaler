@@ -1,22 +1,5 @@
 package world.anhgelus.architectsland.difficultydeathscaler.boss;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LightningEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.boss.WitherEntity;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.mob.ElderGuardianEntity;
-import net.minecraft.entity.mob.WardenEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
@@ -26,6 +9,23 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.Glo
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
+import net.minecraft.world.entity.monster.ElderGuardian;
+import net.minecraft.world.entity.monster.warden.Warden;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 
 public class BossManager {
 	public static final Item BUFFING_ITEM = Items.NETHERITE_INGOT;
@@ -34,63 +34,63 @@ public class BossManager {
 
 	private static DragonBuff dragonBuff = null;
 
-	public static ActionResult handleBuff(ServerPlayerEntity player, World world, Hand hand, LivingEntity e) {
-		if (!(e instanceof WitherEntity ||
-			e instanceof EnderDragonEntity ||
-			e instanceof ElderGuardianEntity ||
-			e instanceof WardenEntity)) return ActionResult.PASS;
+	public static InteractionResult handleBuff(ServerPlayer player, Level world, InteractionHand hand, LivingEntity e) {
+		if (!(e instanceof WitherBoss ||
+			e instanceof EnderDragon ||
+			e instanceof ElderGuardian ||
+			e instanceof Warden)) return InteractionResult.PASS;
 
-		if (buffedBosses.contains(e.getUuid())) return ActionResult.PASS;
+		if (buffedBosses.contains(e.getUUID())) return InteractionResult.PASS;
 
-		final ItemStack itemStack = player.getStackInHand(hand);
-		if (!itemStack.isOf(BUFFING_ITEM)) return ActionResult.PASS;
-		itemStack.decrementUnlessCreative(1, player);
+		final ItemStack itemStack = player.getItemInHand(hand);
+		if (!itemStack.is(BUFFING_ITEM)) return InteractionResult.PASS;
+		itemStack.consume(1, player);
 
 		ModCriteria.BOSS.trigger(player, e.getClass(), false);
 		ModCriteria.ARBITRARY.trigger(player, AdvancementProvider.BUFF_BOSS);
 
 		Boss.fromEntity(e, dragonBuff).buff();
-		buffedBosses.add(e.getUuid());
+		buffedBosses.add(e.getUUID());
 
 		e.setHealth(e.getMaxHealth());
 
-		final var lightingBolt = new LightningEntity(EntityType.LIGHTNING_BOLT, world);
-		lightingBolt.setPosition(e.getPos());
+		final var lightingBolt = new LightningBolt(EntityType.LIGHTNING_BOLT, world);
+		lightingBolt.setPos(e.getPos());
 
-		world.spawnEntity(lightingBolt);
+		world.addFreshEntity(lightingBolt);
 		e.setHealth(e.getMaxHealth());
 
-		return ActionResult.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 
 	public static void handleKill(Entity entity, DamageSource source, DifficultyManager manager) {
-		if (entity instanceof EnderDragonEntity) dragonDies();
-		if (!buffedBosses.contains(entity.getUuid())) return;
-		if (source.getAttacker() instanceof final ServerPlayerEntity p)
+		if (entity instanceof EnderDragon) dragonDies();
+		if (!buffedBosses.contains(entity.getUUID())) return;
+		if (source.getEntity() instanceof final ServerPlayer p)
 			ModCriteria.BOSS.trigger(p, entity.getClass(), true);
-		buffedBosses.remove(entity.getUuid());
+		buffedBosses.remove(entity.getUUID());
 		manager.decreaseDeath();
 		manager.updateTimerTask(); // reset timer task
 	}
 
-	public static void playerEntersEnd(ServerPlayerEntity player, ServerWorld world) {
+	public static void playerEntersEnd(ServerPlayer player, ServerLevel world) {
 		if (dragonBuff == null || !dragonBuff.isDragonAlive()) {
-			final var l = world.getAliveEnderDragons();
+			final var l = world.getDragons();
 			if (l == null || l.isEmpty()) {
 				DifficultyDeathScaler.LOGGER.info("No dragons found");
 				return;
 			}
 			dragonBuff = new DragonBuff(l.getFirst());
 		}
-		DifficultyDeathScaler.LOGGER.info("Player {} enters the end", player.getName().getLiteralString());
+		DifficultyDeathScaler.LOGGER.info("Player {} enters the end", player.getName().tryCollapseToString());
 		dragonBuff.playerEntersEnd(player);
 	}
 
-	public static void dragonLoaded(EnderDragonEntity dragon, ServerWorld world) {
+	public static void dragonLoaded(EnderDragon dragon, ServerLevel world) {
 		if (dragonBuff != null && dragonBuff.isDragonAlive()) return;
-		if (world.getRegistryKey().getValue() != World.END.getValue()) return;
+		if (world.dimension().identifier() != Level.END.identifier()) return;
 		dragonBuff = new DragonBuff(dragon);
-		world.getPlayers().forEach(player -> playerEntersEnd(player, world));
+		world.players().forEach(player -> playerEntersEnd(player, world));
 	}
 
 	public static void onDifficultyUpdate(GlobalDifficultyManager difficultyManager) {

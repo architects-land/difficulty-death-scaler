@@ -1,20 +1,21 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.global;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.mob.PiglinEntity;
-import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.piglin.Piglin;
+import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.AdvancementProvider;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
@@ -31,24 +32,24 @@ public class GlobalDifficultyManager extends DifficultyManager {
 	public static final Step[] STEPS = new Step[]{
 		new Step(0, (server, gamerules, updater) -> {
 			// mobs
-			gamerules.get(GameRules.DO_INSOMNIA).set(false, server);
-			gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(true, server);
-			gamerules.get(GameRules.UNIVERSAL_ANGER).set(false, server);
+			gamerules.set(GameRules.SPAWN_PHANTOMS, false, server);
+			gamerules.set(GameRules.FORGIVE_DEAD_PLAYERS, true, server);
+			gamerules.set(GameRules.UNIVERSAL_ANGER, false, server);
 			BETTER_CREEPERS = false;
 			BETTER_ZOMBIES = false;
 			BETTER_SKELETON = false;
 			// explosion decay
-			gamerules.get(GameRules.BLOCK_EXPLOSION_DROP_DECAY).set(false, server);
-			gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(false, server);
-			gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(false, server);
+			gamerules.set(GameRules.BLOCK_EXPLOSION_DROP_DECAY, false, server);
+			gamerules.set(GameRules.MOB_EXPLOSION_DROP_DECAY, false, server);
+			gamerules.set(GameRules.TNT_EXPLOSION_DROP_DECAY, false, server);
 			// annoying
-			gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(false, server);
-			gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(false, server);
-			gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(30, server);
-			gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(true, server);
-			gamerules.get(GameRules.ENDER_PEARLS_VANISH_ON_DEATH).set(false, server);
+			gamerules.set(GameRules.REDUCED_DEBUG_INFO, false, server);
+			gamerules.set(GameRules.LIMITED_CRAFTING, false, server);
+			gamerules.set(GameRules.PLAYERS_SLEEPING_PERCENTAGE, 30, server);
+			gamerules.set(GameRules.WATER_SOURCE_CONVERSION, true, server);
+			gamerules.set(GameRules.ENDER_PEARLS_VANISH_ON_DEATH, false, server);
 			// hardcore
-			gamerules.get(GameRules.NATURAL_REGENERATION).set(true, server);
+			gamerules.set(GameRules.NATURAL_HEALTH_REGENERATION, true, server);
 			updater.getModifier(HealthModifier.class).update(0);
 			updater.getModifier(StepHeightModifier.class).update(0);
 			updater.getModifier(SpawnReinforcementsModifier.class).update(0);
@@ -58,13 +59,13 @@ public class GlobalDifficultyManager extends DifficultyManager {
 		}),
 		new Step(1, (server, gamerules, updater) -> updater.updateDifficulty(2)),
 		new Step(2, (server, gamerules, updater) -> {
-			gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(70, server);
+			gamerules.set(GameRules.PLAYERS_SLEEPING_PERCENTAGE, 70, server);
 		}),
 		new Step(3, (server, gamerules, updater) -> updater.updateDifficulty(3)),
 		new Step(5, (server, gamerules, updater) -> {
-			gamerules.get(GameRules.DO_INSOMNIA).set(true, server);
-			gamerules.get(GameRules.BLOCK_EXPLOSION_DROP_DECAY).set(true, server);
-			gamerules.get(GameRules.MOB_EXPLOSION_DROP_DECAY).set(true, server);
+			gamerules.set(GameRules.SPAWN_PHANTOMS, true, server);
+			gamerules.set(GameRules.BLOCK_EXPLOSION_DROP_DECAY, true, server);
+			gamerules.set(GameRules.MOB_EXPLOSION_DROP_DECAY, true, server);
 		}),
 		new Step(7, (server, gamerules, updater) -> {
 			updater.getModifier(WaypointReceiveModifier.class).update(10000);
@@ -82,8 +83,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
 			updater.getModifier(StepHeightModifier.class).update(0.6);
 		}),
 		new Step(13, (server, gamerules, updater) -> {
-			gamerules.get(GameRules.TNT_EXPLOSION_DROP_DECAY).set(true, server);
-			gamerules.get(GameRules.ENDER_PEARLS_VANISH_ON_DEATH).set(true, server);
+			gamerules.set(GameRules.TNT_EXPLOSION_DROP_DECAY, true, server);
+			gamerules.set(GameRules.ENDER_PEARLS_VANISH_ON_DEATH, true, server);
 		}),
 		new Step(15, (server, gamerules, updater) -> {
 			updater.getModifier(SpawnReinforcementsModifier.class).update(0.25);
@@ -91,7 +92,7 @@ public class GlobalDifficultyManager extends DifficultyManager {
 		}),
 		new Step(16, (server, gamerules, updater) -> {
 			updater.getModifier(WaypointReceiveModifier.class).update(5000);
-			gamerules.get(GameRules.REDUCED_DEBUG_INFO).set(true, server);
+			gamerules.set(GameRules.REDUCED_DEBUG_INFO, true, server);
 		}),
 		new Step(18, (server, gamerules, updater) -> {
 			updater.getModifier(FallDamageMultiplierModifier.class).update(0.5);
@@ -104,13 +105,13 @@ public class GlobalDifficultyManager extends DifficultyManager {
 		}),
 		new Step(22, (server, gamerules, updater) -> {
 			updater.getModifier(WaypointReceiveModifier.class).update(3000);
-			gamerules.get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(100, server);
+			gamerules.set(GameRules.PLAYERS_SLEEPING_PERCENTAGE, 100, server);
 		}),
 		new Step(23, (server, gamerules, updater) -> {
 			updater.getModifier(FollowRangeModifier.class).update(0.35);
 		}),
 		new Step(24, (server, gamerules, updater) -> {
-			gamerules.get(GameRules.WATER_SOURCE_CONVERSION).set(false, server);
+			gamerules.set(GameRules.WATER_SOURCE_CONVERSION, false, server);
 		}),
 		new Step(25, (server, gamerules, updater) -> {
 			updater.getModifier(SpawnReinforcementsModifier.class).update(0.5);
@@ -120,10 +121,10 @@ public class GlobalDifficultyManager extends DifficultyManager {
 		}),
 		new Step(28, (server, gamerules, updater) -> {
 			updater.getModifier(WaypointReceiveModifier.class).update(2000);
-			gamerules.get(GameRules.DO_LIMITED_CRAFTING).set(true, server);
+			gamerules.set(GameRules.LIMITED_CRAFTING, true, server);
 		}),
 		new Step(30, (server, gamerules, updater) -> {
-			gamerules.get(GameRules.UNIVERSAL_ANGER).set(true, server);
+			gamerules.set(GameRules.UNIVERSAL_ANGER, true, server);
 		}),
 		new Step(32, (server, gamerules, updater) -> {
 			updater.getModifier(FallDamageMultiplierModifier.class).update(1);
@@ -136,10 +137,10 @@ public class GlobalDifficultyManager extends DifficultyManager {
 			BETTER_CREEPERS = true;
 		}),
 		new Step(37, (server, gamerules, updater) -> {
-			gamerules.get(GameRules.FORGIVE_DEAD_PLAYERS).set(false, server);
+			gamerules.set(GameRules.FORGIVE_DEAD_PLAYERS, false, server);
 		}),
 		new Step(40, (server, gamerules, updater) -> {
-			gamerules.get(GameRules.NATURAL_REGENERATION).set(false, server);
+			gamerules.set(GameRules.NATURAL_HEALTH_REGENERATION, false, server);
 		}),
 	};
 	public static int PIGLIN_BRUTES_BOOST = 0;
@@ -184,22 +185,22 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
 		updateModifiersValue(updater);
 
-		final var pm = server.getPlayerManager();
+		final var pm = server.getPlayerList();
 
-		pm.getPlayerList().forEach(p -> {
+		pm.getPlayers().forEach(p -> {
 			updater.getModifiers().forEach(m -> {
 				if (m instanceof final HealthModifier mod) mod.apply(p);
 				else if (m instanceof final FallDamageMultiplierModifier mod) mod.apply(p);
 			});
 			playSoundUpdate(updateType, p);
-			ModCriteria.REACH_GLOBAL_DIFFICULTY.trigger(p, numberOfDeath);
+			ModCriteria.REACH_GLOBAL_DIFFICULTY.trigger(p, data.deaths());
 			if (updateType == UpdateType.DECREASE && before >= 37)
 				ModCriteria.ARBITRARY.trigger(p, AdvancementProvider.LEAVE_NO_RETURN);
 		});
 
 		BossManager.onDifficultyUpdate(this);
 
-		pm.broadcast(Text.of(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
+		pm.broadcastSystemMessage(Component.translationArg(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
 
 		if (updateType != UpdateType.AUTOMATIC_INCREASE && updateType != UpdateType.DECREASE)
@@ -226,32 +227,32 @@ public class GlobalDifficultyManager extends DifficultyManager {
 	}
 
 	@Override
-	protected @NotNull Text generateDifficultyUpdate(UpdateType updateType, net.minecraft.world.@Nullable Difficulty difficulty) {
-		final var txt = Text.empty();
+	protected @NotNull Component generateDifficultyUpdate(UpdateType updateType, net.minecraft.world.@Nullable Difficulty difficulty) {
+		final var txt = Component.empty();
 		txt.append(generateHeaderUpdate(updateType));
 		txt.append("World Difficulty: ");
 		if (difficulty == Difficulty.EASY) {
-			txt.append(Text.literal("Easy").formatted(Constants.COLOR_OK));
+			txt.append(Component.literal("Easy").withStyle(Constants.COLOR_OK));
 		} else if (difficulty == Difficulty.NORMAL) {
-			txt.append(Text.literal("Normal").formatted(Constants.COLOR_WARNING));
+			txt.append(Component.literal("Normal").withStyle(Constants.COLOR_WARNING));
 		} else {
-			txt.append(Text.literal("Hard").formatted(Constants.COLOR_DANGER));
+			txt.append(Component.literal("Hard").withStyle(Constants.COLOR_DANGER));
 		}
-		if (numberOfDeath >= STEPS[1].level()) {
+		if (data.deaths() >= STEPS[1].level()) {
 			txt.append("\n\n");
 		}
-		if (numberOfDeath >= STEPS[STEPS.length - 1].level()) {
-			txt.append(Text.literal("Well... Good luck... you dont have regen anymore").formatted(Constants.COLOR_DANGER));
-		} else if (numberOfDeath >= STEPS[21].level()) {
-			txt.append(Text.literal("Nether is gonna be very dangerous").formatted(Constants.COLOR_DANGER));
-		} else if (numberOfDeath >= STEPS[9].level()) {
-			txt.append(Text.literal("This is so fcking annoying!").formatted(Constants.COLOR_WARNING));
-		} else if (numberOfDeath >= STEPS[5].level()) {
-			txt.append(Text.literal("Mobs are modified, right?...").formatted(Constants.COLOR_WARNING));
-		} else if (numberOfDeath >= STEPS[3].level()) {
-			txt.append(Text.literal("Normal difficulty is back!").formatted(Constants.COLOR_OK));
-		} else if (numberOfDeath >= STEPS[1].level()) {
-			txt.append(Text.literal("Oh no, the difficulty is becoming harder.").formatted(Constants.COLOR_OK));
+		if (data.deaths() >= STEPS[STEPS.length - 1].level()) {
+			txt.append(Component.literal("Well... Good luck... you dont have regen anymore").withStyle(Constants.COLOR_DANGER));
+		} else if (data.deaths() >= STEPS[21].level()) {
+			txt.append(Component.literal("Nether is gonna be very dangerous").withStyle(Constants.COLOR_DANGER));
+		} else if (data.deaths() >= STEPS[9].level()) {
+			txt.append(Component.literal("This is so fcking annoying!").withStyle(Constants.COLOR_WARNING));
+		} else if (data.deaths() >= STEPS[5].level()) {
+			txt.append(Component.literal("Mobs are modified, right?...").withStyle(Constants.COLOR_WARNING));
+		} else if (data.deaths() >= STEPS[3].level()) {
+			txt.append(Component.literal("Normal difficulty is back!").withStyle(Constants.COLOR_OK));
+		} else if (data.deaths() >= STEPS[1].level()) {
+			txt.append(Component.literal("Oh no, the difficulty is becoming harder.").withStyle(Constants.COLOR_OK));
 		}
 		txt.append("\n\n");
 
@@ -262,28 +263,29 @@ public class GlobalDifficultyManager extends DifficultyManager {
 	}
 
 	@Override
-	public void applyModifiers(ServerPlayerEntity player) {
+	public void applyModifiers(ServerPlayer player) {
 		HealthModifier.apply(player, healthModifier);
 		FallDamageMultiplierModifier.apply(player, fallDamageMultiplierModifier);
 		WaypointReceiveModifier.apply(player, waypointReceiveModifier);
 	}
 
-	public void onEntitySpawn(HostileEntity hostile) {
+	public void onEntitySpawn(Monster hostile) {
 		FollowRangeModifier.apply(hostile, followRangeModifier);
 		StepHeightModifier.apply(hostile, stepHeightModifier);
-		if (hostile instanceof final ZombieEntity z)
+		if (hostile instanceof final Zombie z)
 			SpawnReinforcementsModifier.apply(z, spawnReinforcementModifier);
 		// if mobs was already spawned, return
 		if (hostile.hasCustomName()) return;
 		CUSTOM_SPAWN_EFFECTS.modify(hostile);
-		if (hostile instanceof PiglinEntity) {
+		if (hostile instanceof Piglin) {
 			MobUtils.customSpawn(
 				hostile.getRandom(),
-				1.5f * (numberOfDeath + PIGLIN_BRUTES_BOOST - 27),
+				1.5f * (data.deaths() + PIGLIN_BRUTES_BOOST - 27),
 				20 + 1.5f * PIGLIN_BRUTES_BOOST,
 				() -> {
 					// spawn piglin brutes
-					EntityType.PIGLIN_BRUTE.spawn((ServerWorld) hostile.getWorld(), hostile.getBlockPos(), SpawnReason.MOB_SUMMONED);
+					EntityTypes.PIGLIN_BRUTE.spawn((ServerLevel) hostile.level(),
+						hostile.getBlockPosBelowThatAffectsMyMovement(), EntitySpawnReason.SPAWN_ITEM_USE);
 					hostile.discard();
 					return null;
 				});
@@ -296,8 +298,8 @@ public class GlobalDifficultyManager extends DifficultyManager {
 
 	@Override
 	public String toString() {
-		return "GlobalDifficultyManager(number of death=" + numberOfDeath +
-			", total of death=" + totalOfDeath +
+		return "GlobalDifficultyManager(number of death=" + data.deaths() +
+			", total of death=" + data.deathsTotal() +
 			", piglin brutes boost=" + PIGLIN_BRUTES_BOOST +
 			") {better skeletons=" + BETTER_SKELETON +
 			", better zombies=" + BETTER_ZOMBIES +
@@ -316,13 +318,13 @@ public class GlobalDifficultyManager extends DifficultyManager {
 	}
 
 	public static class HealthModifier extends PlayerHealthModifier {
-		public static final Identifier ID = Identifier.of(PREFIX + "global_health_modifier");
+		public static final Identifier ID = DifficultyDeathScaler.id("global_health");
 
 		public HealthModifier() {
 			super(ID);
 		}
 
-		public static void apply(ServerPlayerEntity player, double value) {
+		public static void apply(ServerPlayer player, double value) {
 			apply(ID, ATTRIBUTE, OPERATION, player, value);
 		}
 	}

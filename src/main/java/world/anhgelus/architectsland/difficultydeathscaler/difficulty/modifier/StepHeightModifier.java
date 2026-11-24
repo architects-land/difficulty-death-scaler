@@ -1,23 +1,23 @@
 package world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier;
 
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Monster;
 import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
-public class StepHeightModifier extends Modifier<HostileEntity> {
-	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.STEP_HEIGHT;
-	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_VALUE;
+public class StepHeightModifier extends Modifier<Monster> {
+	public static final Holder<Attribute> ATTRIBUTE = Attributes.STEP_HEIGHT;
+	public static final AttributeModifier.Operation OPERATION = AttributeModifier.Operation.ADD_VALUE;
 	protected static final Identifier ID = DifficultyDeathScaler.id("step_height_modifier");
 
 	public StepHeightModifier() {
 		super(ID, ATTRIBUTE, OPERATION, Check.BIGGER);
 	}
 
-	public static void apply(HostileEntity player, double value) {
+	public static void apply(Monster player, double value) {
 		apply(ID, ATTRIBUTE, OPERATION, player, value);
 	}
 }

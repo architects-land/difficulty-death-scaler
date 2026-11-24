@@ -1,22 +1,23 @@
 package world.anhgelus.architectsland.difficultydeathscaler.passive.modifier;
 
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Monster;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 
-public class PassiveHealthModifier extends PassiveModifier<HostileEntity> {
-	public static final RegistryEntry<EntityAttribute> ATTRIBUTE = EntityAttributes.MAX_HEALTH;
-	public static final EntityAttributeModifier.Operation OPERATION = EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
-	public static final Identifier ID = Identifier.of(PREFIX + "health");
+public class PassiveHealthModifier extends PassiveModifier<Monster> {
+	public static final Holder<Attribute> ATTRIBUTE = Attributes.MAX_HEALTH;
+	public static final AttributeModifier.Operation OPERATION = AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+	public static final Identifier ID = DifficultyDeathScaler.id("health");
 
 	private PassiveHealthModifier() {
 		super(ID, ATTRIBUTE, OPERATION);
 	}
 
-	public static void apply(HostileEntity entity, double value) {
+	public static void apply(Monster entity, double value) {
 		apply(ID, ATTRIBUTE, OPERATION, entity, value);
 	}
 }

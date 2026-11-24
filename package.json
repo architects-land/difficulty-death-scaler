@@ -3,9 +3,8 @@
 	"module": "index.ts",
 	"type": "module",
 	"devDependencies": {
-		"vitepress": "^1.6.3"
+		"vitepress": "^1.6.4"
 	},
-	"peerDependencies": {},
 	"scripts": {
 		"docs:dev": "vitepress dev docs",
 		"docs:build": "vitepress build docs",

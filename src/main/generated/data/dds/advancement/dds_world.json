@@ -1,0 +1,20 @@
+{
+  "criteria": {
+    "joined": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "background": "dds:",
+    "description": "Welcome to a world governed by Difficulty Death Scaler!",
+    "icon": {
+      "id": "minecraft:respawn_anchor"
+    },
+    "title": "Difficulty Death Scaler"
+  },
+  "requirements": [
+    [
+      "joined"
+    ]
+  ]
+}

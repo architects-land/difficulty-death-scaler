@@ -7,8 +7,9 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.gamerules.GameRules;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
+
+import static world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler.getGlobalDifficulty;
 
 public class Sleepers {
 	public static final Sleeper LONG_NIGHT = new Sleeper("Polar night.", server -> {
@@ -20,7 +21,7 @@ public class Sleepers {
 		final var rules = server.getGameRules();
 		GlobalDifficultyManager.POLAR_NIGHT = false;
 		rules.set(GameRules.ADVANCE_TIME, true, server);
-		final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+		final var difficulty = getGlobalDifficulty();
 		difficulty.setNumberOfDeath(difficulty.getNumberOfDeath());
 	}, false);
 

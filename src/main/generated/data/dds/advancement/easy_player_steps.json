@@ -1,0 +1,24 @@
+{
+  "parent": "dds:dds_world",
+  "criteria": {
+    "easy_player_steps": {
+      "conditions": {
+        "max": 2,
+        "min": 0
+      },
+      "trigger": "dds:player_difficulty"
+    }
+  },
+  "display": {
+    "description": "You have op buff",
+    "icon": {
+      "id": "minecraft:dandelion"
+    },
+    "title": "Easy player steps reached!"
+  },
+  "requirements": [
+    [
+      "easy_player_steps"
+    ]
+  ]
+}

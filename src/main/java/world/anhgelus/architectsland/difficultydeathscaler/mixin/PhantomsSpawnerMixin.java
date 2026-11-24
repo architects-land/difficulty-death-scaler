@@ -12,10 +12,11 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler.getPlayerDifficulty;
 
 @Mixin(PhantomSpawner.class)
 public class PhantomsSpawnerMixin {
@@ -50,7 +51,7 @@ public class PhantomsSpawnerMixin {
 				final var bState = level.getBlockState(pos2);
 				final var fState = level.getFluidState(pos2);
 				if (NaturalSpawner.isValidEmptySpawnBlock(level, pos2, bState, fState, EntityTypes.PHANTOM)) {
-					var l = 1 + rand.nextInt(Getters.PLAYER_DIFFICULTY_GETTER.get(level.getServer(), p).getNumberOfDeath() + 1);
+					var l = 1 + rand.nextInt(getPlayerDifficulty(p).getNumberOfDeath() + 1);
 					SpawnGroupData entityData = null;
 					for (int m = 0; m < l; ++m) {
 						final var phantom = EntityTypes.PHANTOM.create(level, EntitySpawnReason.NATURAL);

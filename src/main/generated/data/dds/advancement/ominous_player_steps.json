@@ -1,0 +1,24 @@
+{
+  "parent": "dds:easy_player_steps",
+  "criteria": {
+    "ominous_player_steps": {
+      "conditions": {
+        "max": 5,
+        "min": 2
+      },
+      "trigger": "dds:player_difficulty"
+    }
+  },
+  "display": {
+    "description": "Debuff are starting...",
+    "icon": {
+      "id": "minecraft:golden_axe"
+    },
+    "title": "Ominous player steps reached!"
+  },
+  "requirements": [
+    [
+      "ominous_player_steps"
+    ]
+  ]
+}

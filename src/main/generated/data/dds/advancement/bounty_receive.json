@@ -1,0 +1,24 @@
+{
+  "parent": "dds:bounty_be_present",
+  "criteria": {
+    "bounty_receive": {
+      "conditions": {
+        "id": 1
+      },
+      "trigger": "dds:bounty"
+    }
+  },
+  "display": {
+    "description": "Receive a bounty on you",
+    "frame": "goal",
+    "icon": {
+      "id": "minecraft:diamond_chestplate"
+    },
+    "title": "Be hunted"
+  },
+  "requirements": [
+    [
+      "bounty_receive"
+    ]
+  ]
+}

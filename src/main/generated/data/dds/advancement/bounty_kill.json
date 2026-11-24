@@ -1,0 +1,24 @@
+{
+  "parent": "dds:bounty_be_present",
+  "criteria": {
+    "bounty_kill": {
+      "conditions": {
+        "id": 2
+      },
+      "trigger": "dds:bounty"
+    }
+  },
+  "display": {
+    "description": "Hunt for the bounty",
+    "frame": "challenge",
+    "icon": {
+      "id": "minecraft:netherite_sword"
+    },
+    "title": "Hunter"
+  },
+  "requirements": [
+    [
+      "bounty_kill"
+    ]
+  ]
+}

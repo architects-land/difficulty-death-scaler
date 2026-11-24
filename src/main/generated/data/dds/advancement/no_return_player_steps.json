@@ -1,0 +1,24 @@
+{
+  "parent": "dds:evil_player_steps",
+  "criteria": {
+    "no_return_player_steps": {
+      "conditions": {
+        "max": -1,
+        "min": 15
+      },
+      "trigger": "dds:player_difficulty"
+    }
+  },
+  "display": {
+    "description": "The only solution is waiting 24 hours...",
+    "icon": {
+      "id": "minecraft:player_head"
+    },
+    "title": "No return player steps reached..."
+  },
+  "requirements": [
+    [
+      "no_return_player_steps"
+    ]
+  ]
+}

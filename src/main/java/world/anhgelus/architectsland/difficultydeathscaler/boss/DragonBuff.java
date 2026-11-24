@@ -1,15 +1,16 @@
 package world.anhgelus.architectsland.difficultydeathscaler.boss;
 
-import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
-
-import java.util.HashSet;
-import java.util.Set;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler.getGlobalDifficulty;
 
 public class DragonBuff {
 	public final static Identifier MODIFIER_ID = Identifier.parse("dds_health");
@@ -47,7 +48,7 @@ public class DragonBuff {
 		if (players.contains(player)) return;
 		players.add(player);
 
-		final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath();
+		final var difficulty = getGlobalDifficulty().getNumberOfDeath();
 		updateDragonHealth(difficulty, false);
 	}
 

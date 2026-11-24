@@ -1,0 +1,24 @@
+{
+  "parent": "dds:bounty_receive",
+  "criteria": {
+    "bounty_killed": {
+      "conditions": {
+        "id": 3
+      },
+      "trigger": "dds:bounty"
+    }
+  },
+  "display": {
+    "description": "Killed for the reward",
+    "frame": "goal",
+    "icon": {
+      "id": "minecraft:chainmail_chestplate"
+    },
+    "title": "Lose everything"
+  },
+  "requirements": [
+    [
+      "bounty_killed"
+    ]
+  ]
+}

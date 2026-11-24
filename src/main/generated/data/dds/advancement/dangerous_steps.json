@@ -1,0 +1,24 @@
+{
+  "parent": "dds:ominous_steps",
+  "criteria": {
+    "dangerous_steps": {
+      "conditions": {
+        "max": 28,
+        "min": 20
+      },
+      "trigger": "dds:global_difficulty"
+    }
+  },
+  "display": {
+    "description": "The world wants to kill you",
+    "icon": {
+      "id": "minecraft:skeleton_skull"
+    },
+    "title": "Dangerous steps reached!..."
+  },
+  "requirements": [
+    [
+      "dangerous_steps"
+    ]
+  ]
+}

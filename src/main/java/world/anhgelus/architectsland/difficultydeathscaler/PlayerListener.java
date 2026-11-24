@@ -13,31 +13,30 @@ import org.jetbrains.annotations.Nullable;
 import world.anhgelus.architectsland.difficultydeathscaler.boss.BossManager;
 import world.anhgelus.architectsland.difficultydeathscaler.datagen.criterion.ModCriteria;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bounty;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.Optional;
 
+import static world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler.getGlobalDifficulty;
+import static world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler.getPlayerDifficulty;
+
 public class PlayerListener {
 	public static void afterDeath(ServerPlayer player, DamageSource damageSource) {
-		final var server = player.level().getServer();
-
-		final var globalDifficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+		final var globalDifficulty = getGlobalDifficulty();
 		globalDifficulty.increaseDeath();
 
-		final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(server, player);
+		final var playerDifficulty = getPlayerDifficulty(player);
 		playerDifficulty.increaseDeath();
 
 		final var bounty = Bounty.get(player.getUUID());
 		if (bounty == null || !(damageSource.getEntity() instanceof final ServerPlayer killer))
 			return;
-		bounty.onKill(Getters.PLAYER_DIFFICULTY_GETTER.get(server, killer));
+		bounty.onKill(getPlayerDifficulty(killer));
 	}
 
 	public static void afterRespawn(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive) {
-		Getters.GLOBAL_DIFFICULTY_GETTER.get().applyModifiers(newPlayer);
+		getGlobalDifficulty().applyModifiers(newPlayer);
 
-		final var server = newPlayer.level().getServer();
-		final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(server, newPlayer);
+		final var playerDifficulty = getPlayerDifficulty(newPlayer);
 		playerDifficulty.player = Optional.of(newPlayer);
 		playerDifficulty.applyModifiers();
 
@@ -48,10 +47,10 @@ public class PlayerListener {
 
 	public static void onConnection(ServerPlayer player) {
 		final var server = player.level().getServer();
-		final var playerDifficulty = Getters.PLAYER_DIFFICULTY_GETTER.get(server, player);
+		final var playerDifficulty = getPlayerDifficulty(player);
 		playerDifficulty.applyModifiers();
 
-		final var difficultyManager = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+		final var difficultyManager = getGlobalDifficulty();
 		difficultyManager.applyModifiers(player);
 
 		ModCriteria.REACH_GLOBAL_DIFFICULTY.trigger(player, difficultyManager.getNumberOfDeath());

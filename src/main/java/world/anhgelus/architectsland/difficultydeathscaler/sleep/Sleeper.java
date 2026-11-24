@@ -10,7 +10,6 @@ import world.anhgelus.architectsland.difficultydeathscaler.timer.TimerAccess;
 
 public record Sleeper(String description, boolean skipNight, On execStart, On execStop) {
 	public final static long EVENT_DURATION = 20 * 60 * 20; // is one day
-	public static boolean ENABLED = true;
 	private static boolean canSleep = true;
 	private static long lastSleep;
 
@@ -50,7 +49,8 @@ public record Sleeper(String description, boolean skipNight, On execStart, On ex
 	}
 
 	public void emit(MinecraftServer server) {
-		if (!ENABLED) throw new IllegalStateException("REDACTED is not enabled");
+		if (!server.getGameRules().get(DifficultyDeathScaler.ENABLE_REDACTED))
+			throw new IllegalStateException("REDACTED is not enabled");
 		if (!skipNight) {
 			server.getPlayerList()
 				.getPlayers()

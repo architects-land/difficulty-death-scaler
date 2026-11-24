@@ -3,14 +3,17 @@ package world.anhgelus.architectsland.difficultydeathscaler.passive;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.phys.Vec3;
+import world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.modifier.*;
 
 public class PassiveDifficulty {
 	public static final int LEVEL_MAX = 20;
-	public static boolean ENABLED = true;
 
 	public static void onEntitySpawn(Monster entity) {
-		if (!ENABLED) return;
+		final var server = entity.level().getServer();
+		if (server == null) return;
+		if (!server.getGameRules().get(DifficultyDeathScaler.ENABLE_PASSIVE_DIFFICULTY))
+			return;
 		final var level = difficultyLevel(entity);
 		if (level == 0) return;
 		PassiveBurningTimeModifier.apply(entity, adjustLevelMax(level, -0.75)); // is percentage
@@ -30,10 +33,6 @@ public class PassiveDifficulty {
 				Mth.floorDiv(timePassed * timePassed, 8000),
 			LEVEL_MAX
 		);
-	}
-
-	private static double adjustLevelMax(int level, int max) {
-		return adjustLevelMax(level, (double) max);
 	}
 
 	private static double adjustLevelMax(int level, double max) {

@@ -1,0 +1,23 @@
+{
+  "parent": "dds:dds_world",
+  "criteria": {
+    "bounty_be_present": {
+      "conditions": {
+        "id": 0
+      },
+      "trigger": "dds:bounty"
+    }
+  },
+  "display": {
+    "description": "Be present during a bounty",
+    "icon": {
+      "id": "minecraft:diamond_sword"
+    },
+    "title": "Bounty aware"
+  },
+  "requirements": [
+    [
+      "bounty_be_present"
+    ]
+  ]
+}

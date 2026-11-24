@@ -1,0 +1,25 @@
+{
+  "parent": "dds:buff_elder_guardian",
+  "criteria": {
+    "kill_elder_guardian": {
+      "conditions": {
+        "entity": "net.minecraft.world.entity.monster.ElderGuardian",
+        "killed": true
+      },
+      "trigger": "dds:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Kill an buffed elder guardian to decrease the difficulty",
+    "frame": "challenge",
+    "icon": {
+      "id": "minecraft:prismarine"
+    },
+    "title": "Kill an elder guardian"
+  },
+  "requirements": [
+    [
+      "kill_elder_guardian"
+    ]
+  ]
+}

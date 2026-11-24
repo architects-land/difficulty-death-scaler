@@ -1,0 +1,25 @@
+{
+  "parent": "dds:buff_warden",
+  "criteria": {
+    "kill_warden": {
+      "conditions": {
+        "entity": "net.minecraft.world.entity.monster.warden.Warden",
+        "killed": true
+      },
+      "trigger": "dds:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Kill a buffed warden to decrease the difficulty",
+    "frame": "challenge",
+    "icon": {
+      "id": "minecraft:sculk_shrieker"
+    },
+    "title": "Kill a buffed warden"
+  },
+  "requirements": [
+    [
+      "kill_warden"
+    ]
+  ]
+}

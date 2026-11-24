@@ -1,0 +1,25 @@
+{
+  "parent": "dds:buff_boss",
+  "criteria": {
+    "buff_elder_guardian": {
+      "conditions": {
+        "entity": "net.minecraft.world.entity.monster.ElderGuardian",
+        "killed": false
+      },
+      "trigger": "dds:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Buff an elder guardian with a netherite ingot",
+    "frame": "goal",
+    "icon": {
+      "id": "minecraft:prismarine"
+    },
+    "title": "Buff an elder guardian"
+  },
+  "requirements": [
+    [
+      "buff_elder_guardian"
+    ]
+  ]
+}

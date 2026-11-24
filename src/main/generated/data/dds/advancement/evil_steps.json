@@ -1,0 +1,24 @@
+{
+  "parent": "dds:dangerous_steps",
+  "criteria": {
+    "evil_steps": {
+      "conditions": {
+        "max": 37,
+        "min": 28
+      },
+      "trigger": "dds:global_difficulty"
+    }
+  },
+  "display": {
+    "description": "Please stops dying",
+    "icon": {
+      "id": "minecraft:wither_skeleton_skull"
+    },
+    "title": "Evil steps reached..."
+  },
+  "requirements": [
+    [
+      "evil_steps"
+    ]
+  ]
+}

@@ -32,7 +32,6 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.Bou
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.player.PlayerDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.passive.PassiveDifficulty;
 import world.anhgelus.architectsland.difficultydeathscaler.sleep.Sleeper;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,41 +65,58 @@ public class DifficultyDeathScaler implements ModInitializer {
 		.category(GameRuleCategory.MISC)
 		.buildAndRegister(id("temp_ban_duration"));
 
-	private final Map<UUID, PlayerDifficultyManager> playerDifficultyManagerMap = new HashMap<>();
-	private GlobalDifficultyManager difficultyManager;
+	private final static Map<UUID, PlayerDifficultyManager> PLAYER_DIFFICULTY_MANAGERS =
+		new HashMap<>();
+	private static GlobalDifficultyManager GLOBAL_DIFFICULTY_MANAGER;
 
 	public static Identifier id(String id) {
 		return Identifier.fromNamespaceAndPath(MOD_ID, id);
+	}
+
+	/**
+	 * Set player in difficulty manager
+	 */
+	public static PlayerDifficultyManager getPlayerDifficulty(ServerPlayer player) {
+		return PLAYER_DIFFICULTY_MANAGERS.computeIfAbsent(player.getUUID(), _ ->
+			new PlayerDifficultyManager(player.level().getServer(),
+				GLOBAL_DIFFICULTY_MANAGER,
+				DifficultyState.get(player)));
+	}
+
+	public static GlobalDifficultyManager getGlobalDifficulty() {
+		return GLOBAL_DIFFICULTY_MANAGER;
+	}
+
+	private static void loadAllPlayerManagers(MinecraftServer server) {
+		DifficultyState.get(server).getPlayers().forEach(it ->
+			PLAYER_DIFFICULTY_MANAGERS.put(UUID.fromString(it.getKey()),
+				new PlayerDifficultyManager(server, GLOBAL_DIFFICULTY_MANAGER, it.getValue())));
 	}
 
 	@Override
 	public void onInitialize() {
 		ModCriteria.init();
 
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+		CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> {
 			DifficultyCommand.register(dispatcher);
 			BountyCommand.register(dispatcher);
 		});
 
 		// set up base difficulty and player difficulty fetcher
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-			difficultyManager = new GlobalDifficultyManager(server);
+			GLOBAL_DIFFICULTY_MANAGER = new GlobalDifficultyManager(server);
 			loadAllPlayerManagers(server);
 
 			//enforce gamerules to prevent a crash during sleeper event
 			server.getGameRules().set(GameRules.ADVANCE_TIME, true, server);
-
-			Getters.PLAYER_DIFFICULTY_GETTER = this::getPlayerDifficultyManager;
-			Getters.GLOBAL_DIFFICULTY_GETTER = () -> difficultyManager;
 		});
 
-		ServerLifecycleEvents.BEFORE_SAVE.register((server, flush, force) -> {
-			difficultyManager.save(playerDifficultyManagerMap);
-		});
+		ServerLifecycleEvents.BEFORE_SAVE.register((_, _, _) ->
+			GLOBAL_DIFFICULTY_MANAGER.save(PLAYER_DIFFICULTY_MANAGERS));
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
 			if (!(entity instanceof ServerPlayer player)) {
-				BossManager.handleKill(entity, damageSource, difficultyManager);
+				BossManager.handleKill(entity, damageSource, GLOBAL_DIFFICULTY_MANAGER);
 				return;
 			}
 			PlayerListener.afterDeath(player, damageSource);
@@ -118,33 +134,32 @@ public class DifficultyDeathScaler implements ModInitializer {
 			if (entity instanceof EnderDragon)
 				BossManager.dragonLoaded((EnderDragon) entity, world);
 			if (!(entity instanceof final Monster hostile)) return;
-			difficultyManager.onEntitySpawn(hostile);
+			GLOBAL_DIFFICULTY_MANAGER.onEntitySpawn(hostile);
 			PassiveDifficulty.onEntitySpawn(hostile);
 		});
 
 		ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(
-			(player, origin, destination) -> {
+			(player, _, destination) -> {
 				if (destination.dimension().identifier() != Level.END.identifier()) return;
 				BossManager.playerEntersEnd(player, destination);
 			});
 
-		EntitySleepEvents.START_SLEEPING.register((entity, pos) -> {
+		EntitySleepEvents.START_SLEEPING.register((entity, _) -> {
 			if (!Sleeper.canSleep()) return;
-			if (!Sleeper.ENABLED) return;
-			if (!(entity instanceof Player)) return;
-			// if the number is too high, return
-			if (entity.getRandom().nextFloat() * 100 > Sleeper.percentageToEmit(difficultyManager.getNumberOfDeath()))
-				return;
-			// try starting a new event
 			final var server = entity.level().getServer();
 			if (server == null) {
 				LOGGER.warn("Server is null");
 				return;
 			}
+			if (!server.getGameRules().get(ENABLE_REDACTED)) return;
+			if (!(entity instanceof Player)) return;
+			if (entity.getRandom().nextFloat() * 100 >
+				Sleeper.percentageToEmit(GLOBAL_DIFFICULTY_MANAGER.getNumberOfDeath()))
+				return;
 			if (Sleeper.tryEmitNewEvent(server)) LOGGER.info("Starting a new sleep event");
 		});
 
-		EntitySleepEvents.ALLOW_BED.register((entity, sleepingPos, state, vanillaResult) -> {
+		EntitySleepEvents.ALLOW_BED.register((entity, _, _, vanillaResult) -> {
 			if (!(entity instanceof Player)) return EventResult.PASS;
 			return vanillaResult && Sleeper.canSleep()
 				? EventResult.PASS
@@ -152,21 +167,5 @@ public class DifficultyDeathScaler implements ModInitializer {
 		});
 
 		LOGGER.info("Difficulty Death Scaler initialized");
-	}
-
-	/**
-	 * Set player in difficulty manager
-	 */
-	private PlayerDifficultyManager getPlayerDifficultyManager(MinecraftServer server, ServerPlayer player) {
-		final var difficulty = playerDifficultyManagerMap.computeIfAbsent(player.getUUID(), id ->
-			new PlayerDifficultyManager(server, difficultyManager, DifficultyState.get(player))
-		);
-		return difficulty;
-	}
-
-	private void loadAllPlayerManagers(MinecraftServer server) {
-		DifficultyState.get(server).getPlayers().forEach(it ->
-			playerDifficultyManagerMap.put(UUID.fromString(it.getKey()),
-				new PlayerDifficultyManager(server, difficultyManager, it.getValue())));
 	}
 }

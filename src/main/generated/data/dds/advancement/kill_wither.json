@@ -1,0 +1,25 @@
+{
+  "parent": "dds:buff_wither",
+  "criteria": {
+    "kill_wither": {
+      "conditions": {
+        "entity": "net.minecraft.world.entity.boss.wither.WitherBoss",
+        "killed": true
+      },
+      "trigger": "dds:warden_buffed"
+    }
+  },
+  "display": {
+    "description": "Kill the buffed Wither to decrease the difficulty",
+    "frame": "challenge",
+    "icon": {
+      "id": "minecraft:wither_skeleton_skull"
+    },
+    "title": "Kill the buffed Wither"
+  },
+  "requirements": [
+    [
+      "kill_wither"
+    ]
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "parent": "dds:ominous_player_steps",
+  "criteria": {
+    "dangerous_player_steps": {
+      "conditions": {
+        "max": 10,
+        "min": 5
+      },
+      "trigger": "dds:player_difficulty"
+    }
+  },
+  "display": {
+    "description": "You are weak",
+    "icon": {
+      "id": "minecraft:piglin_head"
+    },
+    "title": "Dangerous player steps reached!..."
+  },
+  "requirements": [
+    [
+      "dangerous_player_steps"
+    ]
+  ]
+}

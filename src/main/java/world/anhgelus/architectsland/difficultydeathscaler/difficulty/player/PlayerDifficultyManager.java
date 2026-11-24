@@ -79,7 +79,6 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 		}),
 	};
 	public static final Identifier BONUS_HEARTS_ID = DifficultyDeathScaler.id("bonus_hearts");
-	public static int TEMP_BAN_DURATION = 12;
 	private final GlobalDifficultyManager globalManager;
 	private final List<TickTask> deathDayTasks = new ArrayList<>();
 	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -313,7 +312,9 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 		if (!diedTooMuch()) return false;
 		final var time = LocalDateTime.now();
 		final var now = Date.from(time.atZone(ZoneId.systemDefault()).toInstant());
-		final var expiry = Date.from(time.plusHours(TEMP_BAN_DURATION).atZone(ZoneId.systemDefault()).toInstant());
+		final var expiry = Date.from(time.plusHours(server.getGameRules()
+				.get(DifficultyDeathScaler.TEMP_BAN_DURATION))
+			.atZone(ZoneId.systemDefault()).toInstant());
 		final var banEntry = new UserBanListEntry(p.nameAndId(), now, "Difficulty Death Scaler", expiry,
 			"You died too much during 24h...");
 		server.getPlayerList().getBans().add(banEntry);

@@ -17,8 +17,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.MobUtils;
+
+import static world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler.getGlobalDifficulty;
 
 public abstract class AnnoyingCreeper {
 	@Mixin(SwellGoal.class)
@@ -75,8 +76,8 @@ public abstract class AnnoyingCreeper {
 
 		@Inject(at = @At("RETURN"), method = "<init>")
 		protected void init(EntityType<? extends Monster> entityType, Level world, CallbackInfo ci) {
-			if (Getters.GLOBAL_DIFFICULTY_GETTER == null) return;
-			final var difficulty = Getters.GLOBAL_DIFFICULTY_GETTER.get();
+			final var difficulty = getGlobalDifficulty();
+			if (difficulty == null) return;
 			if (difficulty.getNumberOfDeath() < 21) return;
 			MobUtils.customSpawn(getRandom(), 2 * (difficulty.getNumberOfDeath() - 21), 40, () -> {
 				this.entityData.set(DATA_IS_POWERED, true);

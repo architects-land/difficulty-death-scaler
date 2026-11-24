@@ -8,7 +8,8 @@ import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import world.anhgelus.architectsland.difficultydeathscaler.utils.Getters;
+
+import static world.anhgelus.architectsland.difficultydeathscaler.DifficultyDeathScaler.getGlobalDifficulty;
 
 @Mixin(LivingEntity.class)
 public abstract class StrongerDragon {
@@ -28,7 +29,7 @@ public abstract class StrongerDragon {
 			.lookupOrThrow(DamageTypes.EXPLOSION.registryKey())
 			.getValue(DamageTypes.BAD_RESPAWN_POINT);
 		if (source.type() != exp && source.type() != badRespawnPoint) return dmg;
-		final var lvl = Math.min(Getters.GLOBAL_DIFFICULTY_GETTER.get().getNumberOfDeath(), 40);
+		final var lvl = Math.min(getGlobalDifficulty().getNumberOfDeath(), 40);
 		// percentage of damage: 1 - (level-1)/40
 		return (float) Math.floor(
 			Math.min((1 - (float) (lvl - 1) / 40) * dmg, dmg)

@@ -61,36 +61,35 @@ public class GlobalDifficultyManager extends DifficultyManager<DifficultyState.S
 			updater.getModifier(WaypointReceiveModifier.class).update(WaypointReceiveModifier.BASE_VALUE);
 			updater.updateDifficulty(1);
 		}),
-		new Step(1, (server, gamerules, updater) -> updater.updateDifficulty(2)),
-		new Step(2, (server, gamerules, updater) -> {
-			gamerules.set(GameRules.PLAYERS_SLEEPING_PERCENTAGE, 70, server);
-		}),
-		new Step(3, (server, gamerules, updater) -> updater.updateDifficulty(3)),
-		new Step(5, (server, gamerules, updater) -> {
+		new Step(1, (_, _, updater) ->
+			updater.updateDifficulty(2)),
+		new Step(2, (server, gamerules, _) ->
+			gamerules.set(GameRules.PLAYERS_SLEEPING_PERCENTAGE, 70, server)),
+		new Step(3, (_, _, updater) ->
+			updater.updateDifficulty(3)),
+		new Step(5, (server, gamerules, _) -> {
 			gamerules.set(GameRules.SPAWN_PHANTOMS, true, server);
 			gamerules.set(GameRules.BLOCK_EXPLOSION_DROP_DECAY, true, server);
 			gamerules.set(GameRules.MOB_EXPLOSION_DROP_DECAY, true, server);
 		}),
-		new Step(7, (server, gamerules, updater) -> {
+		new Step(7, (_, _, updater) -> {
 			updater.getModifier(WaypointReceiveModifier.class).update(10000);
 			updater.getModifier(FollowRangeModifier.class).update(0.25);
 			BETTER_SKELETON = true;
 		}),
-		new Step(8, (server, gamerules, updater) -> {
-			updater.getModifier(FallDamageMultiplierModifier.class).update(0.25);
-		}),
-		new Step(10, (server, gamerules, updater) -> {
+		new Step(8, (_, _, updater) ->
+			updater.getModifier(FallDamageMultiplierModifier.class).update(0.25)),
+		new Step(10, (_, _, updater) -> {
 			updater.getModifier(WaypointReceiveModifier.class).update(7500);
 			updater.getModifier(HealthModifier.class).update(-2);
 		}),
-		new Step(12, (server, gamerules, updater) -> {
-			updater.getModifier(StepHeightModifier.class).update(0.6);
-		}),
-		new Step(13, (server, gamerules, updater) -> {
+		new Step(12, (_, _, updater) ->
+			updater.getModifier(StepHeightModifier.class).update(0.6)),
+		new Step(13, (server, gamerules, _) -> {
 			gamerules.set(GameRules.TNT_EXPLOSION_DROP_DECAY, true, server);
 			gamerules.set(GameRules.ENDER_PEARLS_VANISH_ON_DEATH, true, server);
 		}),
-		new Step(15, (server, gamerules, updater) -> {
+		new Step(15, (_, _, updater) -> {
 			updater.getModifier(SpawnReinforcementsModifier.class).update(0.25);
 			BETTER_ZOMBIES = true;
 		}),
@@ -98,58 +97,46 @@ public class GlobalDifficultyManager extends DifficultyManager<DifficultyState.S
 			updater.getModifier(WaypointReceiveModifier.class).update(5000);
 			gamerules.set(GameRules.REDUCED_DEBUG_INFO, true, server);
 		}),
-		new Step(18, (server, gamerules, updater) -> {
-			updater.getModifier(FallDamageMultiplierModifier.class).update(0.5);
-		}),
-		new Step(20, (server, gamerules, updater) -> {
-			updater.getModifier(HealthModifier.class).update(-4);
-		}),
-		new Step(21, (server, gamerules, updater) -> {
-			updater.getModifier(FallDamageMultiplierModifier.class).update(0.5);
-		}),
+		new Step(18, (_, _, updater) ->
+			updater.getModifier(FallDamageMultiplierModifier.class).update(0.5)),
+		new Step(20, (_, _, updater) ->
+			updater.getModifier(HealthModifier.class).update(-4)),
+		new Step(21, (_, _, updater) ->
+			updater.getModifier(FallDamageMultiplierModifier.class).update(0.5)),
 		new Step(22, (server, gamerules, updater) -> {
 			updater.getModifier(WaypointReceiveModifier.class).update(3000);
 			gamerules.set(GameRules.PLAYERS_SLEEPING_PERCENTAGE, 100, server);
 		}),
-		new Step(23, (server, gamerules, updater) -> {
-			updater.getModifier(FollowRangeModifier.class).update(0.35);
-		}),
-		new Step(24, (server, gamerules, updater) -> {
-			gamerules.set(GameRules.WATER_SOURCE_CONVERSION, false, server);
-		}),
-		new Step(25, (server, gamerules, updater) -> {
-			updater.getModifier(SpawnReinforcementsModifier.class).update(0.5);
-		}),
-		new Step(26, (server, gamerules, updater) -> {
-			updater.getModifier(StepHeightModifier.class).update(1);
-		}),
+		new Step(23, (_, _, updater) ->
+			updater.getModifier(FollowRangeModifier.class).update(0.35)),
+		new Step(24, (server, gamerules, _) ->
+			gamerules.set(GameRules.WATER_SOURCE_CONVERSION, false, server)),
+		new Step(25, (_, _, updater) ->
+			updater.getModifier(SpawnReinforcementsModifier.class).update(0.5)),
+		new Step(26, (_, _, updater) ->
+			updater.getModifier(StepHeightModifier.class).update(1)),
 		new Step(28, (server, gamerules, updater) -> {
 			updater.getModifier(WaypointReceiveModifier.class).update(2000);
 			gamerules.set(GameRules.LIMITED_CRAFTING, true, server);
 		}),
-		new Step(30, (server, gamerules, updater) -> {
-			gamerules.set(GameRules.UNIVERSAL_ANGER, true, server);
-		}),
-		new Step(32, (server, gamerules, updater) -> {
-			updater.getModifier(FallDamageMultiplierModifier.class).update(1);
-		}),
-		new Step(33, (server, gamerules, updater) -> {
-			updater.getModifier(SpawnReinforcementsModifier.class).update(0.75);
-		}),
-		new Step(35, (server, gamerules, updater) -> {
+		new Step(30, (server, gamerules, _) ->
+			gamerules.set(GameRules.UNIVERSAL_ANGER, true, server)),
+		new Step(32, (_, _, updater) ->
+			updater.getModifier(FallDamageMultiplierModifier.class).update(1)),
+		new Step(33, (_, _, updater) ->
+			updater.getModifier(SpawnReinforcementsModifier.class).update(0.75)),
+		new Step(35, (_, _, updater) -> {
 			updater.getModifier(FollowRangeModifier.class).update(1);
 			BETTER_CREEPERS = true;
 		}),
-		new Step(37, (server, gamerules, updater) -> {
-			gamerules.set(GameRules.FORGIVE_DEAD_PLAYERS, false, server);
-		}),
-		new Step(40, (server, gamerules, updater) -> {
-			gamerules.set(GameRules.NATURAL_HEALTH_REGENERATION, false, server);
-		}),
+		new Step(37, (server, gamerules, _) ->
+			gamerules.set(GameRules.FORGIVE_DEAD_PLAYERS, false, server)),
+		new Step(40, (server, gamerules, _) ->
+			gamerules.set(GameRules.NATURAL_HEALTH_REGENERATION, false, server)),
 	};
 	public static int PIGLIN_BRUTES_BOOST = 0;
 	public static boolean POLAR_NIGHT = false;
-	public static EntityModifies CUSTOM_SPAWN_EFFECTS = (entity) -> {
+	public static EntityModifies CUSTOM_SPAWN_EFFECTS = (_) -> {
 	};
 	protected static boolean BETTER_SKELETON = false;
 	protected static boolean BETTER_ZOMBIES = false;
@@ -299,7 +286,7 @@ public class GlobalDifficultyManager extends DifficultyManager<DifficultyState.S
 	}
 
 	public void save(Map<UUID, PlayerDifficultyManager> players) {
-		var base = save();
+		final var base = super.save();
 		base.increaseEnabled(increaser.isEnabled())
 			.timeBeforeIncrease(increaser.getTickingBeforeRun());
 		for (var p : players.entrySet()) {

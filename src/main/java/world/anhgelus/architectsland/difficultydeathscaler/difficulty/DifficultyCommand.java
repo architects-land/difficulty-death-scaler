@@ -118,7 +118,7 @@ public class DifficultyCommand {
 			final var source = context.getSource();
 			final var target = source.getPlayer();
 			if (target == null) {
-				source.sendSuccess(() -> Component.literal("You are not a player"), false);
+				source.sendFailure(Component.literal("You are not a player"));
 				return 2;
 			}
 			return sendPlayerDifficulty(context, target);
@@ -129,8 +129,7 @@ public class DifficultyCommand {
 		final var source = context.getSource();
 		final var server = source.getServer();
 		source.sendSuccess(() ->
-				getPlayerDifficulty(target)
-					.getDifficultyUpdate(server.overworld().getDifficulty()),
+				getPlayerDifficulty(target).getDifficultyUpdate(server.overworld().getDifficulty()),
 			false);
 		return Command.SINGLE_SUCCESS;
 	}

@@ -20,7 +20,6 @@ import world.anhgelus.architectsland.difficultydeathscaler.difficulty.Difficulty
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.DifficultyUpdater;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.global.GlobalDifficultyManager;
 import world.anhgelus.architectsland.difficultydeathscaler.difficulty.modifier.*;
-import world.anhgelus.architectsland.difficultydeathscaler.timer.TickTask;
 import world.anhgelus.architectsland.difficultydeathscaler.utils.Constants;
 
 import java.time.LocalDateTime;
@@ -33,92 +32,81 @@ import java.util.Optional;
 public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.PlayerData> {
 	public static final int SECONDS_BEFORE_DECREASED = 24 * 60 * 60;
 	public static final Step[] STEPS = new Step[]{
-		new Step(0, (server, gamerules, updater) -> {
+		new Step(0, (_, _, updater) -> {
 			updater.getModifier(HealthModifier.class).update(0);
 //                updater.getModifier(LuckModifier.class).update(0.1);
 			updater.getModifier(BlockBreakSpeedModifier.class).update(0.4); // is haste 2
 			updater.getModifier(MovementSpeedModifier.class).update(0.1); // is speed 1
 			updater.getModifier(WaypointTransmitModifier.class).update(WaypointTransmitModifier.BASE_VALUE);
 		}),
-		new Step(1, (server, gamerules, updater) -> {
+		new Step(1, (_, _, updater) -> {
 //                updater.getModifier(LuckModifier.class).update(0);
 			updater.getModifier(BlockBreakSpeedModifier.class).update(0.2); // is haste 1
 			updater.getModifier(MovementSpeedModifier.class).update(0);
 			updater.getModifier(WaypointTransmitModifier.class).update(15000);
 		}),
-		new Step(2, (server, gamerules, updater) -> {
+		new Step(2, (_, _, updater) -> {
 			updater.getModifier(HealthModifier.class).update(-2);
 			updater.getModifier(WaypointTransmitModifier.class).update(10000);
 		}),
-		new Step(3, (server, gamerules, updater) -> {
+		new Step(3, (_, _, updater) -> {
 			updater.getModifier(BlockBreakSpeedModifier.class).update(0);
 			updater.getModifier(HealthModifier.class).update(-4);
 			updater.getModifier(WaypointTransmitModifier.class).update(7500);
 		}),
-		new Step(5, (server, gamerules, updater) -> {
+		new Step(5, (_, _, updater) -> {
 			updater.getModifier(HealthModifier.class).update(-6);
 			updater.getModifier(WaypointTransmitModifier.class).update(5000);
 		}),
-		new Step(7, (server, gamerules, updater) -> {
+		new Step(7, (_, _, updater) -> {
 			updater.getModifier(MovementSpeedModifier.class).update(-0.1); // is slowness 1
 		}),
-		new Step(8, (server, gamerules, updater) -> {
+		new Step(8, (_, _, updater) -> {
 			updater.getModifier(BlockBreakSpeedModifier.class).update(-0.2); // is mining fatigue 1
 //                updater.getModifier(LuckModifier.class).update(-0.2);
 			updater.getModifier(WaypointTransmitModifier.class).update(2500);
 		}),
-		new Step(10, (server, gamerules, updater) -> {
-			updater.getModifier(HealthModifier.class).update(-8);
-		}),
-		new Step(12, (server, gamerules, updater) -> {
+		new Step(10, (_, _, updater) ->
+			updater.getModifier(HealthModifier.class).update(-8)),
+		new Step(12, (_, _, updater) -> {
 			updater.getModifier(MovementSpeedModifier.class).update(-0.2); // is slowness 2
 			updater.getModifier(WaypointTransmitModifier.class).update(1000);
 		}),
-		new Step(15, (server, gamerules, updater) -> {
-			updater.getModifier(HealthModifier.class).update(-10);
-		}),
+		new Step(15, (_, _, updater) ->
+			updater.getModifier(HealthModifier.class).update(-10)),
 	};
 	public static final Identifier BONUS_HEARTS_ID = DifficultyDeathScaler.id("bonus_hearts");
 	private final GlobalDifficultyManager globalManager;
-	private final List<TickTask> deathDayTasks = new ArrayList<>();
 	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-	public Optional<ServerPlayer> player = Optional.empty();
-	protected double healthModifier = 0;
+	public Optional<ServerPlayer> player;
+	protected double healthModifier;
 	//    protected double luckModifier = 0;
-	protected double blockBreakSpeedModifier = 0;
-	protected double movementSpeedModifier = 0;
-	protected double waypointTransmitModifier = 0;
+	protected double blockBreakSpeedModifier;
+	protected double movementSpeedModifier;
+	protected double waypointTransmitModifier;
 
 	public PlayerDifficultyManager(
 		MinecraftServer server,
 		GlobalDifficultyManager globalManager,
 		DifficultyState.PlayerData data
 	) {
-		super(server, STEPS, SECONDS_BEFORE_DECREASED);
+		// required, otherwise this value is null
+		player = Optional.empty();
+		super(server, STEPS, SECONDS_BEFORE_DECREASED, data);
 		this.globalManager = globalManager;
-
-		this.data = data;
-		delayFirstTask(data.timeBeforeReduce());
-
-		for (final var timeEnd : data.deathDayEnd()) {
-			try {
-				newDeathDay(timeEnd);
-			} catch (IllegalArgumentException e) {
-				DifficultyDeathScaler.LOGGER.error("An error occurred while loading data", e);
-				DifficultyDeathScaler.LOGGER.warn("Removing one day death");
-			}
-		}
 	}
 
 	@Override
 	protected void onUpdate(UpdateType updateType, DifficultyUpdater updater, int before) {
-		updateModifiersValue(updater);
 		player.ifPresent(player -> {
+			applyModifiers();
 			ModCriteria.REACH_PLAYER_DIFFICULTY.trigger(player, data.deaths());
 			if (updateType == UpdateType.DECREASE && before >= 15)
 				ModCriteria.ARBITRARY.trigger(player, AdvancementProvider.LEAVE_NO_RETURN_PLAYER);
 
-			player.sendSystemMessage(Component.translationArg(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
+			player.sendSystemMessage(Component.translationArg(
+				generateDifficultyUpdate(updateType, updater.getDifficulty())
+			), false);
 
 			playSoundUpdate(updateType, player);
 		});
@@ -128,51 +116,38 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 	protected void onDeath(UpdateType updateType, DifficultyUpdater updater) {
 		super.onDeath(updateType, updater);
 
-		player.ifPresentOrElse(player -> {
-			newDeathDay(24 * 60 * 60 + System.currentTimeMillis() / 1000);
-			if (!diedTooMuch()) return;
-			// temp ban
-			DifficultyDeathScaler.LOGGER.info(
-				"{} has skill issue: banned for 12 hours",
-				player.getName().getString()
-			);
-			kickIfDiedTooMuch();
-			// resetting death day
-			resetDeathDay();
-		}, () -> {
-			DifficultyDeathScaler.LOGGER.error("Updating death of null player. UpdateType {}", updateType);
-			throw new IllegalStateException("Player is null");
-		});
+		final var p = player.orElseThrow();
+		newDeathDay(24 * 60 * 60 + System.currentTimeMillis() / 1000);
+		if (!diedTooMuch()) return;
+		// temp ban
+		DifficultyDeathScaler.LOGGER.info(
+			"{} has skill issue: banned for 12 hours",
+			p.getName().getString()
+		);
+		kickIfDiedTooMuch();
+		// resetting death day
+		resetDeathDay();
 	}
 
 	public void newDeathDay(long endTime) {
 		final var diff = endTime - System.currentTimeMillis() / 1000; // time passed
 		if (diff <= 0) {
-			DifficultyDeathScaler.LOGGER.info("Death day is already passed, skipping");
+			DifficultyDeathScaler.LOGGER.warn("Death day is already passed, skipping");
 			return;
 		}
 		data.addDeathDayEnd(endTime);
-		scheduleDeathDayTask(diff * 20);
 	}
 
 	@Override
 	protected void updateModifiersValue(List<Modifier<?>> modifiers) {
 		modifiers.forEach(m -> {
-			if (m instanceof final HealthModifier mod) {
-				healthModifier = mod.getValue();
-				player.ifPresent(mod::apply);
-			}/* else if (m instanceof final LuckModifier mod) {
-                luckModifier = mod.getValue();
-                mod.apply(player);
-            } */ else if (m instanceof final BlockBreakSpeedModifier mod) {
-				blockBreakSpeedModifier = mod.getValue();
-				player.ifPresent(mod::apply);
-			} else if (m instanceof final MovementSpeedModifier mod) {
-				movementSpeedModifier = mod.getValue();
-				player.ifPresent(mod::apply);
-			} else if (m instanceof final WaypointTransmitModifier mod) {
-				waypointTransmitModifier = mod.getValue();
-				player.ifPresent(mod::apply);
+			switch (m) {
+				case final HealthModifier mod -> healthModifier = mod.getValue();
+				case final BlockBreakSpeedModifier mod -> blockBreakSpeedModifier = mod.getValue();
+				case final MovementSpeedModifier mod -> movementSpeedModifier = mod.getValue();
+				case final WaypointTransmitModifier mod ->
+					waypointTransmitModifier = mod.getValue();
+				default -> throw new IllegalStateException("Unexpected value: " + m);
 			}
 		});
 		applyBonusHearts();
@@ -202,11 +177,10 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 		final var txt = Component.empty();
 		txt.append(generateHeaderUpdate(updateType));
 
-		final var deathDay = data.deathDayEnd().size();
+		final var deathDayEnd = data.deathDayEnd();
+		final var deathDay = deathDayEnd.size();
 
-		final var deathBefore = player.orElseThrow()
-			.level()
-			.getGameRules()
+		final int deathBefore = server.getGameRules()
 			.get(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN);
 
 		if (deathDay != 0) {
@@ -225,7 +199,9 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 				txt.append("s");
 			}
 			txt.append(" in 24 hours. You will lose one of these in ");
-			txt.append(Component.literal(formatSecondsBig(data.deathDayEnd().getFirst() - System.currentTimeMillis() / 1000)).withStyle(Constants.COLOR_TIME));
+			txt.append(Component.literal(
+				formatSecondsBig(deathDayEnd.getFirst() - System.currentTimeMillis() / 1000)
+			).withStyle(Constants.COLOR_TIME));
 			txt.append(".\n");
 		}
 		txt.append("\n");
@@ -248,6 +224,7 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 	}
 
 	@Override
+	@Deprecated
 	public void applyModifiers(ServerPlayer player) {
 		applyModifiers();
 	}
@@ -276,20 +253,12 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 		kickIfDiedTooMuch();
 	}
 
-	private void scheduleDeathDayTask(long ticksDelay) {
-		final var task = new TickTask(deathDayTasks::removeFirst, ticksDelay);
-		timer.dds_runTask(task);
-		deathDayTasks.add(task);
-	}
-
 	private void resetDeathDay() {
-		deathDayTasks.forEach(TickTask::cancel);
-		deathDayTasks.clear();
 		data = data.deathDayEnd(new ArrayList<>());
 	}
 
 	public boolean diedTooMuch() {
-		final var rules = player.orElseThrow().level().getGameRules();
+		final var rules = server.getGameRules();
 		return rules.get(DifficultyDeathScaler.ENABLE_TEMP_BAN) &&
 			data.deathDayEnd().size() >= rules.get(DifficultyDeathScaler.DEATH_BEFORE_TEMP_BAN);
 	}
@@ -308,7 +277,6 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 	 */
 	public boolean kickIfDiedTooMuch() {
 		final var p = player.orElseThrow();
-		final var server = p.level().getServer();
 		if (!diedTooMuch()) return false;
 		final var time = LocalDateTime.now();
 		final var now = Date.from(time.atZone(ZoneId.systemDefault()).toInstant());

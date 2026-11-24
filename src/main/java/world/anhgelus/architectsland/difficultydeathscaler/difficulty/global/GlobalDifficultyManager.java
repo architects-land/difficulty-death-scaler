@@ -141,22 +141,21 @@ public class GlobalDifficultyManager extends DifficultyManager<DifficultyState.S
 	protected static boolean BETTER_SKELETON = false;
 	protected static boolean BETTER_ZOMBIES = false;
 	protected static boolean BETTER_CREEPERS = false;
-	private final DifficultyIncrease increaser;
-	protected double healthModifier = 0;
-	protected double followRangeModifier = 0;
-	protected double stepHeightModifier = 0;
-	protected double spawnReinforcementModifier = 0;
-	protected double fallDamageMultiplierModifier = 0;
-	protected double waypointReceiveModifier = 0;
+	private final DifficultyIncrease increaser = new DifficultyIncrease(
+		this, timer, data.timeBeforeIncrease(), data.increaseEnabled()
+	);
+	protected double healthModifier;
+	protected double followRangeModifier;
+	protected double stepHeightModifier;
+	protected double spawnReinforcementModifier;
+	protected double fallDamageMultiplierModifier;
+	protected double waypointReceiveModifier;
 
 	public GlobalDifficultyManager(MinecraftServer server) {
-		super(server, STEPS, SECONDS_BEFORE_DECREASED);
-
-		data = DifficultyState.get(server);
-
-		increaser = new DifficultyIncrease(this, timer, data.timeBeforeIncrease(), data.increaseEnabled());
-		// update difficulty after restart
-		server.setDifficulty(getUpdater().getDifficulty(), true);
+		super(server, STEPS, SECONDS_BEFORE_DECREASED, DifficultyState.get(server));
+//
+//		// update difficulty after restart
+//		server.setDifficulty(getUpdater().getDifficulty(), true);
 	}
 
 	public static boolean areSkeletonsBetter() {
@@ -176,8 +175,6 @@ public class GlobalDifficultyManager extends DifficultyManager<DifficultyState.S
 		final var difficulty = POLAR_NIGHT ? updater.getDifficulty() : Difficulty.HARD;
 		server.setDifficulty(difficulty, true);
 
-		updateModifiersValue(updater);
-
 		final var pm = server.getPlayerList();
 
 		pm.getPlayers().forEach(p -> {
@@ -196,25 +193,25 @@ public class GlobalDifficultyManager extends DifficultyManager<DifficultyState.S
 		pm.broadcastSystemMessage(Component.translationArg(generateDifficultyUpdate(updateType, updater.getDifficulty())), false);
 
 
-		if (updateType != UpdateType.AUTOMATIC_INCREASE && updateType != UpdateType.DECREASE)
+		if (increaser != null &&
+			updateType != UpdateType.AUTOMATIC_INCREASE &&
+			updateType != UpdateType.DECREASE)
 			increaser.restart();
 	}
 
 	@Override
 	protected void updateModifiersValue(List<Modifier<?>> modifiers) {
 		modifiers.forEach(m -> {
-			if (m instanceof final HealthModifier mod) {
-				healthModifier = mod.getValue();
-			} else if (m instanceof final FollowRangeModifier mod) {
-				followRangeModifier = mod.getValue();
-			} else if (m instanceof final StepHeightModifier mod) {
-				stepHeightModifier = mod.getValue();
-			} else if (m instanceof final SpawnReinforcementsModifier mod) {
-				spawnReinforcementModifier = mod.getValue();
-			} else if (m instanceof final FallDamageMultiplierModifier mod) {
-				fallDamageMultiplierModifier = mod.getValue();
-			} else if (m instanceof final WaypointReceiveModifier mod) {
-				waypointReceiveModifier = mod.getValue();
+			switch (m) {
+				case final HealthModifier mod -> healthModifier = mod.getValue();
+				case final FollowRangeModifier mod -> followRangeModifier = mod.getValue();
+				case final StepHeightModifier mod -> stepHeightModifier = mod.getValue();
+				case final SpawnReinforcementsModifier mod ->
+					spawnReinforcementModifier = mod.getValue();
+				case final FallDamageMultiplierModifier mod ->
+					fallDamageMultiplierModifier = mod.getValue();
+				case final WaypointReceiveModifier mod -> waypointReceiveModifier = mod.getValue();
+				default -> throw new IllegalStateException("Unexpected value: " + m);
 			}
 		});
 	}

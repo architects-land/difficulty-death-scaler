@@ -73,6 +73,14 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 				Codec.unboundedMap(Codec.STRING, PlayerData.CODEC)
 			);
 
+		private static Long increase(Long l) {
+			return l != null ? l + 1 : 1;
+		}
+
+		private static Integer increase(Integer l) {
+			return l != null ? l + 1 : 1;
+		}
+
 		private Map<String, PlayerData> getPlayersMap() {
 			return server.globalAttachments().getAttachedOrCreate(PLAYERS, HashMap::new);
 		}
@@ -113,8 +121,8 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 		@Override
 		public ServerData increaseDeath() {
 			final var g = server.globalAttachments();
-			g.modifyAttached(DEATHS_TOTAL, d -> d + 1);
-			g.modifyAttached(DEATHS, d -> d + 1);
+			g.modifyAttached(DEATHS_TOTAL, ServerData::increase);
+			g.modifyAttached(DEATHS, ServerData::increase);
 			return this;
 		}
 
@@ -159,7 +167,7 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 
 		@Override
 		public ServerData increaseSecondsLowerDifficulty() {
-			server.globalAttachments().modifyAttached(SECONDS_LOWER_DIFFICULTY, s -> s + 1);
+			server.globalAttachments().modifyAttached(SECONDS_LOWER_DIFFICULTY, ServerData::increase);
 			return this;
 		}
 	}
@@ -187,7 +195,9 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 		}
 
 		public List<Long> deathDayEnd() {
-			return new ArrayList<>(deathDayEnd);
+			return deathDayEnd.stream()
+				.filter(it -> it > System.currentTimeMillis() / 1000)
+				.toList();
 		}
 
 		public PlayerData deathDayEnd(List<Long> ll) {

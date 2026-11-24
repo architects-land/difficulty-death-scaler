@@ -63,7 +63,7 @@ public class Modifier<T extends LivingEntity> {
 	 *
 	 * @param entity Entity to apply the modifier
 	 */
-	public void apply(@Nullable T entity) {
+	public void apply(@Nullable LivingEntity entity) {
 		if (entity == null) return;
 		apply(id, attribute, operation, entity, value);
 	}

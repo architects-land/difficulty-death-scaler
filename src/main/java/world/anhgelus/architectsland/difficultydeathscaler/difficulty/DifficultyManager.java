@@ -30,11 +30,15 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 
 	protected DifficultyManager(MinecraftServer server,
 	                            Step[] steps,
-	                            long secondsBeforeDecreased) {
+	                            long secondsBeforeDecreased,
+	                            T data) {
 		timer = TimerAccess.getTimerFromOverworld(server);
 		this.server = server;
 		this.steps = steps;
 		this.secondsBeforeDecreased = secondsBeforeDecreased;
+		this.data = data;
+		delayFirstTask(data.timeBeforeReduce());
+		updateDeath(UpdateType.SET, data.deaths());
 	}
 
 	protected static void playSoundUpdate(UpdateType updateType, ServerPlayer player) {
@@ -57,10 +61,7 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 	public void setNumberOfDeath(int n) {
 		final var before = data.deaths();
 		data = data.deaths(n);
-		// this order is required because without it will break the counter
-		// BUT this provokes a bad timer to be displayed after restart (not really important)
 		updateDeath(UpdateType.SET, before);
-		updateTimerTask();
 	}
 
 	public long getTimeBeforeReduce() {
@@ -81,26 +82,24 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 		final var before = data.deaths();
 		data = data.increaseDeath();
 		if (automaticIncrease) {
-			server.getPlayerList().getPlayers().forEach(p -> {
-				ModCriteria.ARBITRARY.trigger(p, AdvancementProvider.DIFFICULTY_INCREASE);
-			});
+			server.getPlayerList().getPlayers().forEach(p ->
+				ModCriteria.ARBITRARY.trigger(p, AdvancementProvider.DIFFICULTY_INCREASE));
 			updateDeath(UpdateType.AUTOMATIC_INCREASE, before);
 		} else updateDeath(UpdateType.INCREASE, before);
-		updateTimerTask();
 	}
 
 	public void updateTimerTask() {
 		if (reducerTask != null && reducerTask.isRunning()) reducerTask.cancel();
 		if (data.deaths() == 0) {
-			data = data.secondsLowerDifficulty(0);
 			secondsLowerDifficultyCounterTask = new TickTask(() -> {
 				if (data.deaths() > 0 && secondsLowerDifficultyCounterTask.isRunning())
 					secondsLowerDifficultyCounterTask.cancel();
-				data = data.increaseSecondsLowerDifficulty();
+				else data = data.increaseSecondsLowerDifficulty();
 			}, 20, 20);
 			timer.dds_runTask(secondsLowerDifficultyCounterTask);
 			return;
 		}
+		data = data.secondsLowerDifficulty(0);
 		reducerTask = executeTask(() -> {
 			decreaseDeath();
 			if (data.deaths() == 0) reducerTask.cancel();
@@ -140,10 +139,16 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 			onDeath(updateType, updater); // increase is always linked with the death
 
 		if (Arrays.stream(steps).noneMatch(x -> x.level() == data.deaths()) &&
-			updateType != UpdateType.SET)
+			updateType != UpdateType.SET) {
+			updateTimerTask();
 			return;
+		}
 
+		updateModifiersValue(updater);
+		// this order is required because without it will break the counter
+		// BUT this provokes a bad timer to be displayed after restart (not really important)
 		onUpdate(updateType, updater, before);
+		updateTimerTask();
 	}
 
 	protected DifficultyUpdater getUpdater() {
@@ -187,15 +192,6 @@ public abstract class DifficultyManager<T extends DifficultyState<T>> extends Di
 	protected abstract @NotNull Component generateDifficultyUpdate(@Nullable UpdateType updateType, @Nullable net.minecraft.world.Difficulty difficulty);
 
 	public abstract void applyModifiers(ServerPlayer player);
-
-	protected List<Modifier<?>> getModifiers(int level) {
-		final var updater = new DifficultyUpdater();
-		for (final Step step : steps) {
-			if (step.level() <= level) step.reached(server, server.getGameRules(), updater);
-			else break;
-		}
-		return updater.getModifiers();
-	}
 
 	protected void updateModifiersValue(DifficultyUpdater updater) {
 		updateModifiersValue(updater.getModifiers());

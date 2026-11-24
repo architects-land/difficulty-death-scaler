@@ -35,6 +35,7 @@ import world.anhgelus.architectsland.difficultydeathscaler.sleep.Sleeper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class DifficultyDeathScaler implements ModInitializer {
@@ -77,10 +78,12 @@ public class DifficultyDeathScaler implements ModInitializer {
 	 * Set player in difficulty manager
 	 */
 	public static PlayerDifficultyManager getPlayerDifficulty(ServerPlayer player) {
-		return PLAYER_DIFFICULTY_MANAGERS.computeIfAbsent(player.getUUID(), _ ->
+		final var diff = PLAYER_DIFFICULTY_MANAGERS.computeIfAbsent(player.getUUID(), _ ->
 			new PlayerDifficultyManager(player.level().getServer(),
 				GLOBAL_DIFFICULTY_MANAGER,
 				DifficultyState.get(player)));
+		diff.player = Optional.of(player);
+		return diff;
 	}
 
 	public static GlobalDifficultyManager getGlobalDifficulty() {

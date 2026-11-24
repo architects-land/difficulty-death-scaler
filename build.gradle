@@ -25,6 +25,12 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
+runClient.configure {
+    systemProperty("MC_DEBUG_ENABLED", "")
+    systemProperty("MC_DEBUG_VERBOSE_COMMAND_ERRORS", "")
+    systemProperty("MC_DEBUG_COMMAND_STACK_TRACES", "")
+}
+
 processResources {
     inputs.property "version", project.version
     inputs.property "minecraft_version", project.minecraft_version

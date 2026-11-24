@@ -68,32 +68,32 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 				Codec.BOOL
 			);
 		private static final AttachmentType<Map<String, PlayerData>> PLAYERS =
-			AttachmentRegistry.create(
+			AttachmentRegistry.createPersistent(
 				DifficultyDeathScaler.id("players"),
-				builder -> builder
-					.initializer(HashMap::new)
-					.persistent(Codec.unboundedMap(Codec.STRING, PlayerData.CODEC))
+				Codec.unboundedMap(Codec.STRING, PlayerData.CODEC)
 			);
 
+		private Map<String, PlayerData> getPlayersMap() {
+			return server.globalAttachments().getAttachedOrCreate(PLAYERS, HashMap::new);
+		}
+
 		public PlayerData getPlayer(UUID uuid) {
-			return server.globalAttachments()
-				.getAttached(PLAYERS)
-				.getOrDefault(uuid.toString(), new PlayerData());
+			return getPlayersMap().getOrDefault(uuid.toString(), new PlayerData());
 		}
 
 		public ServerData setPlayer(UUID uuid, PlayerData data) {
-			server.globalAttachments()
-				.getAttached(PLAYERS)
-				.put(uuid.toString(), data);
+			final var map = new HashMap<>(getPlayersMap());
+			map.put(uuid.toString(), data);
+			server.globalAttachments().setAttached(PLAYERS, map);
 			return this;
 		}
 
 		public Collection<Map.Entry<String, PlayerData>> getPlayers() {
-			return server.globalAttachments().getAttached(PLAYERS).entrySet();
+			return getPlayersMap().entrySet();
 		}
 
 		public long timeBeforeIncrease() {
-			return server.globalAttachments().getAttachedOrElse(TIME_BEFORE_INCREASE, 0L);
+			return server.globalAttachments().getAttachedOrCreate(TIME_BEFORE_INCREASE, () -> 0L);
 		}
 
 		public ServerData timeBeforeIncrease(long t) {
@@ -102,7 +102,7 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 		}
 
 		public boolean increaseEnabled() {
-			return server.globalAttachments().getAttachedOrElse(INCREASE_ENABLED, false);
+			return server.globalAttachments().getAttachedOrCreate(INCREASE_ENABLED, () -> false);
 		}
 
 		public ServerData increaseEnabled(boolean b) {
@@ -120,7 +120,7 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 
 		@Override
 		public int deaths() {
-			return server.globalAttachments().getAttachedOrElse(DEATHS, 0);
+			return server.globalAttachments().getAttachedOrCreate(DEATHS, () -> 0);
 		}
 
 		@Override
@@ -131,12 +131,12 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 
 		@Override
 		public int deathsTotal() {
-			return server.globalAttachments().getAttachedOrElse(DEATHS_TOTAL, 0);
+			return server.globalAttachments().getAttachedOrCreate(DEATHS_TOTAL, () -> 0);
 		}
 
 		@Override
 		public long timeBeforeReduce() {
-			return server.globalAttachments().getAttachedOrElse(TIME_BEFORE_REDUCE, 0L);
+			return server.globalAttachments().getAttachedOrCreate(TIME_BEFORE_REDUCE, () -> 0L);
 		}
 
 		@Override
@@ -147,7 +147,8 @@ public sealed interface DifficultyState<T extends DifficultyState<T>> {
 
 		@Override
 		public long secondsLowerDifficulty() {
-			return server.globalAttachments().getAttachedOrElse(SECONDS_LOWER_DIFFICULTY, 0L);
+			return server.globalAttachments()
+				.getAttachedOrCreate(SECONDS_LOWER_DIFFICULTY, () -> 0L);
 		}
 
 		@Override

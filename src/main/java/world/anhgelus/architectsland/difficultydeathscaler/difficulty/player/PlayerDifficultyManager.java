@@ -253,8 +253,8 @@ public class PlayerDifficultyManager extends DifficultyManager<DifficultyState.P
 	}
 
 	public void applyModifiers() {
-		assert player.isPresent();
-		final var p = player.orElseThrow();
+		if (player.isEmpty()) return;
+		final var p = player.get();
 		HealthModifier.apply(p, healthModifier);
 //        LuckModifier.apply(player, luckModifier);
 		BlockBreakSpeedModifier.apply(p, blockBreakSpeedModifier);

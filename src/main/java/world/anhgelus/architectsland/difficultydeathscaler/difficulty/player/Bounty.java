@@ -55,7 +55,8 @@ public class Bounty extends DifficultyTimer {
 	@Nullable
 	public static Bounty newBounty(MinecraftServer server, GlobalDifficultyManager globalDifficulty, PlayerDifficultyManager playerDifficulty) {
 		if (!server.getGameRules().get(DifficultyDeathScaler.ENABLE_BOUNTY)) return null;
-		final var uuid = playerDifficulty.player.orElseThrow().getUUID();
+		if (playerDifficulty.player.isEmpty()) return null;
+		final var uuid = playerDifficulty.player.get().getUUID();
 		if (bounties.containsKey(uuid)) {
 			DifficultyDeathScaler.LOGGER.warn("Bounty already exists for player {}", uuid);
 			return null;

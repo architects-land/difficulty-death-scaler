@@ -111,8 +111,10 @@ public class DifficultyDeathScaler implements ModInitializer {
 			server.getGameRules().set(GameRules.ADVANCE_TIME, true, server);
 		});
 
-		ServerLifecycleEvents.BEFORE_SAVE.register((_, _, _) ->
-			GLOBAL_DIFFICULTY_MANAGER.save(PLAYER_DIFFICULTY_MANAGERS));
+		ServerLifecycleEvents.BEFORE_SAVE.register((_, _, _) -> {
+			if (GLOBAL_DIFFICULTY_MANAGER != null)
+				GLOBAL_DIFFICULTY_MANAGER.save(PLAYER_DIFFICULTY_MANAGERS);
+		});
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
 			if (!(entity instanceof ServerPlayer player)) {
